@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --natural-navy: #0D2340;
+    --natural-ink: #112238;
+    --natural-teal: #0F5859;
+    --natural-copper: #B74C2B;
+    --natural-gold: #C8A15A;
+    --natural-sage: #A7B29A;
+    --natural-sand: #E7D6BF;
+    --natural-sand-light: #F3ECE2;
+    --natural-ivory: #FAF7F2;
+    --natural-paper: #FFFDF9;
+    --natural-border: #E9DED1;
+    --natural-border-dark: #D8C7B0;
+    --natural-muted: #64748B;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--natural-ivory);
+    color: var(--natural-navy);
+    letter-spacing: -0.01em;
+  }
+
+  [dir="rtl"] {
+    font-family: 'Amiri', 'Plus Jakarta Sans', serif;
+  }
+}
+
+.font-serif-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-arabic-editorial {
+  font-family: 'Amiri', serif;
+}
+
+/* Natural Tones custom utility classes */
+.bg-natural-ivory { background-color: #FAF7F2; }
+.bg-natural-sand { background-color: #E7D6BF; }
+.bg-natural-sand-light { background-color: #F3ECE2; }
+.bg-natural-paper { background-color: #FFFDF9; }
+.bg-natural-navy { background-color: #0D2340; }
+.bg-natural-ink { background-color: #112238; }
+.bg-natural-copper { background-color: #B74C2B; }
+.bg-natural-teal { background-color: #0F5859; }
+.bg-natural-gold { background-color: #C8A15A; }
+.bg-natural-sage { background-color: #A7B29A; }
+
+.border-natural-warm { border-color: #E9DED1; }
+.border-natural-sand { border-color: #D8C7B0; }
+.border-natural-navy { border-color: #0D2340; }
+.border-natural-copper { border-color: #B74C2B; }
+.border-natural-teal { border-color: #0F5859; }
+.border-natural-gold { border-color: #C8A15A; }
+
+.text-natural-navy { color: #0D2340; }
+.text-natural-copper { color: #B74C2B; }
+.text-natural-teal { color: #0F5859; }
+.text-natural-gold { color: #C8A15A; }
+.text-natural-sand { color: #E7D6BF; }
+.text-natural-sage { color: #A7B29A; }
+.text-natural-muted { color: #64748B; }
+
+/* Refined Natural Shadows */
+.shadow-natural-sm {
+  box-shadow: 0 1px 3px rgba(13, 35, 64, 0.05), 0 1px 2px rgba(13, 35, 64, 0.03);
+}
+
+.shadow-natural-md {
+  box-shadow: 0 4px 12px rgba(13, 35, 64, 0.06), 0 1px 3px rgba(13, 35, 64, 0.04);
+}
+
+.shadow-natural-lg {
+  box-shadow: 0 12px 28px rgba(13, 35, 64, 0.08), 0 4px 10px rgba(13, 35, 64, 0.05);
+}
+
+/* Custom orbit animation & responsive treatments */
+@keyframes orbit-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+.orbit-ring {
+  animation: orbit-pulse 6s ease-in-out infinite;
+}
+
+/* Custom Natural Tones Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8C7B0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C8A15A;
+}
+

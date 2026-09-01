@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for Authority Matrix and Role verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    function isBPS() {
+      return isAuthenticated() && getUserRole() == 'bps';
+    }
+
+    function isOperator() {
+      return isAuthenticated() && getUserRole() == 'operator';
+    }
+
+    function isOwner() {
+      return isAuthenticated() && getUserRole() == 'owner';
+    }
+
+    function isPropertyOwner(propertyData) {
+      return isOwner() && request.auth.uid == propertyData.ownerId;
+    }
+
+    function isAssignedOperator(propertyData) {
+      return isOperator() && (request.auth.uid in propertyData.assignedOperatorIds);
+    }
+
+    // --- Properties Collection ---
+    match /properties/{propertyId} {
+      // Guests can ONLY view live/monitored properties or publicly announced shortlisted properties.
+      // Hidden, suspended, or internal unsealed properties are never readable by Guests.
+      allow read: if (
+        resource.data.lifecycle in ['live', 'monitored'] ||
+        (resource.data.lifecycle == 'shortlisted' && resource.data.publiclyAnnounced == true)
+      ) || isBPS() || isPropertyOwner(resource.data) || isAssignedOperator(resource.data);
+
+      // Lifecycle manipulation: Clients cannot set lifecycle directly to 'live' without launch authority
+      allow create: if isBPS();
+      allow update: if isBPS() || (
+        isPropertyOwner(resource.data) &&
+        request.resource.data.lifecycle == resource.data.lifecycle // Owner cannot change lifecycle directly
+      );
+      allow delete: if false; // Destruction forbidden
+    }
+
+    // --- Booking Requests Collection ---
+    // Enforces Single Source of Truth Request flow
+    match /bookingRequests/{requestId} {
+      // Guests can create valid requests, and read only their own
+      allow create: if isAuthenticated() && request.resource.data.guestId == request.auth.uid;
+      
+      // Read access:
+      // - Guest: only their own request
+      // - Assigned Owner: visibility into requests for their owned property
+      // - Assigned Operator: execution queue for their assigned property
+      // - BPS: performance & assurance monitoring across all requests
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.guestId ||
+        isBPS() ||
+        (isOwner() && request.auth.uid == get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId) ||
+        (isOperator() && request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds)
+      );
+
+      // Updates (Execution):
+      // - Operator: can update status (validate, quote, advance) only if assigned to the property
+      // - Owner: Visibility ONLY. Cannot update execution queue unless specifically designated.
+      // - Guest: cannot arbitrarily confirm or modify status.
+      allow update: if isAuthenticated() && (
+        isBPS() ||
+        (
+          isOperator() &&
+          request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds &&
+          // Cannot set to confirmed without proper quoting and authority
+          (request.resource.data.status != 'confirmed' || resource.data.status == 'quoted')
+        )
+      );
+      
+      allow delete: if false;
+    }
+
+    // --- Internal Assessments (TRUST, PROOF, SHIELD) Collection ---
+    // STRICT SECURITY GATE: Guests CANNOT read internal assessment data
+    match /internalAssessments/{assessmentId} {
+      allow read: if isAuthenticated() && (
+        isBPS() ||
+        (isOwner() && request.auth.uid == get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId) ||
+        (isOperator() && request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds)
+      );
+      
+      // Only BPS (Assurance Officers) can write assessments and grant seals
+      allow write: if isBPS();
+    }
+
+    // --- Launch Decisions Collection ---
+    match /launchDecisions/{decisionId} {
+      allow read: if isBPS() || isOwner();
+      // Only Property Owner with verified credentials can record Launch Decision
+      allow write: if isOwner() && request.resource.data.approvedByName != null;
+    }
+  }
+}
