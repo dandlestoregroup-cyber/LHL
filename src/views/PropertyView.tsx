@@ -1,365 +1,96 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRequests } from '../context/RequestContext';
-import { qualifyGuestRequest, resolveBookingMode } from '../lib/lh-core';
-import { ArrowLeft, ArrowRight, ShieldCheck, Award, MapPin, Users, Calendar, Sparkles, Check, AlertCircle } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, BadgeCheck, CalendarDays, Check, Clock3, MapPin, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { useOperating } from '../context/OperatingContext';
+import { bi, momentLabels } from '../lib/display';
+import { DemoRecordMark, EmptyState, StatusPill } from '../components/ui';
+import type { MomentKey } from '../types';
 
-interface PropertyViewProps {
-  slug: string;
-  navigate: (path: string) => void;
-}
+const isoDay = (offset: number) => {
+  const value = new Date();
+  value.setUTCDate(value.getUTCDate() + offset);
+  return value.toISOString().slice(0, 10);
+};
 
-export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) => {
-  const { lang, t, isRTL, user } = useAuth();
-  const { properties, submitNewRequest } = useRequests();
+export function PropertyView({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
+  const { lang, dataset, createEnquiry } = useOperating();
+  const home = dataset.properties.find((item) => item.slug === slug && item.supplyStage === 'live' && item.publiclyVisible);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [form, setForm] = React.useState({ guestName: '', guestPhoneMasked: '', checkIn: isoDay(7), checkOut: isoDay(10), adults: 2, children: 0, requestedMoment: 'slow_morning' as MomentKey });
 
-  const property = properties.find(p => p.slug === slug || p.id === slug) || properties[0];
+  if (!home) {
+    return <div className="page-shell py-16"><EmptyState title="This home is not public in the active mode" titleAr="هذا البيت غير منشور في الوضع الحالي" description="Switch modes or return to the public collection. Hidden, Joining, paused, and declined properties never leak through a direct URL." descriptionAr="غيّر الوضع أو ارجع للمجموعة العامة. العقارات المخفية أو قيد الانضمام أو المتوقفة أو المرفوضة لا تظهر عبر الرابط المباشر." actionLabel="Back to homes" actionLabelAr="العودة للبيوت" onAction={() => navigate('/')} /></div>;
+  }
 
-  const [partySize, setPartySize] = useState(2);
-  const [checkIn, setCheckIn] = useState('2026-09-15');
-  const [checkOut, setCheckOut] = useState('2026-09-18');
-  const [momentFocus, setMomentFocus] = useState('slow_morning');
-  const [guestNotes, setGuestNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionSuccess, setSubmissionSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  // Validate qualification using lh-core
-  const qualificationCheck = qualifyGuestRequest(
-    { partySize, isEvent: false, purpose: 'stay' },
-    {
-      maxCapacity: property.maxCapacity,
-      calendarAuthority: property.calendarAuthority,
-      bookingMode: property.bookingMode
-    }
-  );
-
-  const handleRequestSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
-
-    if (partySize > property.maxCapacity) {
-      setErrorMessage(
-        lang === 'ar'
-          ? `عدد الضيوف (${partySize}) يتجاوز السعة القصوى للمنزل (${property.maxCapacity}).`
-          : `Party size (${partySize}) exceeds the property maximum capacity (${property.maxCapacity}).`
-      );
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    if (!form.guestName.trim() || !form.guestPhoneMasked.trim()) {
+      setError(bi(lang, 'Name and phone are required.', 'الاسم ورقم الهاتف مطلوبان.'));
       return;
     }
-
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      submitNewRequest({
-        propertyId: property.id,
-        propertyName: property.name,
-        propertyNameAr: property.nameAr,
-        propertySlug: property.slug,
-        guestId: user.id || 'g_sarah',
-        guestName: user.name || 'Sarah Mansour',
-        guestEmail: user.email || 'sarah.m@example.com',
-        partySize,
-        dates: { checkIn, checkOut },
-        momentRequested: momentFocus,
-        notes: guestNotes || (lang === 'ar' ? 'اعتكاف متأنٍ لقراءة الكتب والاستمتاع بضوء الصباح.' : 'Quiet reading retreat focused on morning dawns.'),
-        status: 'pending_operator',
-        qualification: {
-          qualified: qualificationCheck.qualified,
-          mode: qualificationCheck.routedTo as 'request' | 'instant',
-          reason: qualificationCheck.reason
-        }
-      });
-
-      setIsSubmitting(false);
-      setSubmissionSuccess(true);
-    }, 450);
+    try {
+      createEnquiry({ ...form, propertyId: home.id });
+      setSubmitted(true);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to create enquiry.');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
-      {/* Top Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-8">
-        <button
-          onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 text-xs uppercase font-bold tracking-[0.2em] text-[#0D2340] hover:text-[#B74C2B] transition-colors"
-        >
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{lang === 'ar' ? 'العودة للمجموعة' : 'Back to Collection'}</span>
-        </button>
+    <div className="page-shell py-10 md:py-14">
+      <button onClick={() => navigate('/')} className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.18em] text-ink-600 hover:text-terracotta-700"><ArrowLeft size={15} className="rtl:rotate-180" />{bi(lang, 'Back to homes', 'العودة للبيوت')}</button>
+      <div className="mt-8 grid gap-4 lg:grid-cols-[1.5fr_.5fr]">
+        <div className="aspect-[16/9] overflow-hidden rounded-[1.75rem] bg-clay-100"><img src={home.heroImage} alt={lang === 'ar' ? home.nameAr : home.name} className="h-full w-full object-cover" /></div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
+          {home.galleryImages.slice(0, 2).map((image) => <div key={image} className="aspect-[4/3] overflow-hidden rounded-[1.4rem] bg-clay-100 lg:aspect-auto"><img src={image} alt="" className="h-full w-full object-cover" /></div>)}
+        </div>
       </div>
 
-      {/* Property Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#C8A15A]/15 text-[#0D2340] border border-[#C8A15A]/30 text-[10px] uppercase font-bold tracking-widest rounded-xs">
-                <Award className="w-3.5 h-3.5 text-[#C8A15A]" />
-                <span>{t.property.verifiedBadge}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0F5859]/10 text-[#0F5859] text-[10px] uppercase font-bold tracking-widest rounded-xs">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{t.property.sealOfStandard}</span>
-              </span>
-            </div>
+      <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_420px]">
+        <div>
+          <div className="flex flex-wrap items-center gap-2"><StatusPill tone="good"><BadgeCheck size={12} />{bi(lang, 'Verified Little Hut home', 'بيت ليتل هت موثق')}</StatusPill><DemoRecordMark /></div>
+          <h1 className="mt-5 font-serif text-5xl tracking-tight text-ink-950 md:text-6xl">{lang === 'ar' ? home.nameAr : home.name}</h1>
+          <p className="mt-3 flex items-center gap-2 text-sm text-ink-500"><MapPin size={15} className="text-terracotta-700" />{lang === 'ar' ? home.locationAr : home.location}</p>
+          <p className="mt-7 max-w-3xl text-base leading-8 text-ink-600">{lang === 'ar' ? home.summaryAr : home.summary}</p>
 
-            <h1 className="font-serif-editorial text-4xl sm:text-5xl md:text-6xl text-[#0D2340]">
-              {lang === 'ar' ? property.nameAr : property.name}
-            </h1>
+          <div className="mt-10 grid gap-3 sm:grid-cols-3">
+            <div className="fact-card"><Users size={17} /><strong>{home.maxGuests}</strong><span>{bi(lang, 'max guests', 'ضيف كحد أقصى')}</span></div>
+            <div className="fact-card"><Sparkles size={17} /><strong>{home.provenMoments.length}</strong><span>{bi(lang, 'proven Moments', 'لحظات موثقة')}</span></div>
+            <div className="fact-card"><ShieldCheck size={17} /><strong>{home.communityApprovalRequired ? bi(lang, 'Required', 'مطلوبة') : bi(lang, 'Not required', 'غير مطلوبة')}</strong><span>{bi(lang, 'community approval', 'موافقة الكمبوند')}</span></div>
+          </div>
 
-            <div className="flex items-center gap-2 text-[#6D7480] text-sm mt-2">
-              <MapPin className="w-4 h-4 text-[#B74C2B]" />
-              <span>{lang === 'ar' ? property.locationAr : property.location}</span>
+          <div className="mt-12">
+            <span className="eyebrow">{bi(lang, 'Independently proven', 'موثقة بشكل مستقل')}</span>
+            <h2 className="section-title mt-3">{bi(lang, 'Moments this home can honestly promise', 'اللحظات التي يستطيع هذا البيت أن يعد بها بصدق')}</h2>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {home.provenMoments.map((moment) => <div key={moment.key} className="rounded-2xl border border-clay-200 bg-white p-5"><Sparkles size={17} className="text-terracotta-700" /><h3 className="mt-4 font-serif text-2xl text-ink-950">{lang === 'ar' ? moment.titleAr : moment.title}</h3><p className="mt-2 text-xs leading-6 text-ink-600">{lang === 'ar' ? moment.summaryAr : moment.summary}</p><span className="mt-4 block text-[9px] font-bold uppercase tracking-[.15em] text-ink-400">{bi(lang, 'Evidence', 'الدليل')}: {moment.evidenceId}</span></div>)}
             </div>
           </div>
         </div>
 
-        {/* Editorial Photo Collage */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 rounded-sm overflow-hidden mb-16">
-          <div className="lg:col-span-8 aspect-[16/10] overflow-hidden">
-            <img
-              src={property.heroImage}
-              alt={property.name}
-              className="w-full h-full object-cover hover:scale-102 transition-transform duration-700"
-            />
+        <aside className="lg:sticky lg:top-40 lg:self-start">
+          <div className="rounded-[1.6rem] border border-clay-200 bg-white p-6 shadow-[0_22px_70px_rgba(80,50,35,.09)] md:p-7">
+            <span className="eyebrow">{bi(lang, 'One enquiry record', 'سجل طلب واحد')}</span>
+            <h2 className="mt-3 font-serif text-3xl text-ink-950">{bi(lang, 'Request to stay', 'اطلب الإقامة')}</h2>
+            <p className="mt-2 text-xs leading-6 text-ink-500">{bi(lang, 'No public rate. The operator qualifies dates, then quotes within the owner mandate.', 'لا يوجد سعر عام. يتحقق المشغل من التواريخ ثم يرسل سعراً داخل تفويض المالك.')}</p>
+            {submitted ? (
+              <div className="py-10 text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sage-100 text-sage-800"><Check /></div><h3 className="mt-5 font-serif text-2xl text-ink-950">{bi(lang, 'Enquiry created', 'تم إنشاء الطلب')}</h3><p className="mt-2 text-xs leading-6 text-ink-600">{bi(lang, 'The same record is now visible in the operator and booking pipeline surfaces.', 'أصبح نفس السجل ظاهراً الآن في واجهة المشغل ومسار الحجز.')}</p><button onClick={() => navigate('/pipeline')} className="button-primary mt-5">{bi(lang, 'View booking spine', 'عرض مسار الحجز')}</button></div>
+            ) : (
+              <form onSubmit={submit} className="mt-6 space-y-4">
+                {error && <p className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{error}</p>}
+                <label className="field-label">{bi(lang, 'Guest name', 'اسم الضيف')}<input value={form.guestName} onChange={(e) => setForm({ ...form, guestName: e.target.value })} className="field-input" placeholder={bi(lang, 'Full name', 'الاسم بالكامل')} /></label>
+                <label className="field-label">{bi(lang, 'Phone', 'رقم الهاتف')}<input value={form.guestPhoneMasked} onChange={(e) => setForm({ ...form, guestPhoneMasked: e.target.value })} className="field-input" placeholder="+20…" /></label>
+                <div className="grid grid-cols-2 gap-3"><label className="field-label">{bi(lang, 'Check-in', 'الوصول')}<input type="date" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} className="field-input" /></label><label className="field-label">{bi(lang, 'Check-out', 'المغادرة')}<input type="date" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} className="field-input" /></label></div>
+                <div className="grid grid-cols-2 gap-3"><label className="field-label">{bi(lang, 'Adults', 'البالغون')}<input type="number" min={1} max={home.maxGuests} value={form.adults} onChange={(e) => setForm({ ...form, adults: Number(e.target.value) })} className="field-input" /></label><label className="field-label">{bi(lang, 'Children', 'الأطفال')}<input type="number" min={0} max={home.maxGuests} value={form.children} onChange={(e) => setForm({ ...form, children: Number(e.target.value) })} className="field-input" /></label></div>
+                <label className="field-label">{bi(lang, 'Moment focus', 'اللحظة المفضلة')}<select value={form.requestedMoment} onChange={(e) => setForm({ ...form, requestedMoment: e.target.value as MomentKey })} className="field-input">{home.provenMoments.map((moment) => <option key={moment.key} value={moment.key}>{momentLabels[moment.key][lang]}</option>)}</select></label>
+                <div className="flex gap-2 rounded-xl bg-ivory-100 p-3 text-[10px] leading-5 text-ink-600"><Clock3 size={15} className="mt-0.5 shrink-0 text-terracotta-700" />{home.communityApprovalRequired ? bi(lang, 'Community approval is required and prevents instant confirmation.', 'موافقة الكمبوند مطلوبة وتمنع التأكيد الفوري.') : bi(lang, 'The operator verifies the calendar before any hold.', 'يتحقق المشغل من التقويم قبل أي حجز مؤقت.')}</div>
+                <button className="button-primary w-full justify-center"><CalendarDays size={15} />{bi(lang, 'Create stay enquiry', 'إنشاء طلب إقامة')}</button>
+              </form>
+            )}
           </div>
-          <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
-            {property.galleryImages.slice(0, 2).map((img, idx) => (
-              <div key={idx} className="aspect-[16/10] lg:aspect-auto lg:h-[calc(50%-8px)] overflow-hidden">
-                <img
-                  src={img}
-                  alt={`Detail ${idx + 1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Main Content & Booking Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          {/* Left: Architectural Story & Moments */}
-          <div className="lg:col-span-7 space-y-12">
-            <div>
-              <h2 className="font-serif-editorial text-2xl md:text-3xl text-[#0D2340] mb-4">
-                {t.property.hostTitle}
-              </h2>
-              <p className="text-base text-[#6D7480] leading-relaxed mb-6">
-                {lang === 'ar' ? property.descriptionAr : property.description}
-              </p>
-              <div className="p-6 bg-white border border-[#E9DED1] rounded-xs space-y-2">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#B74C2B]">
-                  {lang === 'ar' ? 'اعتماد المالك والمعمار' : 'Architectural Verification'}
-                </span>
-                <p className="text-sm text-[#0D2340] leading-relaxed">
-                  {t.property.hostStory}
-                </p>
-              </div>
-            </div>
-
-            {/* Proven Moments Accordion */}
-            <div>
-              <h3 className="font-serif-editorial text-2xl text-[#0D2340] mb-6">
-                {t.property.provenMomentsTitle}
-              </h3>
-
-              <div className="space-y-4">
-                {property.provenMoments.map((m) => (
-                  <div key={m.id} className="p-6 bg-white border border-[#E9DED1] rounded-xs">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-serif-editorial text-xl text-[#0D2340]">
-                        {lang === 'ar' ? m.titleAr : m.title}
-                      </h4>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-[#A7B29A]/20 text-[#0F5859] rounded-xs uppercase font-bold">
-                        {m.provenBy}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#6D7480] leading-relaxed">
-                      {lang === 'ar' ? m.descriptionAr : m.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Little Hut Standard Compliance Seal */}
-            <div className="p-8 bg-[#0D2340] text-white rounded-sm space-y-4">
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-[#C8A15A]" />
-                <h3 className="font-serif-editorial text-2xl">
-                  {lang === 'ar' ? 'معيار ليتل هت المعتمد' : 'The Little Hut Standard'}
-                </h3>
-              </div>
-              <p className="text-xs text-[#FAF7F2]/80 leading-relaxed">
-                {lang === 'ar'
-                  ? 'تم فحص هذا البيت وفق بوابات TRUST الست ومعايير الأمان والسلامة SHIELD. لا يتم نشر أي أسعار عامة وفق سياسة ليتل هت لحماية خصوصية البيت والضيوف.'
-                  : 'This residence has been verified against 6 TRUST and 6 SHIELD gates with verified zero acoustic drift. Consistent with Little Hut standards, rates are quoted directly to verified parties.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Booking Request Form (Single Source of Truth) */}
-          <div className="lg:col-span-5">
-            <div className="sticky top-28 bg-white border border-[#E9DED1] p-8 shadow-sm rounded-sm">
-              <div className="pb-6 border-b border-[#FAF7F2]">
-                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#C8A15A] block mb-1">
-                  {lang === 'ar' ? 'طلب الإقامة المباشر' : 'Direct Booking Request'}
-                </span>
-                <h3 className="font-serif-editorial text-3xl text-[#0D2340]">
-                  {t.property.requestStayTitle}
-                </h3>
-                <p className="text-xs text-[#6D7480] mt-1 italic">
-                  {t.property.rateNotice}
-                </p>
-              </div>
-
-              {submissionSuccess ? (
-                <div className="py-8 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-[#0F5859]/10 text-[#0F5859] flex items-center justify-center mx-auto">
-                    <Check className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-serif-editorial text-2xl text-[#0D2340]">
-                    {t.property.requestSent}
-                  </h4>
-                  <p className="text-xs text-[#6D7480] leading-relaxed">
-                    {t.property.requestSentDetails}
-                  </p>
-
-                  <div className="pt-4 space-y-2">
-                    <button
-                      id="btn-goto-operator-queue"
-                      onClick={() => {
-                        navigate('/operator');
-                      }}
-                      className="w-full py-3 bg-[#B74C2B] hover:bg-[#B74C2B]/90 text-white text-xs uppercase font-bold tracking-widest transition-all"
-                    >
-                      {t.property.viewExecutionFlow}
-                    </button>
-
-                    <button
-                      id="btn-goto-owner-visibility"
-                      onClick={() => {
-                        navigate('/owner');
-                      }}
-                      className="w-full py-3 bg-[#FAF7F2] hover:bg-[#E7D6BF]/40 text-[#0D2340] border border-[#E9DED1] text-xs uppercase font-bold tracking-widest transition-all"
-                    >
-                      {t.property.viewOwnerVisibility}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <form onSubmit={handleRequestSubmit} className="space-y-6 pt-6">
-                  {errorMessage && (
-                    <div className="p-3 bg-[#B74C2B]/10 border border-[#B74C2B]/30 rounded-xs flex items-center gap-2 text-xs text-[#B74C2B]">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>{errorMessage}</span>
-                    </div>
-                  )}
-
-                  {/* Party Size */}
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold text-[#0D2340] mb-2">
-                      {t.property.partySizeLabel} (Max: {property.maxCapacity})
-                    </label>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {Array.from({ length: Math.min(property.maxCapacity, 8) }, (_, i) => i + 1).map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => setPartySize(num)}
-                          className={`px-3.5 py-2 text-xs font-bold border transition-all rounded-xs ${
-                            partySize === num
-                              ? 'bg-[#0D2340] text-white border-[#0D2340]'
-                              : 'bg-[#FAF7F2] text-[#0D2340] border-[#E9DED1] hover:bg-[#E7D6BF]/40'
-                          }`}
-                        >
-                          {num} {lang === 'ar' ? (num === 1 ? 'ضيف' : 'ضيوف') : num === 1 ? 'Guest' : 'Guests'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider font-bold text-[#6D7480] mb-1">
-                        {t.property.checkIn}
-                      </label>
-                      <input
-                        type="date"
-                        value={checkIn}
-                        onChange={(e) => setCheckIn(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#E9DED1] px-3 py-2 text-xs text-[#0D2340] rounded-xs focus:ring-1 focus:ring-[#B74C2B] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider font-bold text-[#6D7480] mb-1">
-                        {t.property.checkOut}
-                      </label>
-                      <input
-                        type="date"
-                        value={checkOut}
-                        onChange={(e) => setCheckOut(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#E9DED1] px-3 py-2 text-xs text-[#0D2340] rounded-xs focus:ring-1 focus:ring-[#B74C2B] outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Moment Requested */}
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold text-[#0D2340] mb-2">
-                      {t.property.momentFocusLabel}
-                    </label>
-                    <select
-                      value={momentFocus}
-                      onChange={(e) => setMomentFocus(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#E9DED1] px-4 py-2.5 text-xs text-[#0D2340] rounded-xs focus:ring-1 focus:ring-[#B74C2B] outline-none"
-                    >
-                      {property.provenMoments && property.provenMoments.length > 0 ? (
-                        property.provenMoments.map((pm) => (
-                          <option key={pm.id} value={pm.id}>
-                            {lang === 'ar' ? `${pm.titleAr} (${pm.title})` : pm.title}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="slow_morning">
-                          {lang === 'ar' ? 'الصباح الهادئ (The Slow Morning)' : 'The Slow Morning'}
-                        </option>
-                      )}
-                    </select>
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold text-[#0D2340] mb-2">
-                      {t.property.notesLabel}
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={guestNotes}
-                      onChange={(e) => setGuestNotes(e.target.value)}
-                      placeholder={t.property.notesPlaceholder}
-                      className="w-full bg-[#FAF7F2] border border-[#E9DED1] p-3 text-xs text-[#0D2340] rounded-xs focus:ring-1 focus:ring-[#B74C2B] outline-none resize-none"
-                    ></textarea>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    id="submit-booking-request-btn"
-                    disabled={isSubmitting}
-                    className="w-full py-4 bg-[#B74C2B] hover:bg-[#B74C2B]/90 text-white text-xs uppercase font-bold tracking-[0.2em] rounded-xs transition-all shadow-md disabled:opacity-50"
-                  >
-                    {isSubmitting
-                      ? lang === 'ar' ? 'جاري التسجيل...' : 'Recording in Firestore...'
-                      : t.property.submitRequest}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
-};
+}

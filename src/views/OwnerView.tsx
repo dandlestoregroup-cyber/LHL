@@ -1,183 +1,55 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRequests } from '../context/RequestContext';
-import { Building2, Eye, CheckCircle2, Calendar, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
+import { BadgeCheck, Building2, CalendarRange, CircleDollarSign, Eye, LockKeyhole } from 'lucide-react';
+import { useOperating } from '../context/OperatingContext';
+import { bi, label, money, supplyLabels } from '../lib/display';
+import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
 
-interface OwnerViewProps {
-  navigate: (path: string) => void;
-}
-
-export const OwnerView: React.FC<OwnerViewProps> = ({ navigate }) => {
-  const { lang, t, user, isRTL } = useAuth();
-  const { roleVisibleRequests, properties } = useRequests();
-
-  const ownedProperties = properties.filter(p => p.ownerId === user.id);
-  const [selectedPropertyId, setSelectedPropertyId] = React.useState<string>(
-    ownedProperties[0]?.id || properties[0]?.id || ''
-  );
-
-  const activeProperty = properties.find(p => p.id === selectedPropertyId) || ownedProperties[0] || properties[0];
+export function OwnerView({ navigate }: { navigate: (path: string) => void }) {
+  const { lang, dataset } = useOperating();
+  const owners = dataset.partners.filter((item) => item.role === 'owner');
+  const ownedHomes = dataset.properties.filter((item) => item.ownerPartnerId);
+  const pendingDecisions = ownedHomes.filter((home) => home.supplyStage === 'decision_pending').length;
+  const liveHomes = ownedHomes.filter((home) => home.supplyStage === 'live').length;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#E9DED1] gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#C8A15A]/15 text-[#0D2340] border border-[#C8A15A]/30 text-[10px] uppercase font-bold tracking-widest rounded-xs mb-3">
-              <Building2 className="w-3.5 h-3.5 text-[#C8A15A]" />
-              <span>{t.owner.title}</span>
-            </div>
-            <h1 className="font-serif-editorial text-4xl md:text-5xl text-[#0D2340]">
-              {lang === 'ar' ? `مرحباً، ${user.nameAr || user.name}` : `Welcome, ${user.name}`}
-            </h1>
-            <p className="text-[#6D7480] text-sm mt-2">
-              {t.owner.subtitle}
-            </p>
-          </div>
+    <div>
+      <PageHeader eyebrow="Owner workspace" eyebrowAr="مساحة المالك" title="Visibility, mandate, and reserved decisions." titleAr="رؤية واضحة وتفويض وقرارات محفوظة للمالك." description="Owners see the health and demand around their homes. They alone decide go, defer, or decline and set the minimum accommodation floor; daily booking execution remains with the operator." descriptionAr="يرى الملاك حالة بيوتهم والطلب عليها. هم وحدهم يقررون الاستمرار أو التأجيل أو الرفض ويحددون الحد الأدنى للإقامة؛ بينما يبقى التنفيذ اليومي للحجوزات لدى المشغل." />
+      <section className="page-shell py-10">
+        <div className="grid gap-3 md:grid-cols-3"><Metric label="Partner owners" labelAr="ملاك شركاء" value={owners.length} /><Metric label="Live homes" labelAr="بيوت متاحة فعلياً" value={liveHomes} tone="terracotta" /><Metric label="Decisions required" labelAr="قرارات مطلوبة" value={pendingDecisions} tone="ink" /></div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => navigate('/list-property')}
-              className="px-3.5 py-1.5 bg-[#B74C2B] text-white rounded-xs text-xs font-bold uppercase tracking-wider hover:bg-[#0D2340] transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-            >
-              <span>+</span>
-              <span>{lang === 'ar' ? 'إضافة وتوثيق عقار جديد' : 'Onboard New Property'}</span>
-            </button>
-
-            {ownedProperties.length > 1 && (
-              <select
-                value={selectedPropertyId}
-                onChange={(e) => setSelectedPropertyId(e.target.value)}
-                className="px-3.5 py-1.5 bg-white text-[#0D2340] border border-[#E9DED1] rounded-xs text-xs font-bold uppercase tracking-wider outline-none"
-              >
-                {ownedProperties.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {lang === 'ar' ? p.nameAr : p.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <span className="px-3.5 py-1.5 bg-[#0F5859]/10 text-[#0F5859] border border-[#0F5859]/20 rounded-xs text-xs font-bold uppercase tracking-wider">
-              {t.owner.propertyHealth}
-            </span>
-          </div>
-        </div>
-
-        {/* Oversight Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
-          {/* Card 1: Property Info */}
-          <div className="p-6 bg-white border border-[#E9DED1] rounded-sm shadow-xs space-y-3">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#6D7480]">
-              {lang === 'ar' ? 'العقار المخصص' : 'Monitored Asset'}
-            </span>
-            <h3 className="font-serif-editorial text-2xl text-[#0D2340]">
-              {lang === 'ar' ? activeProperty.nameAr : activeProperty.name}
-            </h3>
-            <p className="text-xs text-[#0F5859] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.owner.assignedOperator}</span>
-            </p>
-          </div>
-
-          {/* Card 2: Reserved Decisions */}
-          <div className="p-6 bg-white border border-[#E9DED1] rounded-sm shadow-xs space-y-3">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#6D7480]">
-              {t.owner.reservedDecisions}
-            </span>
-            <h3 className="font-serif-editorial text-2xl text-[#0D2340]">
-              {lang === 'ar' ? 'لا توجد قرارات معلقة (صفر)' : '0 Pending'}
-            </h3>
-            <p className="text-xs text-[#6D7480] leading-relaxed">
-              {t.owner.noDecisionsNeeded}
-            </p>
-          </div>
-
-          {/* Card 3: Performance */}
-          <div className="p-6 bg-white border border-[#E9DED1] rounded-sm shadow-xs space-y-3">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#6D7480]">
-              {t.owner.performanceOverview}
-            </span>
-            <h3 className="font-serif-editorial text-2xl text-[#0D2340]">
-              {t.owner.occupancyForecast}
-            </h3>
-            <p className="text-xs text-[#0F5859] font-semibold">
-              {t.owner.evidenceIntegrity}
-            </p>
-          </div>
-        </div>
-
-        {/* Real-time Single Request Record Stream */}
-        <div className="bg-white border border-[#E9DED1] p-8 rounded-sm shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#FAF7F2] gap-2 mb-6">
-            <div>
-              <h2 className="font-serif-editorial text-2xl text-[#0D2340]">
-                {t.owner.activeRequests}
-              </h2>
-              <p className="text-xs text-[#6D7480] mt-1">
-                {t.owner.requestFlowNote}
-              </p>
-            </div>
-
-            <span className="text-xs font-mono px-3 py-1 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs font-bold text-[#0D2340]">
-              {roleVisibleRequests.length} {lang === 'ar' ? 'سجل متزامن' : 'Synchronized Record(s)'}
-            </span>
-          </div>
-
-          {roleVisibleRequests.length === 0 ? (
-            <div className="text-center py-12 text-[#6D7480] text-sm">
-              {lang === 'ar' ? 'لا توجد طلبات واردة حالياً.' : 'No active requests at this time.'}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {roleVisibleRequests.map((req) => (
-                <div
-                  key={req.id}
-                  className="p-6 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-mono font-bold text-[#B74C2B]">#{req.id.slice(-6)}</span>
-                      <h4 className="font-serif-editorial text-lg text-[#0D2340] font-semibold">
-                        {lang === 'ar' ? req.propertyNameAr : req.propertyName} — {req.guestName}
-                      </h4>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-[#6D7480]">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-[#C8A15A]" />
-                        {req.dates.checkIn} → {req.dates.checkOut}
-                      </span>
-                      <span>•</span>
-                      <span>{req.partySize} {lang === 'ar' ? 'ضيوف' : 'Guests'}</span>
-                      <span>•</span>
-                      <span className="italic">"{req.notes}"</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1.5 bg-[#E7D6BF] text-[#0D2340] text-[10px] uppercase font-bold tracking-wider rounded-xs whitespace-nowrap">
-                      {req.status === 'confirmed'
-                        ? lang === 'ar' ? 'مؤكد من المشغل' : 'Confirmed by Operator'
-                        : req.status === 'quoted'
-                        ? lang === 'ar' ? 'تم تقديم عرض السعر' : 'Quoted by Operator'
-                        : t.owner.statusOperatorHandling}
-                    </span>
-
-                    <button
-                      onClick={() => navigate('/operator')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E9DED1] hover:border-[#0D2340] text-xs font-semibold text-[#0D2340] rounded-xs transition-colors"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-[#B74C2B]" />
-                      <span>{lang === 'ar' ? 'معاينة دور المشغل' : 'Inspect Operator Queue'}</span>
-                    </button>
-                  </div>
+        {owners.length === 0 ? <div className="mt-10"><EmptyState title="No verified owner partners in Live" titleAr="لا يوجد ملاك شركاء موثقون في الوضع الفعلي" description="Owner records will populate only after a real scout lead captures identity and consent. No Demo owner or mandate crosses into Live." descriptionAr="لا تظهر سجلات الملاك إلا بعد أن يوثق ترشيح حقيقي الهوية والموافقة. لا ينتقل أي مالك أو تفويض تجريبي إلى الوضع الفعلي." actionLabel="Open Scout sourcing" actionLabelAr="افتح توريد الكشاف" onAction={() => navigate('/scout')} /></div> : (
+          <div className="mt-10 space-y-8">
+            {owners.map((owner) => {
+              const homes = dataset.properties.filter((item) => item.ownerPartnerId === owner.id);
+              const enquiries = dataset.enquiries.filter((item) => homes.some((home) => home.id === item.propertyId));
+              return <section key={owner.id} className="overflow-hidden rounded-[1.75rem] border border-clay-200 bg-white">
+                <div className="flex flex-col gap-4 border-b border-clay-200 bg-ivory-100 p-6 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-4"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta-100 font-serif text-xl text-terracotta-800">{owner.name.charAt(0)}</div><div><h2 className="font-serif text-2xl text-ink-950">{lang === 'ar' ? owner.nameAr : owner.name}</h2><p className="mt-1 text-xs text-ink-500">{owner.phoneMasked} · {lang === 'ar' ? owner.serviceAreaAr : owner.serviceArea}</p></div></div>
+                  <div className="flex items-center gap-4 text-xs text-ink-600"><span>{homes.length} {bi(lang, 'homes', 'بيوت')}</span><span>{enquiries.length} {bi(lang, 'enquiries', 'طلبات')}</span><DemoRecordMark /></div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                <div className="grid gap-5 p-6 lg:grid-cols-2">
+                  {homes.map((home) => {
+                    const decision = dataset.ownerDecisions.find((item) => item.propertyId === home.id);
+                    const homeEnquiries = enquiries.filter((item) => item.propertyId === home.id);
+                    return <article key={home.id} className="rounded-2xl border border-clay-200 p-5">
+                      <div className="flex items-start justify-between gap-3"><div><StatusPill tone={home.supplyStage === 'live' ? 'good' : 'neutral'}>{label(supplyLabels, home.supplyStage, lang)}</StatusPill><h3 className="mt-4 font-serif text-2xl text-ink-950">{lang === 'ar' ? home.nameAr : home.name}</h3></div><Building2 size={20} className="text-terracotta-700" /></div>
+                      <div className="mt-5 grid grid-cols-2 gap-3">
+                        <div className="mini-fact"><CircleDollarSign size={15} /><span>{bi(lang, 'Owner floor', 'حد المالك')}</span><strong>{home.nightlyFloorEgp ? money(home.nightlyFloorEgp, lang) : bi(lang, 'Not set', 'غير محدد')}</strong></div>
+                        <div className="mini-fact"><CalendarRange size={15} /><span>{bi(lang, 'Enquiries', 'الطلبات')}</span><strong>{homeEnquiries.length}</strong></div>
+                      </div>
+                      <div className="mt-5 rounded-xl bg-ivory-100 p-4 text-xs leading-6 text-ink-600">
+                        <div className="flex items-center justify-between"><span>{bi(lang, 'Owner decision', 'قرار المالك')}</span><strong className="uppercase text-ink-900">{decision ? (decision.decision === 'go' ? bi(lang, 'Go', 'استمرار') : decision.decision === 'defer' ? bi(lang, 'Defer', 'تأجيل') : bi(lang, 'Decline', 'عدم الاستمرار')) : bi(lang, 'Pending', 'معلق')}</strong></div>
+                        {decision && <p className="mt-2">{lang === 'ar' ? decision.noteAr : decision.note}</p>}
+                      </div>
+                      <div className="mt-5 flex items-center justify-between border-t border-clay-200 pt-4"><span className="inline-flex items-center gap-1.5 text-[10px] text-ink-500"><LockKeyhole size={12} />{bi(lang, 'Operator executes bookings', 'المشغل ينفذ الحجوزات')}</span>{home.supplyStage === 'live' && <button onClick={() => navigate(`/homes/${home.slug}`)} className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[.12em] text-terracotta-700"><Eye size={12} />{bi(lang, 'Public view', 'العرض العام')}</button>}</div>
+                    </article>;
+                  })}
+                </div>
+              </section>;
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
-};
+}

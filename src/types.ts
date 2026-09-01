@@ -1,120 +1,189 @@
-/**
- * Little Hut Type Definitions
- */
+export type DataMode = 'demo' | 'live';
+export type Language = 'en' | 'ar';
 
-export type UserRole = 'guest' | 'owner' | 'operator' | 'bps';
+export type PartnerRole = 'owner' | 'scout' | 'operator' | 'assessor' | 'community_authority';
+export type PartnerStatus = 'active' | 'invited' | 'inactive';
 
-export interface UserProfile {
+export type MomentKey =
+  | 'slow_morning'
+  | 'long_table'
+  | 'afternoon_drift'
+  | 'night_swim'
+  | 'fire_conversation'
+  | 'silent_reading';
+
+export type SupplyStage =
+  | 'sourced'
+  | 'owner_engaged'
+  | 'assessment_scheduled'
+  | 'decision_pending'
+  | 'activation_ready'
+  | 'live'
+  | 'paused'
+  | 'declined';
+
+export type EnquiryStage =
+  | 'received'
+  | 'qualified'
+  | 'availability_checked'
+  | 'quoted'
+  | 'hold'
+  | 'payment_pending'
+  | 'payment_received'
+  | 'community_approval_pending'
+  | 'community_approved'
+  | 'confirmed'
+  | 'completed'
+  | 'declined'
+  | 'expired'
+  | 'cancelled';
+
+export interface BaseRecord {
   id: string;
-  name: string;
-  nameAr?: string;
-  email: string;
-  role: UserRole;
-  assignedPropertyIds?: string[];
+  dataMode: DataMode;
+  synthetic: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type PropertyLifecycle = 'shortlisted' | 'sealed' | 'live' | 'monitored' | 'suspended' | 'offline';
+export interface Partner extends BaseRecord {
+  role: PartnerRole;
+  status: PartnerStatus;
+  name: string;
+  nameAr: string;
+  organisation?: string;
+  phoneMasked?: string;
+  serviceArea: string;
+  serviceAreaAr: string;
+}
 
-export interface PropertyData {
-  id: string;
+export interface PropertyMoment {
+  key: MomentKey;
+  title: string;
+  titleAr: string;
+  summary: string;
+  summaryAr: string;
+  evidenceId: string;
+  provenAt: string;
+}
+
+export interface Property extends BaseRecord {
   slug: string;
   name: string;
   nameAr: string;
   location: string;
   locationAr: string;
-  tagline: string;
-  taglineAr: string;
-  description: string;
-  descriptionAr: string;
-  lifecycle: PropertyLifecycle;
-  ownerId: string;
-  assignedOperatorIds: string[];
+  summary: string;
+  summaryAr: string;
+  supplyStage: SupplyStage;
+  ownerPartnerId?: string;
+  scoutPartnerId: string;
+  operatorPartnerId?: string;
+  assessorPartnerId?: string;
+  communityAuthorityPartnerId?: string;
+  publiclyVisible: boolean;
+  joiningVisible: boolean;
   sealIssued: boolean;
-  sealIssuedDate?: string;
-  publiclyAnnounced: boolean;
-  maxCapacity: number;
-  calendarAuthority: 'lh_direct' | 'subscribed' | 'external' | 'unknown';
+  maxGuests: number;
+  bedroomCount: number;
+  calendarAuthority: 'little_hut' | 'external' | 'unknown';
   bookingMode: 'request' | 'instant';
   communityApprovalRequired: boolean;
-  littleHutHoldsCalendar: boolean;
+  activationChecklistComplete: boolean;
+  payoutReady: boolean;
+  nightlyFloorEgp?: number;
   heroImage: string;
   galleryImages: string[];
-  provenMoments: Array<{
-    id: string;
-    title: string;
-    titleAr: string;
-    description: string;
-    descriptionAr: string;
-    provenBy: string;
-    level: string;
-  }>;
-  reviews?: Array<{ id: string; guestName: string; rating: number; text: string }>;
-  avgRating?: number;
+  provenMoments: PropertyMoment[];
 }
 
-export type RequestStatus = 'pending_operator' | 'validated' | 'readiness_confirmed' | 'quoted' | 'confirmed' | 'declined';
+export type GateStatus = 'passed' | 'pending' | 'failed';
 
-export interface BookingRequest {
-  id: string;
+export interface Assessment extends BaseRecord {
   propertyId: string;
-  propertyName: string;
-  propertyNameAr: string;
-  propertySlug: string;
-  guestId: string;
+  assessorPartnerId: string;
+  independenceConfirmed: boolean;
+  scheduledFor?: string;
+  completedAt?: string;
+  result: 'scheduled' | 'passed' | 'conditions' | 'failed';
+  trustGates: Array<{ key: string; label: string; labelAr: string; status: GateStatus }>;
+  shieldGates: Array<{ key: string; label: string; labelAr: string; status: GateStatus }>;
+  provenMomentKeys: MomentKey[];
+  evidenceCount: number;
+  recommendation: string;
+  recommendationAr: string;
+}
+
+export interface OwnerDecision extends BaseRecord {
+  propertyId: string;
+  ownerPartnerId: string;
+  decision: 'go' | 'defer' | 'decline';
+  decidedAt: string;
+  nightlyFloorEgp?: number;
+  payoutReady: boolean;
+  conditions: Array<{ label: string; resolved: boolean; launchBlocking: boolean }>;
+  note: string;
+  noteAr: string;
+}
+
+export interface EnquiryTimelineEvent {
+  stage: EnquiryStage;
+  at: string;
+  byPartnerId?: string;
+  note: string;
+}
+
+export interface Enquiry extends BaseRecord {
+  propertyId: string;
   guestName: string;
-  guestEmail: string;
-  partySize: number;
-  dates: {
-    checkIn: string;
-    checkOut: string;
+  guestPhoneMasked: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  requestedMoment: MomentKey;
+  stage: EnquiryStage;
+  source: 'direct' | 'broker' | 'instagram' | 'returning_guest';
+  quote?: {
+    nightlyRateEgp: number;
+    nights: number;
+    accommodationEgp: number;
+    feesEgp: number;
+    totalEgp: number;
+    issuedAt: string;
   };
-  momentRequested: string;
-  notes?: string;
-  status: RequestStatus;
-  createdAt: string;
-  updatedAt: string;
-  operatorNotes?: string;
-  quotedAmount?: number;
-  qualification: {
-    qualified: boolean;
-    mode: 'request' | 'instant';
-    reason: string;
+  hold?: { expiresAt: string; active: boolean };
+  payment?: { amountEgp: number; receivedAt?: string; reference?: string };
+  communityApproval?: {
+    required: boolean;
+    status: 'not_required' | 'not_submitted' | 'pending' | 'approved' | 'declined';
+    authorityPartnerId?: string;
+    evidenceReference?: string;
   };
+  timeline: EnquiryTimelineEvent[];
 }
 
-export interface InternalAssessment {
-  id: string;
-  propertyId: string;
-  assessedBy: string;
-  updatedAt: string;
-  trustGates: Array<{
-    id: string;
-    name: string;
-    nameAr: string;
-    status: 'passed' | 'failed' | 'pending';
-    score: number;
-  }>;
-  shieldChecks: Array<{
-    id: string;
-    name: string;
-    nameAr: string;
-    status: 'passed' | 'failed' | 'pending';
-    details: string;
-  }>;
-  littleHutHourChecked: boolean;
-  provenMomentsCount: number;
-  sealAllowed: boolean;
-  evidenceDrift: string;
-  lastReadinessProof: string;
+export interface OperatingDataset {
+  mode: DataMode;
+  label: string;
+  labelAr: string;
+  asOf: string;
+  partners: Partner[];
+  properties: Property[];
+  assessments: Assessment[];
+  ownerDecisions: OwnerDecision[];
+  enquiries: Enquiry[];
 }
 
-export interface SecurityTestResult {
-  id: string;
-  title: string;
-  titleAr: string;
-  description: string;
-  status: 'passed' | 'failed';
-  expected: string;
-  actual: string;
-  enforcedBy: 'Firestore Security Rules' | 'Authority Matrix Engine' | 'Domain Core Engine';
-}
+export type BusinessAction =
+  | 'source_property'
+  | 'write_assessment'
+  | 'submit_owner_decision'
+  | 'set_owner_floor'
+  | 'activate_property'
+  | 'issue_quote'
+  | 'place_hold'
+  | 'record_payment'
+  | 'issue_community_approval'
+  | 'record_community_approval'
+  | 'confirm_stay';

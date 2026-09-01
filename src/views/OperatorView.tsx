@@ -1,247 +1,56 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRequests } from '../context/RequestContext';
-import { UserCheck, CheckCircle2, Calendar, ShieldCheck, DollarSign, ArrowRight, AlertCircle, Clock } from 'lucide-react';
+import React from 'react';
+import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, CreditCard, ShieldCheck, UserRoundCheck } from 'lucide-react';
+import { useOperating } from '../context/OperatingContext';
+import { bi, dateLabel, enquiryLabels, label, money } from '../lib/display';
+import { calendarEffect } from '../lib/lh-core';
+import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
 
-interface OperatorViewProps {
-  navigate: (path: string) => void;
-}
-
-export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
-  const { lang, t, user, isRTL } = useAuth();
-  const { roleVisibleRequests, updateRequestStatus, properties } = useRequests();
-
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [quoteInput, setQuoteInput] = useState('1450');
-  const [operatorNoteInput, setOperatorNoteInput] = useState('');
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-
-  const assignedProperties = properties.filter(p => p.assignedOperatorIds.includes(user.id));
-
-  const handleAction = (
-    reqId: string,
-    action: 'validate' | 'readiness' | 'quote' | 'confirm' | 'decline'
-  ) => {
-    setFeedbackMessage('');
-
-    let statusTarget: 'validated' | 'readiness_confirmed' | 'quoted' | 'confirmed' | 'declined' = 'validated';
-    let notes = '';
-    let quote: number | undefined = undefined;
-
-    if (action === 'validate') {
-      statusTarget = 'validated';
-      notes = lang === 'ar' ? 'تم التحقق من سلطة التقويم المباشرة لدى ليتل هت.' : 'Direct calendar authority validated with Little Hut central registry.';
-    } else if (action === 'readiness') {
-      statusTarget = 'readiness_confirmed';
-      notes = lang === 'ar' ? 'تم فحص جاهزية المنزل وتأكيد خلوه من أي انحراف في المعايير.' : 'Readiness proof verified: zero acoustic and standard drift.';
-    } else if (action === 'quote') {
-      statusTarget = 'quoted';
-      quote = parseFloat(quoteInput) || 1450;
-      notes = lang === 'ar' ? `تم إصدار عرض السعر بقيمة ${quote}$ لمدة ٣ ليالٍ.` : `Quoted $${quote} for 3 nights direct stay.`;
-    } else if (action === 'confirm') {
-      statusTarget = 'confirmed';
-      notes = lang === 'ar' ? 'تم تأكيد الإقامة وحجز التقويم رسمياً.' : 'Stay confirmed. Calendar hold locked.';
-    } else if (action === 'decline') {
-      statusTarget = 'declined';
-      notes = lang === 'ar' ? 'اعتذار عن الطلب لتعارض في التواريخ.' : 'Declined due to schedule conflict.';
-    }
-
-    const result = updateRequestStatus(reqId, statusTarget, notes, quote);
-    if (result.success) {
-      setFeedbackMessage(
-        lang === 'ar'
-          ? `تم تحديث الطلب بنجاح إلى: ${statusTarget}`
-          : `Request updated successfully to: ${statusTarget}`
-      );
-    } else {
-      setFeedbackMessage(result.error || 'Execution blocked by Authority Matrix');
-    }
+const nextAction = (stage: string, requiresApproval: boolean, lang: 'en' | 'ar') => {
+  const copy: Record<string, [string, string]> = {
+    received: ['Qualify enquiry', 'تأهيل الطلب'], qualified: ['Check availability', 'فحص الإتاحة'], availability_checked: ['Issue in-floor quote', 'إصدار سعر داخل الحد'],
+    quoted: ['Place 2-hour hold', 'حجز مؤقت لساعتين'], hold: ['Request payment', 'طلب الدفع'], payment_pending: ['Record payment', 'تسجيل الدفع'],
+    payment_received: requiresApproval ? ['Submit for community approval', 'الإرسال لموافقة الكمبوند'] : ['Confirm stay', 'تأكيد الإقامة'], community_approved: ['Confirm stay', 'تأكيد الإقامة'], confirmed: ['Complete stay', 'إكمال الإقامة'],
   };
+  const value = copy[stage];
+  return value ? bi(lang, value[0], value[1]) : null;
+};
+
+export function OperatorView({ navigate }: { navigate: (path: string) => void }) {
+  const { lang, mode, dataset, executeNextEnquiryAction, recordCommunityApproval, getPartnerName } = useOperating();
+  const active = dataset.enquiries.filter((item) => !['completed', 'declined', 'expired', 'cancelled'].includes(item.stage));
+  const holds = active.filter((item) => calendarEffect(item).blocksCalendar).length;
+  const approvalQueue = active.filter((item) => item.stage === 'community_approval_pending').length;
+  const payments = dataset.enquiries.reduce((sum, item) => sum + (item.payment?.receivedAt ? item.payment.amountEgp : 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#E9DED1] gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0F5859]/10 text-[#0F5859] border border-[#0F5859]/30 text-[10px] uppercase font-bold tracking-widest rounded-xs mb-3">
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>{t.operator.title}</span>
-            </div>
-            <h1 className="font-serif-editorial text-4xl md:text-5xl text-[#0D2340]">
-              {lang === 'ar' ? `قائمة مهام: ${user.nameAr || user.name}` : `Execution Queue: ${user.name}`}
-            </h1>
-            <p className="text-[#6D7480] text-sm mt-2">
-              {t.operator.subtitle}
-            </p>
-          </div>
+    <div>
+      <PageHeader eyebrow="Operator execution" eyebrowAr="تنفيذ المشغل" title="One queue from enquiry to completed stay." titleAr="قائمة واحدة من الطلب حتى اكتمال الإقامة." description="Operators verify, quote above the owner floor, place expiring holds, record payment evidence, submit community cases, and confirm only when every gate is satisfied." descriptionAr="يتحقق المشغل ويصدر سعراً أعلى من حد المالك ويضع حجوزات مؤقتة منتهية ويسجل دليل الدفع ويرسل حالات الكمبوند ولا يؤكد إلا بعد اكتمال كل البوابات." action={<button onClick={() => navigate('/pipeline')} className="button-primary">{bi(lang, 'Open full pipeline', 'افتح المسار الكامل')}<ArrowRight size={15} className="rtl:rotate-180" /></button>} />
+      <section className="page-shell py-10">
+        <div className="grid gap-3 md:grid-cols-4"><Metric label="Active enquiries" labelAr="طلبات نشطة" value={active.length} /><Metric label="Calendar blocks" labelAr="حجوزات تحجب التقويم" value={holds} detail="Active holds + confirmed" detailAr="الحجوزات المؤقتة النشطة + المؤكدة" tone="terracotta" /><Metric label="Approval queue" labelAr="قائمة الموافقات" value={approvalQueue} /><Metric label="Payments recorded" labelAr="مدفوعات مسجلة" value={money(payments, lang)} tone="ink" /></div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3.5 py-1.5 bg-[#FAF7F2] border border-[#E9DED1] text-xs font-bold text-[#0D2340] rounded-xs">
-              {lang === 'ar' ? `المنازل المسندة: ${assignedProperties.length}` : `Assigned Properties: ${assignedProperties.length}`}
-            </span>
-          </div>
-        </div>
-
-        {/* Feedback Alert */}
-        {feedbackMessage && (
-          <div className="my-6 p-4 bg-white border-l-4 border-[#B74C2B] rounded-xs shadow-xs text-xs font-semibold text-[#0D2340] flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#0F5859]" />
-            <span>{feedbackMessage}</span>
+        {dataset.enquiries.length === 0 ? <div className="mt-10"><EmptyState title="No Live booking enquiries yet" titleAr="لا توجد طلبات حجز فعلية بعد" description="The operator queue is ready. It will populate from a real public home enquiry; Demo enquiries cannot appear here while Live is active." descriptionAr="قائمة المشغل جاهزة. ستظهر السجلات من طلب حقيقي على بيت منشور؛ ولا يمكن للطلبات التجريبية الظهور هنا أثناء الوضع الفعلي." actionLabel="View public homes" actionLabelAr="عرض البيوت العامة" onAction={() => navigate('/')} /></div> : (
+          <div className="mt-10 space-y-4">
+            {active.map((enquiry) => {
+              const home = dataset.properties.find((item) => item.id === enquiry.propertyId);
+              if (!home) return null;
+              const action = nextAction(enquiry.stage, home.communityApprovalRequired, lang);
+              const calendar = calendarEffect(enquiry);
+              return <article key={enquiry.id} className="rounded-[1.5rem] border border-clay-200 bg-white p-6">
+                <div className="grid gap-6 lg:grid-cols-[1.25fr_.8fr_.8fr_auto] lg:items-center">
+                  <div><div className="flex flex-wrap items-center gap-2"><StatusPill tone={enquiry.stage.includes('approval') ? 'warn' : enquiry.stage === 'confirmed' ? 'good' : 'neutral'}>{label(enquiryLabels, enquiry.stage, lang)}</StatusPill><DemoRecordMark /></div><h2 className="mt-3 font-serif text-2xl text-ink-950">{enquiry.guestName} · {lang === 'ar' ? home.nameAr : home.name}</h2><p className="mt-2 text-xs text-ink-500">{enquiry.checkIn} → {enquiry.checkOut} · {enquiry.adults + enquiry.children} {bi(lang, 'guests', 'ضيوف')}</p></div>
+                  <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><CircleDollarSign size={14} className="text-terracotta-700" />{enquiry.quote ? money(enquiry.quote.totalEgp, lang) : bi(lang, 'Not quoted', 'لم يتم التسعير')}</span><span className="flex items-center gap-2"><CalendarClock size={14} className="text-terracotta-700" />{calendar.blocksCalendar ? bi(lang, 'Calendar blocked', 'التقويم محجوز') : bi(lang, 'No calendar block', 'لا يوجد حجب للتقويم')}</span></div>
+                  <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><UserRoundCheck size={14} className="text-terracotta-700" />{getPartnerName(home.operatorPartnerId)}</span><span className="flex items-center gap-2"><ShieldCheck size={14} className="text-terracotta-700" />{home.communityApprovalRequired ? bi(lang, 'Community gate applies', 'بوابة الكمبوند مطلوبة') : bi(lang, 'No community gate', 'لا توجد بوابة كمبوند')}</span></div>
+                  <div className="lg:text-end">
+                    {enquiry.stage === 'community_approval_pending' ? mode === 'demo' ? <button onClick={() => recordCommunityApproval(enquiry.id)} className="button-secondary whitespace-nowrap"><CheckCircle2 size={14} />{bi(lang, 'Record issued approval', 'تسجيل موافقة صادرة')}</button> : <StatusPill tone="warn">{bi(lang, 'Await external evidence', 'بانتظار دليل خارجي')}</StatusPill> : action ? <button onClick={() => executeNextEnquiryAction(enquiry.id)} className="button-primary whitespace-nowrap">{action}<ArrowRight size={14} className="rtl:rotate-180" /></button> : <StatusPill>{bi(lang, 'No action', 'لا إجراء')}</StatusPill>}
+                  </div>
+                </div>
+                {enquiry.hold?.expiresAt && <div className={`mt-5 flex items-center gap-2 rounded-xl p-3 text-[10px] ${calendar.blocksCalendar ? 'bg-terracotta-50 text-terracotta-900' : 'bg-clay-100 text-ink-500'}`}><Clock3 size={14} />{bi(lang, 'Hold expires', 'ينتهي الحجز المؤقت')}: {new Date(enquiry.hold.expiresAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB')}</div>}
+                {enquiry.stage === 'community_approval_pending' && <div className="mt-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-[10px] leading-5 text-amber-900"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{bi(lang, 'The button records an approval already issued by the named authority; it does not let the operator issue one.', 'الزر يسجل موافقة صدرت بالفعل من الجهة المحددة؛ ولا يمنح المشغل صلاحية إصدارها.')}</div>}
+              </article>;
+            })}
           </div>
         )}
-
-        {/* Main Execution Queue */}
-        <div className="my-10 space-y-6">
-          {roleVisibleRequests.length === 0 ? (
-            <div className="bg-white border border-[#E9DED1] p-12 text-center rounded-sm">
-              <p className="text-sm text-[#6D7480]">{t.operator.noRequestsYet}</p>
-              <button
-                onClick={() => navigate('/homes/seaward-library')}
-                className="mt-4 px-6 py-2.5 bg-[#B74C2B] text-white text-xs uppercase font-bold tracking-widest rounded-xs"
-              >
-                {lang === 'ar' ? 'تقديم طلب تجريبي من صفحة البيت' : 'Submit Request from Property Page'}
-              </button>
-            </div>
-          ) : (
-            roleVisibleRequests.map((req) => {
-              const isConfirmed = req.status === 'confirmed';
-              const isQuoted = req.status === 'quoted';
-              const isDeclined = req.status === 'declined';
-
-              return (
-                <div
-                  key={req.id}
-                  className="bg-white border border-[#E9DED1] rounded-sm p-8 shadow-xs space-y-6"
-                >
-                  {/* Item Header */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#FAF7F2] gap-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="px-2.5 py-0.5 bg-[#B74C2B]/10 text-[#B74C2B] text-[10px] font-mono font-bold uppercase rounded-xs">
-                          {req.id.slice(-6)}
-                        </span>
-                        <h3 className="font-serif-editorial text-2xl text-[#0D2340]">
-                          {lang === 'ar' ? req.propertyNameAr : req.propertyName} — {req.guestName}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-[#6D7480]">
-                        {req.guestEmail} • {req.partySize} {lang === 'ar' ? 'ضيوف' : 'Guests'} • {req.dates.checkIn} → {req.dates.checkOut}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider rounded-xs ${
-                          isConfirmed
-                            ? 'bg-[#0F5859]/10 text-[#0F5859] border border-[#0F5859]/30'
-                            : isQuoted
-                            ? 'bg-[#C8A15A]/20 text-[#0D2340] border border-[#C8A15A]/40'
-                            : isDeclined
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-[#B74C2B]/10 text-[#B74C2B] border border-[#B74C2B]/30'
-                        }`}
-                      >
-                        {req.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Guest Intention */}
-                  <div className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs text-xs space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-[#6D7480] tracking-widest">
-                      {lang === 'ar' ? 'ملاحظات الضيف وسياق الإقامة' : 'Guest Notes & Intention'}
-                    </span>
-                    <p className="text-[#0D2340] italic font-serif-editorial text-sm">
-                      "{req.notes}"
-                    </p>
-                  </div>
-
-                  {/* Execution Actions Pipeline */}
-                  <div className="space-y-4">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#6D7480] block">
-                      {lang === 'ar' ? 'خطوات تنفيذ المشغل الرسمية' : 'Authoritative Operator Action Pipeline'}
-                    </span>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {/* 1. Validate Calendar */}
-                      <button
-                        id={`btn-validate-${req.id}`}
-                        onClick={() => handleAction(req.id, 'validate')}
-                        className={`p-4 border text-left rounded-xs transition-all ${
-                          req.status === 'validated' || isQuoted || isConfirmed
-                            ? 'bg-[#0F5859]/10 border-[#0F5859] text-[#0F5859]'
-                            : 'bg-[#FAF7F2] border-[#E9DED1] text-[#0D2340] hover:border-[#0D2340]'
-                        }`}
-                      >
-                        <span className="text-[9px] uppercase font-mono font-bold block mb-1">Step 1</span>
-                        <span className="text-xs font-bold block">{t.operator.actionValidate}</span>
-                        <span className="text-[10px] opacity-80 mt-1 block">Direct LH Calendar</span>
-                      </button>
-
-                      {/* 2. Check Readiness */}
-                      <button
-                        id={`btn-readiness-${req.id}`}
-                        onClick={() => handleAction(req.id, 'readiness')}
-                        className={`p-4 border text-left rounded-xs transition-all ${
-                          req.status === 'readiness_confirmed' || isQuoted || isConfirmed
-                            ? 'bg-[#0F5859]/10 border-[#0F5859] text-[#0F5859]'
-                            : 'bg-[#FAF7F2] border-[#E9DED1] text-[#0D2340] hover:border-[#0D2340]'
-                        }`}
-                      >
-                        <span className="text-[9px] uppercase font-mono font-bold block mb-1">Step 2</span>
-                        <span className="text-xs font-bold block">{t.operator.actionCheckReadiness}</span>
-                        <span className="text-[10px] opacity-80 mt-1 block">Zero Acoustic Drift</span>
-                      </button>
-
-                      {/* 3. Issue Quote */}
-                      <button
-                        id={`btn-quote-${req.id}`}
-                        onClick={() => handleAction(req.id, 'quote')}
-                        className={`p-4 border text-left rounded-xs transition-all ${
-                          isQuoted || isConfirmed
-                            ? 'bg-[#C8A15A]/20 border-[#C8A15A] text-[#0D2340]'
-                            : 'bg-[#FAF7F2] border-[#E9DED1] text-[#0D2340] hover:border-[#0D2340]'
-                        }`}
-                      >
-                        <span className="text-[9px] uppercase font-mono font-bold block mb-1">Step 3</span>
-                        <span className="text-xs font-bold block">{t.operator.actionQuote}</span>
-                        <span className="text-[10px] opacity-80 mt-1 block">$1,450 / 3 Nights</span>
-                      </button>
-
-                      {/* 4. Confirm Stay */}
-                      <button
-                        id={`btn-confirm-${req.id}`}
-                        onClick={() => handleAction(req.id, 'confirm')}
-                        disabled={!isQuoted && req.status !== 'readiness_confirmed' && !isConfirmed}
-                        className={`p-4 border text-left rounded-xs transition-all ${
-                          isConfirmed
-                            ? 'bg-[#0D2340] text-white border-[#0D2340]'
-                            : 'bg-[#B74C2B] text-white border-[#B74C2B] hover:bg-[#B74C2B]/90 disabled:opacity-40'
-                        }`}
-                      >
-                        <span className="text-[9px] uppercase font-mono font-bold block mb-1">Step 4</span>
-                        <span className="text-xs font-bold block">
-                          {isConfirmed ? t.operator.statusConfirmed : t.operator.actionConfirm}
-                        </span>
-                        <span className="text-[10px] opacity-80 mt-1 block">Locks Calendar Hold</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Execution Log */}
-                  {req.operatorNotes && (
-                    <div className="pt-4 border-t border-[#FAF7F2] flex items-center justify-between text-xs text-[#6D7480]">
-                      <span className="font-semibold text-[#0D2340]">Log: {req.operatorNotes}</span>
-                      <span className="font-mono text-[10px]">Updated {new Date(req.updatedAt).toLocaleTimeString()}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+      </section>
     </div>
   );
-};
+}
