@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import type { DataMode, Enquiry, EnquiryStage, Language, MomentKey, OperatingDataset, Property } from '../types';
 import { OperatingRepository } from '../lib/operating-repository';
 import { canConfirmStay, evaluateRateFloor, isHoldActive } from '../lib/lh-core';
+import { automationPayload, publishAutomationEvent } from '../lib/automation';
 
 interface NewEnquiryInput {
   propertyId: string;
@@ -85,6 +86,17 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
       timeline: [{ stage: 'received', at: now, note: 'Guest submitted stay enquiry.' }],
     };
     commit({ ...dataset, asOf: now, enquiries: [created, ...dataset.enquiries] });
+    publishAutomationEvent('enquiry.created', mode, automationPayload.enquiryCreated({
+      enquiryId: created.id,
+      propertyId: created.propertyId,
+      guestName: created.guestName,
+      guestPhoneMasked: created.guestPhoneMasked,
+      checkIn: created.checkIn,
+      checkOut: created.checkOut,
+      adults: created.adults,
+      children: created.children,
+      requestedMoment: created.requestedMoment,
+    }));
     return created;
   };
 
@@ -133,6 +145,12 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     updated.stage = next;
     updated.timeline = [...updated.timeline, { stage: next, at, note, byPartnerId: property.operatorPartnerId }];
     commit({ ...dataset, asOf: at, enquiries: dataset.enquiries.map((item) => item.id === id ? updated : item) });
+    publishAutomationEvent('enquiry.stage_changed', mode, automationPayload.enquiryStageChanged({
+      enquiryId: updated.id,
+      propertyId: updated.propertyId,
+      fromStage: target.stage,
+      toStage: next,
+    }));
   };
 
   const recordCommunityApproval = (id: string) => {
@@ -148,6 +166,12 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
       timeline: [...target.timeline, { stage: 'community_approved', at, note: 'Operator recorded approval issued by the named external authority.', byPartnerId: 'partner-operator-lina' }],
     };
     commit({ ...dataset, asOf: at, enquiries: dataset.enquiries.map((item) => item.id === id ? updated : item) });
+    publishAutomationEvent('community_approval.recorded', mode, {
+      enquiryId: updated.id,
+      propertyId: updated.propertyId,
+      authorityPartnerId: updated.communityApproval?.authorityPartnerId || '',
+      evidenceReference: updated.communityApproval?.evidenceReference || '',
+    });
   };
 
   const createScoutLead = (name: string, nameAr: string, location: string, locationAr: string) => {
@@ -184,6 +208,12 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
       provenMoments: [],
     };
     commit({ ...dataset, asOf: now, properties: [lead, ...dataset.properties] });
+    publishAutomationEvent('scout_lead.created', mode, {
+      propertyId: lead.id,
+      scoutPartnerId: activeScout.id,
+      name: lead.name,
+      location: lead.location,
+    });
   };
 
   const value = useMemo<OperatingContextValue>(() => ({
