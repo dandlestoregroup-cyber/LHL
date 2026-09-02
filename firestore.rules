@@ -1,107 +1,112 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return request.auth.token.role; }
+    function mode() { return request.auth.token.dataMode; }
+    function sameMode(data) { return signedIn() && data.dataMode == mode(); }
+    function isAdmin() { return signedIn() && role() == 'admin'; }
+    function isOwner() { return signedIn() && role() == 'owner'; }
+    function isScout() { return signedIn() && role() == 'scout'; }
+    function isOperator() { return signedIn() && role() == 'operator'; }
+    function isAssessor() { return signedIn() && role() == 'assessor'; }
+    function property(propertyId) { return get(/databases/$(database)/documents/properties/$(propertyId)).data; }
 
-    // Helper functions for Authority Matrix and Role verification
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function getUserRole() {
-      return request.auth.token.role;
-    }
-
-    function isBPS() {
-      return isAuthenticated() && getUserRole() == 'bps';
-    }
-
-    function isOperator() {
-      return isAuthenticated() && getUserRole() == 'operator';
-    }
-
-    function isOwner() {
-      return isAuthenticated() && getUserRole() == 'owner';
-    }
-
-    function isPropertyOwner(propertyData) {
-      return isOwner() && request.auth.uid == propertyData.ownerId;
-    }
-
-    function isAssignedOperator(propertyData) {
-      return isOperator() && (request.auth.uid in propertyData.assignedOperatorIds);
-    }
-
-    // --- Properties Collection ---
-    match /properties/{propertyId} {
-      // Guests can ONLY view live/monitored properties or publicly announced shortlisted properties.
-      // Hidden, suspended, or internal unsealed properties are never readable by Guests.
-      allow read: if (
-        resource.data.lifecycle in ['live', 'monitored'] ||
-        (resource.data.lifecycle == 'shortlisted' && resource.data.publiclyAnnounced == true)
-      ) || isBPS() || isPropertyOwner(resource.data) || isAssignedOperator(resource.data);
-
-      // Lifecycle manipulation: Clients cannot set lifecycle directly to 'live' without launch authority
-      allow create: if isBPS();
-      allow update: if isBPS() || (
-        isPropertyOwner(resource.data) &&
-        request.resource.data.lifecycle == resource.data.lifecycle // Owner cannot change lifecycle directly
-      );
-      allow delete: if false; // Destruction forbidden
-    }
-
-    // --- Booking Requests Collection ---
-    // Enforces Single Source of Truth Request flow
-    match /bookingRequests/{requestId} {
-      // Guests can create valid requests, and read only their own
-      allow create: if isAuthenticated() && request.resource.data.guestId == request.auth.uid;
-      
-      // Read access:
-      // - Guest: only their own request
-      // - Assigned Owner: visibility into requests for their owned property
-      // - Assigned Operator: execution queue for their assigned property
-      // - BPS: performance & assurance monitoring across all requests
-      allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.guestId ||
-        isBPS() ||
-        (isOwner() && request.auth.uid == get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId) ||
-        (isOperator() && request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds)
-      );
-
-      // Updates (Execution):
-      // - Operator: can update status (validate, quote, advance) only if assigned to the property
-      // - Owner: Visibility ONLY. Cannot update execution queue unless specifically designated.
-      // - Guest: cannot arbitrarily confirm or modify status.
-      allow update: if isAuthenticated() && (
-        isBPS() ||
-        (
-          isOperator() &&
-          request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds &&
-          // Cannot set to confirmed without proper quoting and authority
-          (request.resource.data.status != 'confirmed' || resource.data.status == 'quoted')
-        )
-      );
-      
+    match /partners/{partnerId} {
+      allow read: if sameMode(resource.data) && (isAdmin() || request.auth.uid == partnerId);
+      allow create: if isAdmin() && request.resource.data.dataMode == mode();
+      allow update: if sameMode(resource.data) && (isAdmin() || request.auth.uid == partnerId)
+        && request.resource.data.dataMode == resource.data.dataMode
+        && request.resource.data.role == resource.data.role;
       allow delete: if false;
     }
 
-    // --- Internal Assessments (TRUST, PROOF, SHIELD) Collection ---
-    // STRICT SECURITY GATE: Guests CANNOT read internal assessment data
-    match /internalAssessments/{assessmentId} {
-      allow read: if isAuthenticated() && (
-        isBPS() ||
-        (isOwner() && request.auth.uid == get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId) ||
-        (isOperator() && request.auth.uid in get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.assignedOperatorIds)
+    match /properties/{propertyId} {
+      allow read: if (
+        resource.data.supplyStage == 'live' && resource.data.publiclyVisible == true && resource.data.sealIssued == true
+      ) || (
+        resource.data.joiningVisible == true && resource.data.supplyStage in ['sourced', 'owner_engaged', 'assessment_scheduled', 'decision_pending', 'activation_ready']
+      ) || (
+        sameMode(resource.data) && (
+          isAdmin() || request.auth.uid == resource.data.ownerPartnerId || request.auth.uid == resource.data.scoutPartnerId ||
+          request.auth.uid == resource.data.operatorPartnerId || request.auth.uid == resource.data.assessorPartnerId
+        )
       );
-      
-      // Only BPS (Assurance Officers) can write assessments and grant seals
-      allow write: if isBPS();
+      allow create: if (isScout() || isAdmin())
+        && request.resource.data.dataMode == mode()
+        && request.resource.data.supplyStage == 'sourced'
+        && request.resource.data.publiclyVisible == false
+        && request.resource.data.sealIssued == false;
+      allow update: if sameMode(resource.data) && request.resource.data.dataMode == resource.data.dataMode && (
+        isAdmin() ||
+        (isScout() && request.auth.uid == resource.data.scoutPartnerId
+          && request.resource.data.supplyStage in ['sourced', 'owner_engaged', 'assessment_scheduled']
+          && request.resource.data.publiclyVisible == false
+          && request.resource.data.sealIssued == false) ||
+        (isOperator() && request.auth.uid == resource.data.operatorPartnerId
+          && request.resource.data.ownerPartnerId == resource.data.ownerPartnerId
+          && request.resource.data.nightlyFloorEgp == resource.data.nightlyFloorEgp)
+      );
+      allow delete: if false;
     }
 
-    // --- Launch Decisions Collection ---
-    match /launchDecisions/{decisionId} {
-      allow read: if isBPS() || isOwner();
-      // Only Property Owner with verified credentials can record Launch Decision
-      allow write: if isOwner() && request.resource.data.approvedByName != null;
+    match /assessments/{assessmentId} {
+      allow read: if sameMode(resource.data) && (
+        isAdmin() || request.auth.uid == resource.data.assessorPartnerId ||
+        request.auth.uid == property(resource.data.propertyId).ownerPartnerId ||
+        request.auth.uid == property(resource.data.propertyId).operatorPartnerId
+      );
+      allow create, update: if isAssessor()
+        && request.auth.uid == request.resource.data.assessorPartnerId
+        && request.resource.data.dataMode == mode();
+      allow delete: if false;
+    }
+
+    match /ownerDecisions/{decisionId} {
+      allow read: if sameMode(resource.data) && (
+        isAdmin() || request.auth.uid == resource.data.ownerPartnerId ||
+        request.auth.uid == property(resource.data.propertyId).operatorPartnerId ||
+        request.auth.uid == property(resource.data.propertyId).assessorPartnerId
+      );
+      allow create, update: if isOwner()
+        && request.auth.uid == request.resource.data.ownerPartnerId
+        && request.auth.uid == property(request.resource.data.propertyId).ownerPartnerId
+        && request.resource.data.dataMode == mode();
+      allow delete: if false;
+    }
+
+    match /enquiries/{enquiryId} {
+      allow create: if request.resource.data.dataMode == mode()
+        && request.resource.data.stage == 'received'
+        && property(request.resource.data.propertyId).dataMode == mode()
+        && property(request.resource.data.propertyId).supplyStage == 'live'
+        && property(request.resource.data.propertyId).publiclyVisible == true;
+      allow read: if sameMode(resource.data) && (
+        isAdmin() ||
+        request.auth.uid == property(resource.data.propertyId).ownerPartnerId ||
+        request.auth.uid == property(resource.data.propertyId).operatorPartnerId
+      );
+      allow update: if sameMode(resource.data)
+        && isOperator()
+        && request.auth.uid == property(resource.data.propertyId).operatorPartnerId
+        && request.resource.data.dataMode == resource.data.dataMode
+        && (
+          request.resource.data.stage != 'community_approved' ||
+          request.resource.data.communityApproval.authorityPartnerId == property(resource.data.propertyId).communityAuthorityPartnerId
+        )
+        && (
+          request.resource.data.stage != 'confirmed' ||
+          property(resource.data.propertyId).communityApprovalRequired == false ||
+          (
+            request.resource.data.communityApproval.status == 'approved' &&
+            request.resource.data.communityApproval.evidenceReference != null
+          )
+        )
+        && (
+          request.resource.data.quote == null ||
+          request.resource.data.quote.nightlyRateEgp >= property(resource.data.propertyId).nightlyFloorEgp
+        );
+      allow delete: if false;
     }
   }
 }

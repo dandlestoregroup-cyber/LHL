@@ -1,171 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { RequestProvider } from './context/RequestContext';
+import React from 'react';
 import { Navbar } from './components/Navbar';
-import { SecurityConsole } from './components/SecurityConsole';
-import { GuestHomeView } from './views/GuestHomeView';
-import { MomentView } from './views/MomentView';
-import { PropertyView } from './views/PropertyView';
-import { OwnerView } from './views/OwnerView';
+import { OperatingProvider, useOperating } from './context/OperatingContext';
+import { bi } from './lib/display';
+import { AssessmentView } from './views/AssessmentView';
+import { JoiningView } from './views/JoiningView';
 import { OperatorView } from './views/OperatorView';
-import { BpsView } from './views/BpsView';
-import { OnboardingView } from './views/OnboardingView';
+import { OwnerView } from './views/OwnerView';
+import { PipelineView } from './views/PipelineView';
+import { PropertyView } from './views/PropertyView';
+import { PublicHomesView } from './views/PublicHomesView';
+import { ScoutView } from './views/ScoutView';
 
 function AppContent() {
-  const { lang, t, isRTL, user } = useAuth();
-  const [currentPath, setCurrentPath] = useState<string>(() => {
-    return window.location.pathname || '/';
-  });
+  const { lang, mode, dataset } = useOperating();
+  const [currentPath, setCurrentPath] = React.useState(window.location.pathname || '/');
+
+  React.useEffect(() => {
+    const onPopState = () => setCurrentPath(window.location.pathname || '/');
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   const navigate = (path: string) => {
-    setCurrentPath(path);
     window.history.pushState({}, '', path);
+    setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname || '/');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
   const renderRoute = () => {
-    if (currentPath === '/' || currentPath === '') {
-      return <GuestHomeView navigate={navigate} />;
-    }
-    if (currentPath === '/onboard' || currentPath === '/list-property') {
-      return <OnboardingView navigate={navigate} />;
-    }
-    if (currentPath.startsWith('/moments')) {
-      return <MomentView navigate={navigate} />;
-    }
-    if (currentPath.startsWith('/homes')) {
-      const parts = currentPath.split('/');
-      const slug = parts[2] || 'seaward-library';
-      return <PropertyView slug={slug} navigate={navigate} />;
-    }
-    if (currentPath === '/owner') {
-      return <OwnerView navigate={navigate} />;
-    }
-    if (currentPath === '/operator') {
-      return <OperatorView navigate={navigate} />;
-    }
-    if (currentPath === '/bps') {
-      return <BpsView navigate={navigate} />;
-    }
-    if (currentPath === '/security') {
-      return <SecurityConsole />;
-    }
-    // Default fallback to GuestHomeView
-    return <GuestHomeView navigate={navigate} />;
+    if (currentPath === '/') return <PublicHomesView navigate={navigate} />;
+    if (currentPath === '/joining') return <JoiningView navigate={navigate} />;
+    if (currentPath === '/scout') return <ScoutView />;
+    if (currentPath === '/owner') return <OwnerView navigate={navigate} />;
+    if (currentPath === '/operator') return <OperatorView navigate={navigate} />;
+    if (currentPath === '/assessment') return <AssessmentView />;
+    if (currentPath === '/pipeline') return <PipelineView />;
+    if (currentPath.startsWith('/homes/')) return <PropertyView slug={currentPath.split('/')[2] || ''} navigate={navigate} />;
+    return <PublicHomesView navigate={navigate} />;
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#0D2340] selection:bg-[#E7D6BF] selection:text-[#0D2340]">
-      {/* Global Navbar */}
+    <div className="min-h-screen bg-ivory-50 text-ink-900">
       <Navbar currentPath={currentPath} navigate={navigate} />
-
-      {/* Main Routed Content */}
-      <main className="flex-1">
-        {renderRoute()}
-      </main>
-
-      {/* Editorial Mediterranean Footer */}
-      <footer className="bg-[#0D2340] text-white border-t border-white/10 py-16 px-6 md:px-12 mt-auto">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
-          {/* Brand & Manifesto */}
-          <div className="md:col-span-6 space-y-4">
-            <span className="font-serif-editorial text-3xl font-bold tracking-tight text-white block">
-              {t.nav.brand}
-            </span>
-            <p className="font-serif-editorial text-lg italic text-[#E7D6BF]">
-              "{t.nav.tagline}"
-            </p>
-            <p className="text-xs text-[#FAF7F2]/70 max-w-md leading-relaxed">
-              {lang === 'ar'
-                ? 'مجموعة هادئة من المنازل الساحلية الموثقة ميدانياً. لا ندرج أمتاراً مربعة، بل نوثق عمق اللحظة الإنسانية وجودتها.'
-                : 'A quiet collection of verified coastal residences. We do not list square meters; we qualify the quality of moments.'}
-            </p>
-          </div>
-
-          {/* Quick Authority Navigation */}
-          <div className="md:col-span-3 space-y-3 text-xs">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#C8A15A] block mb-2">
-              {lang === 'ar' ? 'أدوار النظام' : 'System Personas'}
-            </span>
-            <ul className="space-y-2 text-[#FAF7F2]/80">
-              <li>
-                <button onClick={() => navigate('/homes/seaward-library')} className="hover:text-[#C8A15A] transition-colors">
-                  {lang === 'ar' ? 'الضيف: حجز الإقامة' : 'Guest: Booking Flow'}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate('/owner')} className="hover:text-[#C8A15A] transition-colors">
-                  {t.nav.ownerView}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate('/operator')} className="hover:text-[#C8A15A] transition-colors">
-                  {t.nav.operatorView}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate('/bps')} className="hover:text-[#C8A15A] transition-colors">
-                  {t.nav.bpsView}
-                </button>
-              </li>
-              <li className="pt-2 border-t border-white/10">
-                <button onClick={() => navigate('/list-property')} className="text-[#C8A15A] hover:underline font-bold flex items-center gap-1">
-                  <span>+</span>
-                  <span>{lang === 'ar' ? 'أدرج عقارك في ليتل هت' : 'List & Qualify Your Residence'}</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Standards & Security */}
-          <div className="md:col-span-3 space-y-3 text-xs">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#A7B29A] block mb-2">
-              {lang === 'ar' ? 'المعايير والأمان' : 'Standard & Security'}
-            </span>
-            <ul className="space-y-2 text-[#FAF7F2]/80">
-              <li>
-                <button onClick={() => navigate('/security')} className="hover:text-[#A7B29A] transition-colors flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#0F5859]"></span>
-                  <span>{lang === 'ar' ? 'محرك الأمان (٨ اختبارات سلبية)' : 'Security Engine (8/8 Passed)'}</span>
-                </button>
-              </li>
-              <li>
-                <span className="text-[#FAF7F2]/50">
-                  {lang === 'ar' ? 'سلطة التقويم: مدارة مباشرة' : 'Calendar: Direct LH Held'}
-                </span>
-              </li>
-              <li>
-                <span className="text-[#FAF7F2]/50">
-                  {lang === 'ar' ? 'انحراف الأدلة: ٠.٠٪' : 'Evidence Drift: 0.0%'}
-                </span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto pt-12 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#FAF7F2]/50">
-          <span>© 2026 Little Hut. All rights reserved.</span>
-          <span>{lang === 'ar' ? 'مبني وفق مصفوفة الصلاحيات وقواعد فايرستور الآمنة' : 'Enforced by Authority Matrix & Firestore Security Rules'}</span>
+      <main>{renderRoute()}</main>
+      <footer className="mt-12 border-t border-clay-200 bg-ink-950 text-white">
+        <div className="page-shell grid gap-10 py-14 md:grid-cols-[1.3fr_.7fr]">
+          <div><span className="font-serif text-3xl">Little Hut</span><p className="mt-3 max-w-xl text-sm leading-7 text-white/60">{bi(lang, 'A proof-led operating system for sourcing distinctive homes and carrying one guest enquiry through every booking gate.', 'نظام تشغيل قائم على التوثيق لاكتشاف البيوت المميزة ونقل طلب الضيف الواحد عبر كل بوابات الحجز.')}</p></div>
+          <div className="md:text-end"><span className={`mode-chip ${mode === 'demo' ? 'mode-chip-demo' : 'mode-chip-live'}`}>{mode.toUpperCase()}</span><p className="mt-3 text-xs text-white/55">{bi(lang, dataset.label, dataset.labelAr)}</p><p className="mt-2 text-[10px] uppercase tracking-[.14em] text-white/35">{bi(lang, 'GitHub operating build · Base44 reference only', 'نسخة تشغيل GitHub · Base44 مرجع فقط')}</p></div>
         </div>
       </footer>
+      <div className={`pointer-events-none fixed bottom-4 end-4 z-40 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.16em] shadow-lg ${mode === 'demo' ? 'bg-terracotta-700 text-white' : 'bg-sage-800 text-white'}`}>{mode === 'demo' ? bi(lang, 'DEMO · SYNTHETIC', 'تجريبي · افتراضي') : bi(lang, 'LIVE · TRUTH ONLY', 'فعلي · حقائق فقط')}</div>
     </div>
   );
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <RequestProvider>
-        <AppContent />
-      </RequestProvider>
-    </AuthProvider>
-  );
+  return <OperatingProvider><AppContent /></OperatingProvider>;
 }

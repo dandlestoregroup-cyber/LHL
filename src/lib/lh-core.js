@@ -1,362 +1,156 @@
-/**
- * Little Hut Core Domain Logic (lh-core.js)
- * Authoritative implementation of Little Hut Business Standards,
- * Evidence Ceilings, Booking Modes, Audit Ladder, and Authority Matrix.
- */
+/** Locked Little Hut domain rules. Keep in sync with docs/operating-doctrine.md. */
 
-export const MOMENTS = {
+export const MOMENTS = Object.freeze({
   SLOW_MORNING: 'slow_morning',
   LONG_TABLE: 'long_table',
   AFTERNOON_DRIFT: 'afternoon_drift',
   NIGHT_SWIM: 'night_swim',
   FIRE_CONVERSATION: 'fire_conversation',
   SILENT_READING: 'silent_reading',
-};
+});
 
-export const LIFECYCLE_STATES = {
-  SHORTLISTED: 'shortlisted',
-  SEALED: 'sealed',
-  LIVE: 'live',
-  MONITORED: 'monitored',
-  SUSPENDED: 'suspended',
-  OFFLINE: 'offline',
-};
+export const MOMENT_KEYS = Object.freeze(Object.values(MOMENTS));
 
-export const AUDIT_LEVELS = {
-  NEW: 'New',
-  STEADY: 'Steady',
-  PROVEN: 'Proven',
-};
+export const SUPPLY_STAGES = Object.freeze([
+  'sourced',
+  'owner_engaged',
+  'assessment_scheduled',
+  'decision_pending',
+  'activation_ready',
+  'live',
+  'paused',
+  'declined',
+]);
 
-export const EVIDENCE_TYPES = {
-  LISTING: 'listing',
-  PHOTO: 'photo',
-  SITE_VISIT: 'site_visit',
-  AUDIT: 'audit',
-  SENSOR: 'sensor',
-};
+export const BOOKING_SPINE = Object.freeze([
+  'received',
+  'qualified',
+  'availability_checked',
+  'quoted',
+  'hold',
+  'payment_pending',
+  'payment_received',
+  'community_approval_pending',
+  'community_approved',
+  'confirmed',
+  'completed',
+]);
 
-/**
- * 1. Evidence Ceiling: Determines whether evidence can prove a moment
- */
-export function evaluateEvidence(evidenceType, targetClaim) {
-  if (evidenceType === EVIDENCE_TYPES.LISTING || evidenceType === 'listing_text') {
-    return {
-      canProve: false,
-      downgraded: true,
-      reason: 'A listing cannot prove a moment. Requires physical verification.',
-      level: 'unverified'
-    };
-  }
-  if (evidenceType === EVIDENCE_TYPES.SITE_VISIT || evidenceType === EVIDENCE_TYPES.AUDIT) {
-    return {
-      canProve: true,
-      downgraded: false,
-      reason: 'Physical inspection completed.',
-      level: 'proven'
-    };
+export const TERMINAL_ENQUIRY_STAGES = Object.freeze(['declined', 'expired', 'cancelled']);
+
+export function evaluateEvidence(evidenceType) {
+  if (evidenceType === 'site_visit' || evidenceType === 'independent_assessment') {
+    return { canProve: true, level: 'proven', reason: 'Physical independent evidence can prove a Moment.' };
   }
   return {
     canProve: false,
-    downgraded: true,
-    reason: 'Insufficient evidence level.',
-    level: 'pending'
+    level: evidenceType === 'listing' || evidenceType === 'owner_claim' ? 'nominated' : 'pending',
+    reason: 'Listings, owner claims, and scout notes may nominate but cannot prove a Moment.',
   };
 }
 
-/**
- * 2. Public Card Facts: Evaluates public card state and restrictions
- */
-export function publicCardFacts(property) {
-  const isLive = property.lifecycle === LIFECYCLE_STATES.LIVE || property.lifecycle === LIFECYCLE_STATES.MONITORED;
-  const isShortlisted = property.lifecycle === LIFECYCLE_STATES.SHORTLISTED;
-  const isSuspended = property.lifecycle === LIFECYCLE_STATES.SUSPENDED || property.lifecycle === LIFECYCLE_STATES.OFFLINE;
-  const isSealed = property.lifecycle === LIFECYCLE_STATES.SEALED;
-
-  if (isSuspended) {
-    return {
-      visible: false,
-      state: 'hidden',
-      isVerified: false,
-      bookable: false,
-      showSeal: false,
-      showRate: false,
-      hasAvailabilityClaim: false
-    };
-  }
-
-  if (isSealed && !property.publiclyAnnounced) {
-    return {
-      visible: false,
-      state: 'sealed_pending_launch',
-      isVerified: false,
-      bookable: false,
-      showSeal: false,
-      showRate: false,
-      hasAvailabilityClaim: false
-    };
-  }
-
-  if (isShortlisted) {
-    return {
-      visible: true,
-      state: 'joining',
-      badge: 'Joining Little Hut',
-      isVerified: false,
-      bookable: false,
-      showSeal: false,
-      showRate: false,
-      hasAvailabilityClaim: false,
-      rating: null
-    };
-  }
-
-  if (isLive) {
-    const hasRealReviews = property.reviews && property.reviews.length >= 3;
-    return {
-      visible: true,
-      state: 'live',
-      badge: 'Verified Little Hut Home',
-      isVerified: true,
-      bookable: true,
-      showSeal: property.sealIssued === true,
-      showRate: false, // Rule: No card ever shows a rate
-      hasAvailabilityClaim: true,
-      rating: hasRealReviews ? property.avgRating : null
-    };
-  }
-
+export function publicPropertyFacts(property) {
+  const isLive = property.supplyStage === 'live';
+  const isJoining = property.joiningVisible && !isLive && !['paused', 'declined'].includes(property.supplyStage);
   return {
-    visible: false,
-    state: 'hidden',
-    isVerified: false,
-    bookable: false,
-    showSeal: false,
+    publicHome: Boolean(isLive && property.publiclyVisible && property.sealIssued),
+    joining: Boolean(isJoining),
+    bookable: Boolean(isLive && property.publiclyVisible && property.sealIssued),
+    showSeal: Boolean(isLive && property.sealIssued),
     showRate: false,
-    hasAvailabilityClaim: false
   };
 }
 
-/**
- * 3. Money / Financial configuration rules
- */
-export function canTakeMoney(property, config) {
-  if (property.lifecycle !== LIFECYCLE_STATES.LIVE && property.lifecycle !== LIFECYCLE_STATES.MONITORED) {
-    return { allowed: false, reason: 'An unverified home takes no money.' };
+export function evaluateRateFloor(property, nightlyRateEgp) {
+  if (!property || typeof property.nightlyFloorEgp !== 'number' || property.nightlyFloorEgp <= 0) {
+    return { allowed: false, reason: 'No valid owner floor; quoting and payment are blocked.' };
   }
-  if (!config || typeof config.rateFloor !== 'number' || config.rateFloor <= 0) {
-    return { allowed: false, reason: 'No floor, no money.' };
+  if (!Number.isFinite(nightlyRateEgp) || nightlyRateEgp < property.nightlyFloorEgp) {
+    return { allowed: false, reason: 'Quoted nightly accommodation rate is below the owner floor.' };
   }
-  if (!config.payoutAccountConfigured) {
-    return { allowed: false, reason: 'Missing payout destination.' };
-  }
-  return { allowed: true, reason: 'Live and configured home authorized for transactions.' };
+  return { allowed: true, reason: 'Quote respects the owner floor.' };
 }
 
-/**
- * 4. Booking Mode Envelope
- */
-export function resolveBookingMode(propertyContext) {
-  const { calendarAuthority, communityApprovalRequired, littleHutHoldsCalendar, requestedInstant } = propertyContext;
+export function isHoldActive(hold, at = new Date()) {
+  if (!hold?.active || !hold.expiresAt) return false;
+  return new Date(hold.expiresAt).getTime() > new Date(at).getTime();
+}
 
-  // Rule: Instant dies on a subscribed calendar
-  if (calendarAuthority === 'subscribed' || calendarAuthority === 'external') {
-    return {
-      mode: 'request',
-      instantAllowed: false,
-      reason: 'Instant dies on a subscribed calendar.',
-      fallbackReported: true
-    };
+export function canTakeMoney(property, enquiry, at = new Date()) {
+  if (property.supplyStage !== 'live' || !property.sealIssued) {
+    return { allowed: false, reason: 'Only a sealed Live home can take money.' };
   }
+  if (!property.payoutReady) return { allowed: false, reason: 'Payout destination is not ready.' };
+  const floorCheck = evaluateRateFloor(property, enquiry.quote?.nightlyRateEgp);
+  if (!floorCheck.allowed) return floorCheck;
+  if (!isHoldActive(enquiry.hold, at)) return { allowed: false, reason: 'Payment requires an active expiring hold.' };
+  return { allowed: true, reason: 'Payment gates satisfied.' };
+}
 
-  // Rule: Unknown authority is treated as subscribed
-  if (!calendarAuthority || calendarAuthority === 'unknown') {
-    return {
-      mode: 'request',
-      instantAllowed: false,
-      reason: 'Unknown authority is treated as subscribed.',
-      fallbackReported: true
-    };
+export function resolveBookingMode(property) {
+  if (property.calendarAuthority !== 'little_hut') {
+    return { mode: 'request', instantAllowed: false, reason: 'External or unknown calendar authority requires request mode.' };
   }
-
-  // Rule: Community approval kills instant
-  if (communityApprovalRequired) {
-    return {
-      mode: 'request',
-      instantAllowed: false,
-      reason: 'Community approval kills instant.',
-      fallbackReported: true
-    };
+  if (property.communityApprovalRequired) {
+    return { mode: 'request', instantAllowed: false, reason: 'Community approval is a hard gate and disables instant confirmation.' };
   }
+  return property.bookingMode === 'instant'
+    ? { mode: 'instant', instantAllowed: true, reason: 'Little Hut holds the calendar and no external approval gate applies.' }
+    : { mode: 'request', instantAllowed: false, reason: 'Owner chose request mode.' };
+}
 
-  // Rule: Instant survives where Little Hut holds the calendar
-  if (littleHutHoldsCalendar && requestedInstant) {
-    return {
-      mode: 'instant',
-      instantAllowed: true,
-      reason: 'Little Hut holds calendar and all authority criteria met.',
-      fallbackReported: false
-    };
+export function calendarEffect(enquiry, at = new Date()) {
+  const blockingStages = ['hold', 'payment_pending', 'payment_received', 'community_approval_pending', 'community_approved', 'confirmed'];
+  if (!blockingStages.includes(enquiry.stage)) {
+    return { blocksCalendar: false, reason: 'Only an active hold or confirmed stay blocks the calendar.' };
   }
+  if (enquiry.stage === 'confirmed') return { blocksCalendar: true, reason: 'Confirmed stay blocks the calendar.' };
+  return isHoldActive(enquiry.hold, at)
+    ? { blocksCalendar: true, reason: 'Active hold blocks until expiry.' }
+    : { blocksCalendar: false, reason: 'Missing or expired hold cannot block the calendar.' };
+}
 
-  // Rule: Nothing upgrades request into instant automatically
+export function evaluateAssessment(assessment) {
+  if (!assessment?.independenceConfirmed) return { passed: false, reason: 'Independent assessor confirmation is required.' };
+  if (assessment.trustGates?.some((gate) => gate.status !== 'passed')) return { passed: false, reason: 'Every TRUST gate must pass.' };
+  if (assessment.shieldGates?.some((gate) => gate.status !== 'passed')) return { passed: false, reason: 'Every SHIELD gate must pass.' };
+  if ((assessment.provenMomentKeys?.length || 0) < 2) return { passed: false, reason: 'At least two canonical Moments must be proven.' };
+  return { passed: true, reason: 'Independent assessment gate passed.' };
+}
+
+export function evaluateGoLive(property, assessment, ownerDecision) {
+  const assessmentCheck = evaluateAssessment(assessment);
+  if (!assessmentCheck.passed) return { allowed: false, reason: assessmentCheck.reason };
+  if (!ownerDecision || ownerDecision.decision !== 'go' || !ownerDecision.decidedAt) {
+    return { allowed: false, reason: 'Explicit named owner go decision is required.' };
+  }
+  if (ownerDecision.conditions?.some((item) => item.launchBlocking && !item.resolved)) {
+    return { allowed: false, reason: 'An unresolved launch-blocking owner condition remains.' };
+  }
+  if (!ownerDecision.payoutReady || !ownerDecision.nightlyFloorEgp || ownerDecision.nightlyFloorEgp <= 0) {
+    return { allowed: false, reason: 'Owner floor and payout readiness are required.' };
+  }
+  if (property.calendarAuthority === 'unknown') return { allowed: false, reason: 'Calendar authority must be explicit.' };
+  if (!property.activationChecklistComplete) return { allowed: false, reason: 'Activation checklist is incomplete.' };
+  return { allowed: true, reason: 'All Live gates satisfied.' };
+}
+
+export function canConfirmStay(property, enquiry, at = new Date()) {
+  if (property.supplyStage !== 'live') return { allowed: false, reason: 'Property is not Live.' };
+  if (!enquiry.payment?.receivedAt) return { allowed: false, reason: 'Payment is not recorded.' };
+  if (!isHoldActive(enquiry.hold, at)) return { allowed: false, reason: 'Hold is missing or expired.' };
+  if (property.communityApprovalRequired && enquiry.communityApproval?.status !== 'approved') {
+    return { allowed: false, reason: 'Community approval is required before confirmation.' };
+  }
+  return { allowed: true, reason: 'Payment, hold, and approval gates satisfied.' };
+}
+
+export function assertDatasetBoundary(dataset) {
+  const records = [dataset.partners, dataset.properties, dataset.assessments, dataset.ownerDecisions, dataset.enquiries].flat();
+  const mismatched = records.filter((record) => record.dataMode !== dataset.mode || record.synthetic !== (dataset.mode === 'demo'));
   return {
-    mode: 'request',
-    instantAllowed: false,
-    reason: 'Standard request mode envelope active.',
-    fallbackReported: false
+    valid: mismatched.length === 0,
+    mismatchedIds: mismatched.map((record) => record.id),
+    reason: mismatched.length === 0 ? 'Dataset boundary is intact.' : 'A record crossed the Demo/Live boundary.',
   };
-}
-
-/**
- * 5. The Standard (TRUST, PROOF, SHIELD & Seal)
- */
-export function evaluateStandard(assessment) {
-  const { trustGates, provenMomentsCount, shieldChecks, littleHutHourChecked } = assessment;
-
-  // Rule: A failed TRUST gate disqualifies
-  if (trustGates && trustGates.some(g => g.status === 'failed')) {
-    return { passed: false, sealAllowed: false, reason: 'A failed TRUST gate disqualifies.' };
-  }
-
-  // Rule: A pending gate waits
-  if (trustGates && trustGates.some(g => g.status === 'pending')) {
-    return { passed: false, sealAllowed: false, reason: 'A pending gate waits.' };
-  }
-
-  // Rule: A home with no Little Hut hour fails whatever it scores
-  if (!littleHutHourChecked) {
-    return { passed: false, sealAllowed: false, reason: 'A home with no Little Hut hour fails whatever it scores.' };
-  }
-
-  // Rule: Two proven moments is a real property
-  if (!provenMomentsCount || provenMomentsCount < 2) {
-    return { passed: false, sealAllowed: false, reason: 'Requires at least two proven moments.' };
-  }
-
-  // Rule: One SHIELD fail blocks (A spotless kitchen does not offset an unfenced pool)
-  const shieldFailed = shieldChecks && shieldChecks.some(s => s.status === 'failed');
-  if (shieldFailed) {
-    return { passed: false, sealAllowed: false, reason: 'One SHIELD fail blocks. A spotless kitchen does not offset an unfenced pool.' };
-  }
-
-  const shieldPending = shieldChecks && shieldChecks.some(s => s.status === 'pending');
-  if (shieldPending) {
-    return { passed: false, sealAllowed: false, reason: 'No seal while SHIELD is unresolved.' };
-  }
-
-  const allSixTrustClear = trustGates && trustGates.length >= 6 && trustGates.every(g => g.status === 'passed');
-  const shieldAllClear = shieldChecks && shieldChecks.length >= 6 && shieldChecks.every(s => s.status === 'passed');
-
-  if (allSixTrustClear && shieldAllClear && littleHutHourChecked && provenMomentsCount >= 2) {
-    return { passed: true, sealAllowed: true, reason: 'Seal when both are good. All gates clear.' };
-  }
-
-  return { passed: false, sealAllowed: false, reason: 'Assessment criteria incomplete.' };
-}
-
-/**
- * 6. Launch Authority
- */
-export function evaluateLaunchAuthority(launchPayload) {
-  const { sealIssued, ownerDecision, dependencies } = launchPayload;
-
-  // Rule: A sealed home is not live
-  if (!ownerDecision) {
-    return { canGoLive: false, reason: 'A sealed home is not live. Silence is not approval.' };
-  }
-
-  // Rule: A decision needs a name and a date
-  if (!ownerDecision.approvedByName || !ownerDecision.approvedAtDate) {
-    return { canGoLive: false, reason: 'A decision needs a name and a date.' };
-  }
-
-  // Rule: Approval with open conditions is not approval
-  if (ownerDecision.conditions && ownerDecision.conditions.some(c => !c.resolved)) {
-    return { canGoLive: false, reason: 'Approval with open conditions is not approval.' };
-  }
-
-  // Rule: An open dependency changes the forecast, not the state, UNLESS launch_blocking
-  if (dependencies && dependencies.some(d => d.launch_blocking && !d.resolved)) {
-    return { canGoLive: false, reason: 'A launch_blocking dependency does block.' };
-  }
-
-  if (sealIssued && ownerDecision.approved === true) {
-    return { canGoLive: true, reason: 'A clean approval authorises live.' };
-  }
-
-  return { canGoLive: false, reason: 'Launch conditions not met.' };
-}
-
-/**
- * 7. Audit Ladder
- */
-export function evaluateAuditLadder(auditHistory) {
-  if (!auditHistory || auditHistory.length === 0) {
-    return { level: AUDIT_LEVELS.NEW, auditCount: 0 };
-  }
-
-  // Rule: A trigger snaps it back the same day
-  const hasTrigger = auditHistory.some(a => a.triggerEvent || a.incidentTriggered);
-  if (hasTrigger) {
-    return { level: AUDIT_LEVELS.NEW, triggerApplied: true, reason: 'A trigger snaps it back the same day.' };
-  }
-
-  const cleanAudits = auditHistory.filter(a => a.status === 'clean' && a.holdingOutcome === true);
-
-  if (cleanAudits.length >= 4) {
-    return { level: AUDIT_LEVELS.PROVEN, auditCount: cleanAudits.length };
-  }
-
-  if (cleanAudits.length >= 2) {
-    return { level: AUDIT_LEVELS.STEADY, auditCount: cleanAudits.length };
-  }
-
-  return { level: AUDIT_LEVELS.NEW, auditCount: cleanAudits.length };
-}
-
-/**
- * 8. Guest Qualification
- */
-export function qualifyGuestRequest(enquiry, propertyRules) {
-  // Rule: Over capacity is a hard decline
-  if (enquiry.partySize > propertyRules.maxCapacity) {
-    return { qualified: false, hardDecline: true, reason: 'Over capacity is a hard decline.' };
-  }
-
-  // Rule: An event is a hard decline
-  if (enquiry.isEvent || enquiry.purpose === 'event' || enquiry.purpose === 'party') {
-    return { qualified: false, hardDecline: true, reason: 'An event is a hard decline.' };
-  }
-
-  // Rule: Qualification runs even in instant mode
-  // Rule: A clean enquiry on a subscribed calendar still lands on request
-  const isClean = enquiry.partySize <= propertyRules.maxCapacity && !enquiry.isEvent;
-  const targetMode = propertyRules.calendarAuthority === 'subscribed' ? 'request' : (propertyRules.bookingMode || 'request');
-
-  return {
-    qualified: isClean,
-    hardDecline: false,
-    routedTo: targetMode,
-    reason: propertyRules.calendarAuthority === 'subscribed' ? 'A clean enquiry on a subscribed calendar still lands on request.' : 'Qualified.'
-  };
-}
-
-/**
- * 9. Calendar Holds & Blocks
- */
-export function processCalendarEntry(entryType, payload) {
-  if (entryType === 'enquiry') {
-    return { blocksCalendar: false, reason: 'An enquiry does not block a calendar.' };
-  }
-  if (entryType === 'quote') {
-    return { blocksCalendar: false, reason: 'A quote does not block a calendar.' };
-  }
-  if (entryType === 'hold') {
-    if (!payload || !payload.expiresAt) {
-      return { blocksCalendar: false, error: 'A hold without an expiry is refused.' };
-    }
-    return { blocksCalendar: true, expiresAt: payload.expiresAt, reason: 'A hold blocks the calendar until expiry.' };
-  }
-  return { blocksCalendar: false, reason: 'Unknown entry type.' };
 }
