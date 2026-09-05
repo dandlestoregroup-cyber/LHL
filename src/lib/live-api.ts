@@ -151,8 +151,12 @@ export async function createLiveScoutProperty(input: { name: string; nameAr: str
   return request('/api/live/scout/properties', { method: 'POST', body: JSON.stringify(input) });
 }
 
-export async function assignLiveOwner(propertyId: string, ownerPartnerId: string, ownerConsentReference: string): Promise<{ property: Property; dataset: OperatingDataset }> {
-  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-owner`, { method: 'POST', body: JSON.stringify({ ownerPartnerId, ownerConsentReference }) });
+export async function recordLiveOwnerConsent(propertyId: string, ownerConsentReference: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/owner-consent`, { method: 'POST', body: JSON.stringify({ ownerConsentReference }) });
+}
+
+export async function assignLiveOwner(propertyId: string, ownerPartnerId: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-owner`, { method: 'POST', body: JSON.stringify({ ownerPartnerId }) });
 }
 
 export async function assignLiveOperator(propertyId: string, operatorPartnerId: string): Promise<{ property: Property; dataset: OperatingDataset }> {
