@@ -17,11 +17,11 @@ import {
   recordLiveCommunityApproval,
   sessionPartner,
 } from './src/server/live-store';
+import { recordScoutOwnerEngagement } from './src/server/live-scout-supply';
 import {
   activateLiveProperty,
   assignCommunityAuthorityToProperty,
   assignOperatorToProperty,
-  assignOwnerToProperty,
   schedulePropertyAssessment,
   submitPropertyAssessment,
   submitPropertyOwnerDecision,
@@ -79,7 +79,18 @@ const inviteUrl = (token: string): string => {
   return url.toString();
 };
 
-const datasetResponse = async (req: Request) => loadLiveDataset(readSession(req));
+const datasetResponse = async (req: Request) => {
+  const session = readSession(req);
+  const dataset = await loadLiveDataset(session);
+  if (!session) {
+    dataset.properties = dataset.properties.map((property) => ({
+      ...property,
+      ownerConsentReference: undefined,
+      communityAuthorityPartnerId: undefined,
+    }));
+  }
+  return dataset;
+};
 
 app.post('/api/auth/sign-up', async (req, res) => {
   if (!authLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'auth_rate_limited' });
@@ -188,7 +199,7 @@ app.post('/api/live/scout/properties', async (req, res) => {
 
 app.post('/api/live/properties/:id/assign-owner', async (req, res) => {
   try {
-    const property = await assignOwnerToProperty(requireSession(req), req.params.id, req.body || {});
+    const property = await recordScoutOwnerEngagement(requireSession(req), req.params.id, req.body || {});
     return res.json({ property, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
@@ -215,7 +226,13 @@ app.post('/api/live/properties/:id/assign-community-authority', async (req, res)
 
 app.post('/api/live/properties/:id/schedule-assessment', async (req, res) => {
   try {
-    const assessment = await schedulePropertyAssessment(requireSession(req), req.params.id, req.body || {});
+    const session = requireSession(req);
+    const dataset = await loadLiveDataset(session);
+    const property = dataset.properties.find((item) => item.id === req.params.id);
+    if (property?.supplyStage === 'paused' && dataset.ownerDecisions.some((decision) => decision.propertyId === property.id)) {
+      throw new LiveStoreError('owner_decision_pause_cannot_be_reassessed', 409);
+    }
+    const assessment = await schedulePropertyAssessment(session, req.params.id, req.body || {});
     return res.json({ assessment, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
