@@ -33,7 +33,7 @@ Every committed Live write to Property, Assessment, OwnerDecision, or Enquiry pr
 
 Live payloads intentionally exclude sensitive or authority-bearing fields such as guest name/phone, payment references, approval evidence, owner-consent evidence, and owner nightly floor. They carry only the state facts needed for orchestration, such as supply stage, seal/public status, assessment result, owner decision, booking stage, and community-approval status.
 
-A scheduler calls:
+A trusted scheduler calls:
 
 `POST /api/internal/live-outbox/drain`
 
@@ -52,6 +52,15 @@ Live delivery adds:
 The signature is HMAC-SHA256 over `<timestamp>.<exact JSON body>` using `ACTIVEPIECES_SHARED_SECRET`.
 
 Failed delivery is retained and retried with bounded exponential backoff. Activepieces must also deduplicate by `x-lhl-idempotency-key` before any downstream side effect; this makes retries safe across network ambiguity.
+
+## GitHub scheduler
+
+`.github/workflows/live-outbox-drain.yml` runs every five minutes and can also be invoked manually. It is deliberately inert until both repository secrets exist:
+
+- `LHL_APP_URL` — the deployed HTTPS base URL, for example `https://lhl.example.com`
+- `LHL_OUTBOX_SECRET` — the same long random value configured server-side as `LHL_OUTBOX_SECRET`
+
+The workflow never prints either secret. It POSTs a batch limit of 20, fails on non-2xx responses, and validates that the response contains numeric `checked`, `delivered`, and `retryScheduled` fields. Missing secrets produce a harmless no-op run rather than repeated production failures.
 
 ## Activepieces verification flow
 
@@ -84,4 +93,9 @@ Server-only environment values:
 - `ACTIVEPIECES_SHARED_SECRET`
 - `LHL_OUTBOX_SECRET` — separate secret for the drain endpoint
 
-The drain endpoint is intentionally not a browser/session action. Schedule it from trusted infrastructure at an appropriate cadence. Repeated drains are safe because delivered events are terminal and pending events use stable idempotency keys.
+GitHub Actions repository secrets:
+
+- `LHL_APP_URL`
+- `LHL_OUTBOX_SECRET`
+
+The drain endpoint is intentionally not a browser/session action. Repeated drains are safe because delivered events are terminal and pending events use stable idempotency keys.
