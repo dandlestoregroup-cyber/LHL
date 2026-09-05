@@ -1,6 +1,6 @@
 {
   "name": "Little Hut",
-  "description": "Mediterranean editorial hospitality platform with verified homes, proprietary moments, authority matrix governance, and authentic Arabic localization.",
+  "description": "Little Hut Vacations: Mediterranean & Red Sea editorial hospitality platform with verified coastal homes, proprietary moments, and authentic Arabic localization.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

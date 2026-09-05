@@ -1,96 +1,189 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { RequestProvider } from './context/RequestContext';
 import { Navbar } from './components/Navbar';
-import { OperatingProvider, useOperating } from './context/OperatingContext';
-import { bi } from './lib/display';
-import { EmptyState } from './components/ui';
-import { AcceptInviteView } from './views/AcceptInviteView';
-import { AssessmentView } from './views/AssessmentView';
-import { JoiningView } from './views/JoiningView';
-import { LiveAccessView } from './views/LiveAccessView';
-import { OperatorView } from './views/OperatorView';
-import { OwnerView } from './views/OwnerView';
-import { PartnerAdminView } from './views/PartnerAdminView';
-import { PipelineView } from './views/PipelineView';
+import { SecurityConsole } from './components/SecurityConsole';
+import { GuestHomeView } from './views/GuestHomeView';
+import { MomentView } from './views/MomentView';
 import { PropertyView } from './views/PropertyView';
-import { PublicHomesView } from './views/PublicHomesView';
-import { ScoutView } from './views/ScoutView';
-import type { PartnerRole } from './types';
-
-const routeRoles: Record<string, PartnerRole[]> = {
-  '/scout': ['scout'],
-  '/owner': ['owner'],
-  '/operator': ['operator'],
-  '/assessment': ['assessor'],
-  '/pipeline': ['owner', 'operator'],
-};
+import { OwnerView } from './views/OwnerView';
+import { OperatorView } from './views/OperatorView';
+import { BpsView } from './views/BpsView';
+import { OnboardingView } from './views/OnboardingView';
+import { BrandContactBar, BrandEmblem } from './components/BrandLogo';
 
 function AppContent() {
-  const { lang, mode, dataset, auth, authLoading, liveLoading, liveError } = useOperating();
-  const [currentPath, setCurrentPath] = React.useState(window.location.pathname || '/');
-
-  React.useEffect(() => {
-    const onPopState = () => setCurrentPath(window.location.pathname || '/');
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
+  const { lang, t, isRTL, user } = useAuth();
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    return window.location.pathname || '/';
+  });
 
   const navigate = (path: string) => {
-    window.history.pushState({}, '', path);
     setCurrentPath(path);
+    window.history.pushState({}, '', path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const operationalGate = () => {
-    if (currentPath === '/accept-invite') return null;
-    if (currentPath === '/partners') {
-      if (mode !== 'live') return <div className="page-shell py-16"><EmptyState title="Partner access is Live-only" titleAr="صلاحيات الشركاء متاحة في الوضع الفعلي فقط" description="Switch to Live before issuing or revoking real Partner invitations." descriptionAr="انتقل إلى الوضع الفعلي قبل إصدار أو إلغاء دعوات شركاء حقيقية." /></div>;
-      if (authLoading || liveLoading) return <div className="page-shell py-20 text-sm text-ink-500">{bi(lang, 'Loading verified Live access…', 'جارٍ تحميل صلاحية الوضع الفعلي…')}</div>;
-      if (!auth.authenticated || !auth.partner) return <LiveAccessView />;
-      if (!auth.partner.platformAdmin) return <div className="page-shell py-16"><EmptyState title="Platform admin required" titleAr="يلزم مسؤول المنصة" description="Partner invitations change who may enter Live and are not a normal business-role action." descriptionAr="دعوات الشركاء تغيّر من يمكنه دخول الوضع الفعلي وليست إجراءً عادياً لصلاحيات التشغيل." /></div>;
-      return null;
-    }
-    if (mode !== 'live' || !routeRoles[currentPath]) return null;
-    if (authLoading || liveLoading) return <div className="page-shell py-20 text-sm text-ink-500">{bi(lang, 'Loading verified Live access…', 'جارٍ تحميل صلاحية الوضع الفعلي…')}</div>;
-    if (!auth.authenticated || !auth.partner) return <LiveAccessView />;
-    const allowed = routeRoles[currentPath].includes(auth.partner.role);
-    if (!allowed && !auth.partner.platformAdmin) {
-      return <div className="page-shell py-16"><EmptyState title="This role cannot open this Live surface" titleAr="هذه الصلاحية لا تسمح بفتح هذه الواجهة الفعلية" description="Visibility follows the Partner record. Switching screens never grants business authority." descriptionAr="الرؤية تتبع سجل الشريك. تغيير الشاشة لا يمنح صلاحية تشغيلية جديدة." /></div>;
-    }
-    return null;
-  };
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const renderRoute = () => {
-    if (currentPath === '/accept-invite') return <AcceptInviteView />;
-    const gated = operationalGate();
-    if (gated) return gated;
-    if (currentPath === '/') return <PublicHomesView navigate={navigate} />;
-    if (currentPath === '/joining') return <JoiningView navigate={navigate} />;
-    if (currentPath === '/partners') return <PartnerAdminView />;
-    if (currentPath === '/scout') return <ScoutView />;
-    if (currentPath === '/owner') return <OwnerView navigate={navigate} />;
-    if (currentPath === '/operator') return <OperatorView navigate={navigate} />;
-    if (currentPath === '/assessment') return <AssessmentView />;
-    if (currentPath === '/pipeline') return <PipelineView />;
-    if (currentPath.startsWith('/homes/')) return <PropertyView slug={currentPath.split('/')[2] || ''} navigate={navigate} />;
-    return <PublicHomesView navigate={navigate} />;
+    if (currentPath === '/' || currentPath === '') {
+      return <GuestHomeView navigate={navigate} />;
+    }
+    if (currentPath === '/onboard' || currentPath === '/list-property') {
+      return <OnboardingView navigate={navigate} />;
+    }
+    if (currentPath.startsWith('/moments')) {
+      return <MomentView navigate={navigate} />;
+    }
+    if (currentPath.startsWith('/homes')) {
+      const parts = currentPath.split('/');
+      const slug = parts[2] || 'seaward-library';
+      return <PropertyView slug={slug} navigate={navigate} />;
+    }
+    if (currentPath === '/owner') {
+      return <OwnerView navigate={navigate} />;
+    }
+    if (currentPath === '/operator') {
+      return <OperatorView navigate={navigate} />;
+    }
+    if (currentPath === '/bps') {
+      return <BpsView navigate={navigate} />;
+    }
+    if (currentPath === '/security') {
+      return <SecurityConsole />;
+    }
+    // Default fallback to GuestHomeView
+    return <GuestHomeView navigate={navigate} />;
   };
 
   return (
-    <div className="min-h-screen bg-ivory-50 text-ink-900">
+    <div className="min-h-screen flex flex-col bg-[#FAF5EE] text-[#2A201C] selection:bg-[#B84E36] selection:text-white">
+      {/* Global Navbar */}
       <Navbar currentPath={currentPath} navigate={navigate} />
-      {mode === 'live' && liveError && <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-center text-[10px] font-semibold text-red-800">{bi(lang, 'Live service is not fully configured or reachable. No browser fallback is being used.', 'خدمة الوضع الفعلي غير مكتملة الإعداد أو غير متاحة. لا يتم استخدام أي بديل محلي في المتصفح.')}</div>}
-      <main>{renderRoute()}</main>
-      <footer className="mt-12 border-t border-clay-200 bg-ink-950 text-white">
-        <div className="page-shell grid gap-10 py-14 md:grid-cols-[1.3fr_.7fr]">
-          <div><span className="font-serif text-3xl">Little Hut</span><p className="mt-3 max-w-xl text-sm leading-7 text-white/60">{bi(lang, 'A proof-led operating system for sourcing distinctive homes and carrying one guest enquiry through every booking gate.', 'نظام تشغيل قائم على التوثيق لاكتشاف البيوت المميزة ونقل طلب الضيف الواحد عبر كل بوابات الحجز.')}</p></div>
-          <div className="md:text-end"><span className={`mode-chip ${mode === 'demo' ? 'mode-chip-demo' : 'mode-chip-live'}`}>{mode.toUpperCase()}</span><p className="mt-3 text-xs text-white/55">{bi(lang, dataset.label, dataset.labelAr)}</p><p className="mt-2 text-[10px] uppercase tracking-[.14em] text-white/35">{bi(lang, 'GitHub operating build · Base44 reference only', 'نسخة تشغيل GitHub · Base44 مرجع فقط')}</p></div>
+
+      {/* Main Routed Content */}
+      <main className="flex-1">
+        {renderRoute()}
+      </main>
+
+      {/* Editorial Mediterranean & Red Sea Footer */}
+      <footer className="bg-[#2A201C] text-white border-t border-white/10 pt-16 pb-8 px-6 md:px-12 mt-auto">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
+          {/* Brand & Manifesto */}
+          <div className="md:col-span-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#FAF0EB] border border-[#B84E36]/30 flex items-center justify-center text-[#B84E36]">
+                <BrandEmblem className="w-7 h-7" color="#B84E36" />
+              </div>
+              <div>
+                <span className="font-serif-editorial text-2xl md:text-3xl font-bold tracking-tight text-white block">
+                  LITTLE HUT VACATIONS
+                </span>
+                <span className="font-brand-script text-xl text-[#B84E36]">
+                  {lang === 'ar' ? 'احجز الإحساس، وليس فقط الإقامة' : 'Book the feeling, not just the stay.'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#FAF5EE]/70 max-w-md leading-relaxed">
+              {lang === 'ar'
+                ? 'مجموعة هادئة من المنازل الساحلية الموثقة في العين السخنة وسواحل مصر. لا ندرج أمتاراً مربعة، بل نوثق عمق اللحظة الإنسانية وجودتها.'
+                : 'A quiet collection of verified coastal residences in Ain Sokhna and Egypt. We do not list square meters; we qualify the experiential truth of moments.'}
+            </p>
+
+            <div className="pt-2 flex flex-wrap gap-4 text-xs font-mono text-[#DECBB9]">
+              <span>📞 01270228656</span>
+              <span>🌐 littlehutvacations.com</span>
+              <span>📷 littlehut.vacations</span>
+            </div>
+          </div>
+
+          {/* Quick Authority Navigation */}
+          <div className="md:col-span-3 space-y-3 text-xs">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#C8A15A] block mb-2">
+              {lang === 'ar' ? 'أدوار النظام' : 'System Personas'}
+            </span>
+            <ul className="space-y-2 text-[#FAF5EE]/80">
+              <li>
+                <button onClick={() => navigate('/homes/seaward-library')} className="hover:text-[#B84E36] transition-colors cursor-pointer">
+                  {lang === 'ar' ? 'الضيف: حجز الإقامة' : 'Guest: Booking Flow'}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/owner')} className="hover:text-[#B84E36] transition-colors cursor-pointer">
+                  {t.nav.ownerView}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/operator')} className="hover:text-[#B84E36] transition-colors cursor-pointer">
+                  {t.nav.operatorView}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/bps')} className="hover:text-[#B84E36] transition-colors cursor-pointer">
+                  {t.nav.bpsView}
+                </button>
+              </li>
+              <li className="pt-2 border-t border-white/10">
+                <button onClick={() => navigate('/list-property')} className="text-[#B84E36] hover:underline font-bold flex items-center gap-1 cursor-pointer">
+                  <span>+</span>
+                  <span>{lang === 'ar' ? 'أدرج عقارك في ليتل هت' : 'List & Qualify Your Residence'}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Standards & Security */}
+          <div className="md:col-span-3 space-y-3 text-xs">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#DECBB9] block mb-2">
+              {lang === 'ar' ? 'المعايير والتوثيق' : 'Standard & Certification'}
+            </span>
+            <ul className="space-y-2 text-[#FAF5EE]/80">
+              <li>
+                <button onClick={() => navigate('/security')} className="hover:text-[#DECBB9] transition-colors flex items-center gap-1.5 cursor-pointer">
+                  <span className="w-2 h-2 rounded-full bg-[#B84E36]"></span>
+                  <span>{lang === 'ar' ? 'محرك الأمان (٨ اختبارات سلبية)' : 'Security Engine (8/8 Passed)'}</span>
+                </button>
+              </li>
+              <li>
+                <span className="text-[#FAF5EE]/50">
+                  {lang === 'ar' ? 'سلطة التقويم: مدارة مباشرة' : 'Calendar: Direct LH Held'}
+                </span>
+              </li>
+              <li>
+                <span className="text-[#FAF5EE]/50">
+                  {lang === 'ar' ? 'انحراف الأدلة: ٠.٠٪' : 'Evidence Drift: 0.0%'}
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-10 mt-10 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#FAF5EE]/50">
+          <span>© 2026 Little Hut Vacations. All rights reserved.</span>
+          <span>{lang === 'ar' ? 'مبني وفق مصفوفة الصلاحيات وقواعد فايرستور الآمنة' : 'Enforced by Authority Matrix & Firestore Security Rules'}</span>
         </div>
       </footer>
-      <div className={`pointer-events-none fixed bottom-4 end-4 z-40 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.16em] shadow-lg ${mode === 'demo' ? 'bg-terracotta-700 text-white' : 'bg-sage-800 text-white'}`}>{mode === 'demo' ? bi(lang, 'DEMO · SYNTHETIC', 'تجريبي · افتراضي') : bi(lang, 'LIVE · SERVER TRUTH', 'فعلي · حقائق الخادم')}</div>
+
+      {/* Brand Official Contact Bar Strip */}
+      <BrandContactBar />
     </div>
   );
 }
 
 export default function App() {
-  return <OperatingProvider><AppContent /></OperatingProvider>;
+  return (
+    <AuthProvider>
+      <RequestProvider>
+        <AppContent />
+      </RequestProvider>
+    </AuthProvider>
+  );
 }

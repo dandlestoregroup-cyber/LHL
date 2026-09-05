@@ -1,73 +1,362 @@
-import React from 'react';
-import { ArrowRight, CheckCircle2, Compass, MapPin, Plus, ShieldAlert } from 'lucide-react';
-import { useOperating } from '../context/OperatingContext';
-import { bi, label, supplyLabels } from '../lib/display';
-import { recordLiveOwnerConsent } from '../lib/live-api';
-import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useRequests } from '../context/RequestContext';
+import { ScoutCandidate } from '../types';
+import { Compass, ShieldAlert, CheckCircle2, AlertCircle, Plus, Send, Building2, MapPin, Sparkles, Filter, ArrowRight } from 'lucide-react';
 
-export function ScoutView() {
-  const { lang, mode, auth, dataset, createScoutLead, refreshLiveDataset } = useOperating();
-  const scouts = dataset.partners.filter((item) => item.role === 'scout');
-  const canSource = mode === 'demo' ? scouts.length > 0 : auth.partner?.role === 'scout';
-  const [open, setOpen] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [consentDrafts, setConsentDrafts] = React.useState<Record<string, string>>({});
-  const [form, setForm] = React.useState({ name: '', nameAr: '', location: '', locationAr: '' });
-  const sourced = dataset.properties.filter((item) => ['sourced', 'owner_engaged', 'assessment_scheduled'].includes(item.supplyStage));
+interface ScoutViewProps {
+  navigate: (path: string) => void;
+}
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!form.name.trim() || !form.location.trim()) return;
-    setBusy(true); setError('');
-    try {
-      await createScoutLead(form.name, form.nameAr, form.location, form.locationAr);
-      setForm({ name: '', nameAr: '', location: '', locationAr: '' });
-      setSaved(true); setOpen(false);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to save sourced lead.');
-    } finally { setBusy(false); }
+export const ScoutView: React.FC<ScoutViewProps> = ({ navigate }) => {
+  const { lang, t, isRTL } = useAuth();
+  const { mode, scoutCandidates, submitScoutCandidate } = useRequests();
+
+  const [propertyName, setPropertyName] = useState('');
+  const [propertyNameAr, setPropertyNameAr] = useState('');
+  const [location, setLocation] = useState('');
+  const [locationAr, setLocationAr] = useState('');
+  const [estimatedCapacity, setEstimatedCapacity] = useState(6);
+  const [architecturalStyle, setArchitecturalStyle] = useState('');
+  const [leadSource, setLeadSource] = useState('');
+  const [notes, setNotes] = useState('');
+  const [notesAr, setNotesAr] = useState('');
+  const [candidateImage, setCandidateImage] = useState('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200');
+  const [submittedSuccess, setSubmittedSuccess] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!propertyName || !location) return;
+
+    submitScoutCandidate({
+      scoutId: 'scout_nour',
+      scoutName: 'Nour El-Din (Field Scout)',
+      propertyName,
+      propertyNameAr: propertyNameAr || propertyName,
+      location,
+      locationAr: locationAr || location,
+      estimatedCapacity,
+      architecturalStyle: architecturalStyle || 'Coastal Stone Pavilion',
+      leadSource: leadSource || 'Direct Field Outreach',
+      notes,
+      notesAr: notesAr || notes,
+      status: 'submitted_for_review',
+      candidateImage
+    });
+
+    setSubmittedSuccess(true);
+    setPropertyName('');
+    setPropertyNameAr('');
+    setLocation('');
+    setLocationAr('');
+    setArchitecturalStyle('');
+    setLeadSource('');
+    setNotes('');
+    setNotesAr('');
+
+    setTimeout(() => {
+      setSubmittedSuccess(false);
+    }, 4000);
   };
 
-  const recordConsent = async (propertyId: string) => {
-    const reference = consentDrafts[propertyId]?.trim();
-    if (!reference) return;
-    setBusy(true); setError('');
-    try {
-      await recordLiveOwnerConsent(propertyId, reference);
-      await refreshLiveDataset();
-      setConsentDrafts((current) => ({ ...current, [propertyId]: '' }));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to record owner consent evidence.');
-    } finally { setBusy(false); }
+  const getStatusBadge = (status: ScoutCandidate['status']) => {
+    switch (status) {
+      case 'submitted_for_review':
+        return {
+          label: lang === 'ar' ? 'تم التقديم للفرز' : 'Submitted for Review',
+          color: 'bg-amber-100 text-amber-900 border-amber-300'
+        };
+      case 'under_triage':
+        return {
+          label: lang === 'ar' ? 'قيد الفحص الأولي' : 'Under Triage',
+          color: 'bg-blue-100 text-blue-900 border-blue-300'
+        };
+      case 'escalated_to_bps':
+        return {
+          label: lang === 'ar' ? 'مُحال لتدقيق BPS' : 'Escalated to BPS Audit',
+          color: 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        };
+      case 'rejected':
+        return {
+          label: lang === 'ar' ? 'مستبعد لعدم مطابقة المعايير' : 'Ruled Out',
+          color: 'bg-stone-100 text-stone-700 border-stone-300'
+        };
+      default:
+        return { label: status, color: 'bg-stone-100 text-stone-800' };
+    }
   };
 
   return (
-    <div>
-      <PageHeader eyebrow="Scout sourcing" eyebrowAr="توريد الكشاف" title="Find the home. Do not certify it." titleAr="اكتشف البيت، لكن لا تمنحه الاعتماد." description="Scouts own sourcing, first contact, consent, and listing-level evidence. Every claim stays nominated until an independent assessor visits." descriptionAr="يمتلك الكشاف مسؤولية الترشيح والتواصل الأول والموافقة وأدلة الإعلان. يظل كل ادعاء مجرد ترشيح حتى زيارة مقيّم مستقل." action={<button disabled={!canSource} onClick={() => { setOpen(true); setSaved(false); }} className="button-primary"><Plus size={15} />{canSource ? bi(lang, 'Source a property', 'أضف عقاراً مرشحاً') : bi(lang, 'Scout authority required', 'يلزم صلاحية كشاف')}</button>} />
-      <section className="page-shell py-10">
-        {saved && <div className="mb-6 rounded-2xl border border-sage-200 bg-sage-50 p-4 text-sm text-sage-900">{mode === 'live' ? bi(lang, 'Live lead stored on the server.', 'تم حفظ الترشيح الفعلي على الخادم.') : bi(lang, 'Demo lead saved inside the synthetic dataset.', 'تم حفظ الترشيح داخل البيانات التجريبية.')}</div>}
-        {error && <div className="mb-6 rounded-2xl bg-red-50 p-4 text-xs text-red-700">{error}</div>}
-        {open && <form onSubmit={submit} className="mb-8 rounded-[1.5rem] border border-terracotta-200 bg-white p-6 shadow-xl"><div className="flex items-center gap-2 text-terracotta-700"><Compass size={18} /><strong>{bi(lang, 'New sourcing lead', 'ترشيح جديد')}</strong></div><p className="mt-2 text-xs text-ink-500">{bi(lang, 'No Moment, availability, or quality claim is created here.', 'لا يتم هنا إنشاء أي ادعاء عن اللحظات أو الإتاحة أو الجودة.')}</p><div className="mt-5 grid gap-4 md:grid-cols-2"><label className="field-label">{bi(lang, 'English name', 'الاسم بالإنجليزية')}<input className="field-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label><label className="field-label">{bi(lang, 'Arabic name', 'الاسم بالعربية')}<input className="field-input" value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in English', 'الموقع بالإنجليزية')}<input className="field-input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in Arabic', 'الموقع بالعربية')}<input className="field-input" value={form.locationAr} onChange={(e) => setForm({ ...form, locationAr: e.target.value })} /></label></div><div className="mt-5 flex gap-3"><button disabled={busy} className="button-primary">{busy ? bi(lang, 'Saving…', 'جارٍ الحفظ…') : bi(lang, 'Save sourced lead', 'حفظ العقار المرشح')}</button><button type="button" onClick={() => setOpen(false)} className="button-secondary">{bi(lang, 'Cancel', 'إلغاء')}</button></div></form>}
+    <div className="min-h-screen bg-[#FAF7F2] py-10 md:py-16">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#E9DED1] gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0F5859]/10 text-[#0F5859] border border-[#0F5859]/30 text-[10px] uppercase font-bold tracking-widest rounded-xs mb-3">
+              <Compass className="w-3.5 h-3.5" />
+              <span>{t.scout.title}</span>
+            </div>
+            <h1 className="font-serif-editorial text-3xl md:text-5xl text-[#0D2340]">
+              {lang === 'ar' ? 'استكشاف العقارات وفرز المرشحين' : 'Field Sourcing & Candidate Triage'}
+            </h1>
+            <p className="text-[#6D7480] text-sm md:text-base mt-2 max-w-3xl">
+              {t.scout.subtitle}
+            </p>
+          </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
-          <Metric label="Active scouts" labelAr="كشافون نشطون" value={scouts.length} detail="Partner records with sourcing authority" detailAr="سجلات شركاء بصلاحية التوريد" />
-          <Metric label="Early-stage supply" labelAr="معروض في المراحل الأولى" value={sourced.length} detail="Sourced through assessment scheduled" detailAr="من الترشيح حتى جدولة التقييم" tone="terracotta" />
-          <Metric label="Public claims created" labelAr="ادعاءات عامة تم إنشاؤها" value="0" detail="Scout authority ceiling" detailAr="حد صلاحية الكشاف" tone="ink" />
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-white border border-[#E9DED1] rounded-xs text-xs font-mono text-[#0D2340]">
+              {mode === 'demo' ? (lang === 'ar' ? 'البيانات التجريبية نشطة' : 'Demo Leads: 3 Records') : (lang === 'ar' ? 'سجلات حقيقية' : 'Live Leads')}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-[1.5rem] border border-clay-200 bg-white">
-          <div className="flex items-center justify-between border-b border-clay-200 p-5"><div><h2 className="font-serif text-2xl text-ink-950">{bi(lang, 'Sourcing desk', 'مكتب التوريد')}</h2><p className="mt-1 text-xs text-ink-500">{bi(lang, 'Latest early-stage supply', 'أحدث المعروض في المراحل الأولى')}</p></div><DemoRecordMark /></div>
-          {sourced.length === 0 ? <div className="p-6"><EmptyState title="No sourced properties yet" titleAr="لا توجد عقارات مرشحة بعد" description="Use Source a property to create the first truth-only lead in this mode." descriptionAr="استخدم إضافة عقار مرشح لإنشاء أول ترشيح حقيقي في هذا الوضع." /></div> : <div className="divide-y divide-clay-200">{sourced.map((home) => {
-            const isSourceScout = mode === 'live' && auth.partner?.role === 'scout' && auth.partner.id === home.scoutPartnerId;
-            return <div key={home.id} className="p-5"><div className="grid gap-4 md:grid-cols-[1.4fr_.8fr_.8fr_auto] md:items-center"><div><strong className="text-sm text-ink-900">{lang === 'ar' ? home.nameAr : home.name}</strong><p className="mt-1 flex items-center gap-1 text-[10px] text-ink-500"><MapPin size={11} />{lang === 'ar' ? home.locationAr : home.location}</p></div><span className="text-xs text-ink-600">{dataset.partners.find((partner) => partner.id === home.scoutPartnerId)?.[lang === 'ar' ? 'nameAr' : 'name'] || (isSourceScout ? auth.partner?.name : bi(lang, 'Assigned Scout', 'الكشاف المعين'))}</span><StatusPill>{label(supplyLabels, home.supplyStage, lang)}</StatusPill><span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[.12em] text-terracotta-700">{bi(lang, 'Evidence record', 'سجل الدليل')}<ArrowRight size={13} className="rtl:rotate-180" /></span></div>
-              {isSourceScout && home.supplyStage === 'sourced' && <div className="mt-4 rounded-xl border border-clay-200 bg-ivory-50 p-4">{home.ownerConsentReference ? <div className="flex items-center gap-2 text-xs text-sage-900"><CheckCircle2 size={15} />{bi(lang, 'Owner consent evidence recorded. Platform admin can now bind the verified Owner Partner.', 'تم تسجيل دليل موافقة المالك. يمكن لمسؤول المنصة الآن ربط سجل المالك الموثق.')}</div> : <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end"><label className="field-label">{bi(lang, 'Owner consent evidence reference', 'مرجع دليل موافقة المالك')}<input className="field-input" value={consentDrafts[home.id] || ''} onChange={(event) => setConsentDrafts((current) => ({ ...current, [home.id]: event.target.value }))} placeholder={bi(lang, 'Consent document / call / signed reference', 'مرجع مستند / مكالمة / موافقة موقعة')} /></label><button disabled={busy || !consentDrafts[home.id]?.trim()} onClick={() => void recordConsent(home.id)} className="button-primary">{bi(lang, 'Record consent', 'تسجيل الموافقة')}</button></div>}</div>}
-            </div>;
-          })}</div>}
+        {/* Explicit Role Security Boundary Notice */}
+        <div className="my-8 p-4 md:p-5 bg-[#0D2340] text-white rounded-sm border-l-4 border-[#C8A15A] shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <ShieldAlert className="w-5 h-5 text-[#C8A15A] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-wider text-[#E7D6BF]">
+                {lang === 'ar' ? 'حدود صلاحية دور المستكشف (Scout Boundary)' : 'Scout Authority & Boundary Rule'}
+              </h4>
+              <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                {t.scout.securityWarning}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="mt-6 flex gap-3 rounded-2xl border border-clay-200 bg-ivory-100 p-5 text-xs leading-6 text-ink-600"><ShieldAlert size={19} className="mt-0.5 shrink-0 text-terracotta-700" /><p><strong className="text-ink-900">{bi(lang, 'Evidence ceiling:', 'حد الدليل:')}</strong> {bi(lang, 'listing copy, owner statements, and scout observations can open an assessment — they cannot prove a Little Hut Moment.', 'نص الإعلان وأقوال المالك وملاحظات الكشاف يمكنها فتح تقييم، لكنها لا تثبت لحظة من لحظات ليتل هت.')}</p></div>
-      </section>
+
+        {/* Grid: Intake Form + Pipeline List */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 my-8">
+          
+          {/* Submit New Candidate Form */}
+          <div className="lg:col-span-5 bg-white border border-[#E9DED1] p-6 md:p-8 rounded-sm shadow-xs h-fit">
+            <div className="flex items-center gap-2 pb-4 border-b border-[#FAF7F2] mb-6">
+              <Plus className="w-4 h-4 text-[#B74C2B]" />
+              <h2 className="font-serif-editorial text-xl md:text-2xl text-[#0D2340]">
+                {t.scout.submitLeadTitle}
+              </h2>
+            </div>
+
+            {submittedSuccess && (
+              <div className="mb-6 p-3 bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs rounded-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  {lang === 'ar' ? 'تم حفظ المرشح بنجاح وإحالته لفرز BPS!' : 'Candidate successfully recorded and queued for BPS triage!'}
+                </span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                  {t.scout.propertyName} (EN) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={propertyName}
+                  onChange={(e) => setPropertyName(e.target.value)}
+                  placeholder="e.g. Sokhna Clifftop Adobe"
+                  className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                  {t.scout.propertyName} (AR)
+                </label>
+                <input
+                  type="text"
+                  value={propertyNameAr}
+                  onChange={(e) => setPropertyNameAr(e.target.value)}
+                  placeholder="مثال: بيت جرف السخنة الطيني"
+                  dir="rtl"
+                  className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                    {t.scout.location} *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. Ras Sudr, Red Sea"
+                    className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                    {t.scout.estimatedCapacity}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={estimatedCapacity}
+                    onChange={(e) => setEstimatedCapacity(parseInt(e.target.value) || 2)}
+                    className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                  {t.scout.architecturalStyle}
+                </label>
+                <input
+                  type="text"
+                  value={architecturalStyle}
+                  onChange={(e) => setArchitecturalStyle(e.target.value)}
+                  placeholder="e.g. Sinai Granite & Timber Vaults"
+                  className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                  {t.scout.leadSource}
+                </label>
+                <input
+                  type="text"
+                  value={leadSource}
+                  onChange={(e) => setLeadSource(e.target.value)}
+                  placeholder="e.g. Architect Shahin Referral"
+                  className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
+                  {t.scout.notes}
+                </label>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Acoustic quality, dawn light orientation, owner motivation..."
+                  className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#B74C2B] hover:bg-[#A33E20] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors shadow-xs flex items-center justify-center gap-2"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{t.scout.submitButton}</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Sourced Candidates Pipeline List */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E9DED1]">
+              <h2 className="font-serif-editorial text-2xl text-[#0D2340]">
+                {t.scout.candidatesListTitle}
+              </h2>
+              <span className="text-xs font-mono text-[#6D7480]">
+                {scoutCandidates.length} {lang === 'ar' ? 'عقار مرشح' : 'Candidates'}
+              </span>
+            </div>
+
+            {scoutCandidates.length === 0 ? (
+              <div className="p-12 bg-white border border-[#E9DED1] rounded-sm text-center">
+                <Compass className="w-10 h-10 text-[#6D7480]/40 mx-auto mb-3" />
+                <h3 className="font-serif-editorial text-lg text-[#0D2340] mb-1">
+                  {t.scout.emptyCandidates}
+                </h3>
+                <p className="text-xs text-[#6D7480] max-w-md mx-auto">
+                  {lang === 'ar' 
+                    ? 'استخدم النموذج لتقديم أول عقار مرشح للمعاينة الميدانية في بيئة التشغيل الفعلية.'
+                    : 'Submit the first candidate home using the intake form to start the evaluation triage.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {scoutCandidates.map((cand) => {
+                  const badge = getStatusBadge(cand.status);
+                  return (
+                    <div
+                      key={cand.id}
+                      className="bg-white border border-[#E9DED1] p-5 rounded-sm shadow-xs hover:border-[#0D2340]/40 transition-all flex flex-col md:flex-row gap-5"
+                    >
+                      <div className="w-full md:w-44 h-32 shrink-0 overflow-hidden rounded-xs bg-stone-100">
+                        <img
+                          src={cand.candidateImage}
+                          alt={cand.propertyName}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <h3 className="font-serif-editorial text-lg text-[#0D2340] font-bold">
+                                {lang === 'ar' ? cand.propertyNameAr : cand.propertyName}
+                              </h3>
+                              <div className="flex items-center gap-1.5 text-xs text-[#6D7480] mt-0.5">
+                                <MapPin className="w-3.5 h-3.5 text-[#B74C2B]" />
+                                <span>{lang === 'ar' ? cand.locationAr : cand.location}</span>
+                              </div>
+                            </div>
+                            <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xs border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 my-2.5 text-[11px] text-[#6D7480]">
+                            <div>
+                              <span className="font-semibold text-[#0D2340]">{lang === 'ar' ? 'الطابع:' : 'Style:'} </span>
+                              {cand.architecturalStyle}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-[#0D2340]">{lang === 'ar' ? 'السعة:' : 'Capacity:'} </span>
+                              {cand.estimatedCapacity} {lang === 'ar' ? 'ضيوف' : 'Guests'}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-[#0D2340]">{lang === 'ar' ? 'المصدر:' : 'Source:'} </span>
+                              {cand.leadSource}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-[#0D2340]">{lang === 'ar' ? 'المستكشف:' : 'Scout:'} </span>
+                              {cand.scoutName}
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-[#2C3E50] bg-[#FAF7F2] p-2.5 rounded-xs border border-[#E9DED1]/60 leading-relaxed italic">
+                            "{lang === 'ar' ? cand.notesAr : cand.notes}"
+                          </p>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-[#FAF7F2] flex items-center justify-between text-[10px] text-[#6D7480]">
+                          <span>
+                            {lang === 'ar' ? 'تاريخ التقديم: ' : 'Submitted: '}
+                            {new Date(cand.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-[#0F5859] font-semibold">
+                            {lang === 'ar' ? 'بانتظار تدقيق BPS' : 'Triage by BPS'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
     </div>
   );
-}
+};
