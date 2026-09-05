@@ -1,4 +1,4 @@
-import type { Assessment, Enquiry, GateStatus, MomentKey, OperatingDataset, OwnerDecision, Partner, PartnerRole, Property } from '../types';
+import type { Assessment, Enquiry, GateStatus, MomentKey, OperatingDataset, OwnerDecision, Partner, PartnerRole, Property, ReadinessCheckKey } from '../types';
 
 export interface LiveAuthState {
   authenticated: boolean;
@@ -73,6 +73,33 @@ export interface ActivatePropertyInput {
   bedroomCount: number;
   heroImage: string;
   galleryImages: string[];
+}
+
+export interface InventoryBaselineItemInput {
+  key: string;
+  label: string;
+  labelAr: string;
+  expectedQuantity: number;
+  evidenceReference: string;
+}
+
+export interface ReadinessCheckItemInput {
+  key: ReadinessCheckKey;
+  status: 'passed' | 'failed';
+  evidenceReference: string;
+}
+
+export interface StayReadinessInput {
+  items: ReadinessCheckItemInput[];
+  note?: string;
+  noteAr?: string;
+}
+
+export interface ProofStayObservationInput {
+  key: string;
+  observedQuantity: number;
+  condition: 'good' | 'attention' | 'missing';
+  evidenceReference: string;
 }
 
 export class LiveApiError extends Error {
@@ -183,9 +210,21 @@ export async function activateServerLiveProperty(propertyId: string, input: Acti
   return request(`/api/live/properties/${encodeURIComponent(propertyId)}/activate`, { method: 'POST', body: JSON.stringify(input) });
 }
 
+export async function recordLiveInventoryBaseline(propertyId: string, items: InventoryBaselineItemInput[]): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/inventory-baseline`, { method: 'POST', body: JSON.stringify({ items }) });
+}
+
 export async function createServerLiveEnquiry(input: object): Promise<Enquiry> {
   const result = await request<{ enquiry: Enquiry }>('/api/live/enquiries', { method: 'POST', body: JSON.stringify(input) });
   return result.enquiry;
+}
+
+export async function recordLiveStayReadiness(enquiryId: string, input: StayReadinessInput): Promise<{ enquiry: Enquiry; dataset: OperatingDataset }> {
+  return request(`/api/live/enquiries/${encodeURIComponent(enquiryId)}/readiness`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function captureLiveProofStay(enquiryId: string, phase: 'pre_stay' | 'post_stay', observations: ProofStayObservationInput[]): Promise<{ enquiry: Enquiry; dataset: OperatingDataset }> {
+  return request(`/api/live/enquiries/${encodeURIComponent(enquiryId)}/proofstay/${phase}`, { method: 'POST', body: JSON.stringify({ observations }) });
 }
 
 export async function advanceServerLiveEnquiry(id: string, input: AdvanceLiveInput = {}): Promise<{ enquiry: Enquiry; dataset: OperatingDataset }> {
