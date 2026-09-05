@@ -11,6 +11,24 @@ export const MOMENTS = Object.freeze({
 
 export const MOMENT_KEYS = Object.freeze(Object.values(MOMENTS));
 
+export const TRUST_GATE_KEYS = Object.freeze([
+  'truth',
+  'readiness',
+  'privacy',
+  'comfort',
+  'arrival',
+  'moment',
+]);
+
+export const SHIELD_GATE_KEYS = Object.freeze([
+  'fire',
+  'water',
+  'access',
+  'electrical',
+  'child',
+  'emergency',
+]);
+
 export const SUPPLY_STAGES = Object.freeze([
   'sourced',
   'owner_engaged',
@@ -71,6 +89,30 @@ export function evaluateRateFloor(property, nightlyRateEgp) {
   return { allowed: true, reason: 'Quote respects the owner floor.' };
 }
 
+export function evaluateStayDates(checkIn, checkOut) {
+  const validIsoDay = (value) => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  };
+
+  if (!validIsoDay(checkIn) || !validIsoDay(checkOut)) {
+    return { allowed: false, nights: 0, reason: 'Check-in and check-out must be valid dates.' };
+  }
+
+  const checkInMs = new Date(`${checkIn}T00:00:00.000Z`).getTime();
+  const checkOutMs = new Date(`${checkOut}T00:00:00.000Z`).getTime();
+  if (checkOutMs <= checkInMs) {
+    return { allowed: false, nights: 0, reason: 'Check-out must be after check-in.' };
+  }
+
+  return {
+    allowed: true,
+    nights: (checkOutMs - checkInMs) / 86_400_000,
+    reason: 'Stay dates are valid.',
+  };
+}
+
 export function isHoldActive(hold, at = new Date()) {
   if (!hold?.active || !hold.expiresAt) return false;
   return new Date(hold.expiresAt).getTime() > new Date(at).getTime();
@@ -110,10 +152,21 @@ export function calendarEffect(enquiry, at = new Date()) {
     : { blocksCalendar: false, reason: 'Missing or expired hold cannot block the calendar.' };
 }
 
+const gateSetPasses = (gates, expectedKeys) => {
+  if (!Array.isArray(gates) || gates.length !== expectedKeys.length) return false;
+  const byKey = new Map(gates.map((gate) => [gate?.key, gate]));
+  if (byKey.size !== expectedKeys.length) return false;
+  return expectedKeys.every((key) => byKey.get(key)?.status === 'passed');
+};
+
 export function evaluateAssessment(assessment) {
   if (!assessment?.independenceConfirmed) return { passed: false, reason: 'Independent assessor confirmation is required.' };
-  if (assessment.trustGates?.some((gate) => gate.status !== 'passed')) return { passed: false, reason: 'Every TRUST gate must pass.' };
-  if (assessment.shieldGates?.some((gate) => gate.status !== 'passed')) return { passed: false, reason: 'Every SHIELD gate must pass.' };
+  if (!gateSetPasses(assessment.trustGates, TRUST_GATE_KEYS)) {
+    return { passed: false, reason: 'All six canonical TRUST gates must be present and passed.' };
+  }
+  if (!gateSetPasses(assessment.shieldGates, SHIELD_GATE_KEYS)) {
+    return { passed: false, reason: 'All six canonical SHIELD gates must be present and passed.' };
+  }
   if ((assessment.provenMomentKeys?.length || 0) < 2) return { passed: false, reason: 'At least two canonical Moments must be proven.' };
   return { passed: true, reason: 'Independent assessment gate passed.' };
 }

@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { AuthorityMatrix } from './authority-matrix.runtime.mjs';
 
 let passed = 0;
@@ -26,5 +27,16 @@ assert(AuthorityMatrix.canIssueQuote('operator', property, 6000).allowed, 'opera
 assert(!AuthorityMatrix.canPlaceHold('operator', '2026-08-31T12:00:00.000Z', now).allowed, 'operator cannot create expired hold');
 assert(!AuthorityMatrix.canConfirm('owner', property, enquiry, now).allowed, 'owner cannot execute confirmation');
 assert(AuthorityMatrix.canConfirm('operator', property, enquiry, now).allowed, 'operator can confirm after payment, hold, and approval');
+
+const firestoreRules = fs.readFileSync(new URL('../../firestore.rules', import.meta.url), 'utf8');
+assert(firestoreRules.includes("affectedKeys().hasOnly([\n        'updatedAt',\n        'activationChecklistComplete',\n        'calendarAuthority'"), 'Firestore limits operator property writes to operational fields');
+assert(!firestoreRules.includes('request.resource.data.nightlyFloorEgp == resource.data.nightlyFloorEgp'), 'Firestore no longer uses the broad operator property-update bypass');
+assert(firestoreRules.includes('allowedBookingTransition('), 'Firestore enquiry updates are gated by an explicit transition function');
+assert(firestoreRules.includes("fromStage == 'received' && toStage == 'qualified'"), 'Firestore starts booking progression at received to qualified');
+assert(!firestoreRules.includes("fromStage == 'received' && toStage == 'confirmed'"), 'Firestore has no received-to-confirmed shortcut');
+assert(firestoreRules.includes("fromStage == 'payment_pending' && toStage == 'payment_received'"), 'Firestore requires the payment stage transition');
+assert(firestoreRules.includes("prop.payoutReady == true"), 'Firestore requires payout readiness before payment_received');
+assert(firestoreRules.includes('communityApproved(data, prop)'), 'Firestore confirmation path requires recorded community evidence where applicable');
+assert(firestoreRules.includes("property(request.resource.data.propertyId).sealIssued == true"), 'Firestore public enquiry creation requires a sealed Live property');
 
 console.log(`\n${passed} authority rules passed`);

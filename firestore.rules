@@ -12,6 +12,105 @@ service cloud.firestore {
     function isAssessor() { return signedIn() && role() == 'assessor'; }
     function property(propertyId) { return get(/databases/$(database)/documents/properties/$(propertyId)).data; }
 
+    function operatorPropertyFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'updatedAt',
+        'activationChecklistComplete',
+        'calendarAuthority'
+      ]);
+    }
+
+    function immutableEnquiryIdentity() {
+      return request.resource.data.propertyId == resource.data.propertyId
+        && request.resource.data.dataMode == resource.data.dataMode
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function quoteAtOrAboveFloor(data, prop) {
+      return data.keys().hasAll(['quote'])
+        && data.quote.keys().hasAll(['nightlyRateEgp', 'nights', 'accommodationEgp', 'feesEgp', 'totalEgp', 'issuedAt'])
+        && data.quote.nightlyRateEgp is number
+        && data.quote.nightlyRateEgp >= prop.nightlyFloorEgp
+        && data.quote.nights is number
+        && data.quote.nights > 0
+        && data.quote.accommodationEgp == data.quote.nightlyRateEgp * data.quote.nights
+        && data.quote.totalEgp >= data.quote.accommodationEgp
+        && data.quote.issuedAt is string;
+    }
+
+    function activeHoldRecorded(data) {
+      return data.keys().hasAll(['hold'])
+        && data.hold.keys().hasAll(['active', 'expiresAt'])
+        && data.hold.active == true
+        && data.hold.expiresAt is string
+        && data.hold.expiresAt.size() > 0;
+    }
+
+    function paymentRecorded(data) {
+      return data.keys().hasAll(['payment'])
+        && data.payment.keys().hasAll(['amountEgp', 'receivedAt', 'reference'])
+        && data.payment.amountEgp is number
+        && data.payment.amountEgp == data.quote.totalEgp
+        && data.payment.receivedAt is string
+        && data.payment.receivedAt.size() > 0
+        && data.payment.reference is string
+        && data.payment.reference.size() > 0;
+    }
+
+    function communityPending(data, prop) {
+      return prop.communityApprovalRequired == true
+        && data.keys().hasAll(['communityApproval'])
+        && data.communityApproval.status == 'pending'
+        && data.communityApproval.required == true
+        && data.communityApproval.authorityPartnerId == prop.communityAuthorityPartnerId;
+    }
+
+    function communityApproved(data, prop) {
+      return prop.communityApprovalRequired == true
+        && data.keys().hasAll(['communityApproval'])
+        && data.communityApproval.status == 'approved'
+        && data.communityApproval.required == true
+        && data.communityApproval.authorityPartnerId == prop.communityAuthorityPartnerId
+        && data.communityApproval.evidenceReference is string
+        && data.communityApproval.evidenceReference.size() > 0;
+    }
+
+    function allowedBookingTransition(fromStage, toStage, prop, data) {
+      return (fromStage == 'received' && toStage == 'qualified')
+        || (fromStage == 'qualified' && toStage == 'availability_checked')
+        || (fromStage == 'availability_checked' && toStage == 'quoted' && quoteAtOrAboveFloor(data, prop))
+        || (fromStage == 'quoted' && toStage == 'hold' && quoteAtOrAboveFloor(data, prop) && activeHoldRecorded(data))
+        || (fromStage == 'hold' && toStage == 'payment_pending' && quoteAtOrAboveFloor(data, prop) && activeHoldRecorded(data))
+        || (fromStage == 'hold' && toStage == 'expired')
+        || (fromStage == 'payment_pending' && toStage == 'payment_received'
+          && prop.payoutReady == true
+          && quoteAtOrAboveFloor(data, prop)
+          && activeHoldRecorded(data)
+          && paymentRecorded(data))
+        || (fromStage == 'payment_received' && toStage == 'community_approval_pending'
+          && quoteAtOrAboveFloor(data, prop)
+          && activeHoldRecorded(data)
+          && paymentRecorded(data)
+          && communityPending(data, prop))
+        || (fromStage == 'payment_received' && toStage == 'confirmed'
+          && prop.communityApprovalRequired == false
+          && quoteAtOrAboveFloor(data, prop)
+          && activeHoldRecorded(data)
+          && paymentRecorded(data))
+        || (fromStage == 'community_approval_pending' && toStage == 'community_approved'
+          && quoteAtOrAboveFloor(data, prop)
+          && activeHoldRecorded(data)
+          && paymentRecorded(data)
+          && communityApproved(data, prop))
+        || (fromStage == 'community_approved' && toStage == 'confirmed'
+          && quoteAtOrAboveFloor(data, prop)
+          && activeHoldRecorded(data)
+          && paymentRecorded(data)
+          && communityApproved(data, prop))
+        || (fromStage == 'confirmed' && toStage == 'completed');
+    }
+
     match /partners/{partnerId} {
       allow read: if sameMode(resource.data) && (isAdmin() || request.auth.uid == partnerId);
       allow create: if isAdmin() && request.resource.data.dataMode == mode();
@@ -44,8 +143,7 @@ service cloud.firestore {
           && request.resource.data.publiclyVisible == false
           && request.resource.data.sealIssued == false) ||
         (isOperator() && request.auth.uid == resource.data.operatorPartnerId
-          && request.resource.data.ownerPartnerId == resource.data.ownerPartnerId
-          && request.resource.data.nightlyFloorEgp == resource.data.nightlyFloorEgp)
+          && operatorPropertyFieldsOnly())
       );
       allow delete: if false;
     }
@@ -80,7 +178,8 @@ service cloud.firestore {
         && request.resource.data.stage == 'received'
         && property(request.resource.data.propertyId).dataMode == mode()
         && property(request.resource.data.propertyId).supplyStage == 'live'
-        && property(request.resource.data.propertyId).publiclyVisible == true;
+        && property(request.resource.data.propertyId).publiclyVisible == true
+        && property(request.resource.data.propertyId).sealIssued == true;
       allow read: if sameMode(resource.data) && (
         isAdmin() ||
         request.auth.uid == property(resource.data.propertyId).ownerPartnerId ||
@@ -89,22 +188,12 @@ service cloud.firestore {
       allow update: if sameMode(resource.data)
         && isOperator()
         && request.auth.uid == property(resource.data.propertyId).operatorPartnerId
-        && request.resource.data.dataMode == resource.data.dataMode
-        && (
-          request.resource.data.stage != 'community_approved' ||
-          request.resource.data.communityApproval.authorityPartnerId == property(resource.data.propertyId).communityAuthorityPartnerId
-        )
-        && (
-          request.resource.data.stage != 'confirmed' ||
-          property(resource.data.propertyId).communityApprovalRequired == false ||
-          (
-            request.resource.data.communityApproval.status == 'approved' &&
-            request.resource.data.communityApproval.evidenceReference != null
-          )
-        )
-        && (
-          request.resource.data.quote == null ||
-          request.resource.data.quote.nightlyRateEgp >= property(resource.data.propertyId).nightlyFloorEgp
+        && immutableEnquiryIdentity()
+        && allowedBookingTransition(
+          resource.data.stage,
+          request.resource.data.stage,
+          property(resource.data.propertyId),
+          request.resource.data
         );
       allow delete: if false;
     }

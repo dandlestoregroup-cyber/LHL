@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, CreditCard, ShieldCheck, UserRoundCheck } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, ShieldCheck, UserRoundCheck } from 'lucide-react';
 import { useOperating } from '../context/OperatingContext';
-import { bi, dateLabel, enquiryLabels, label, money } from '../lib/display';
+import { bi, enquiryLabels, label, money } from '../lib/display';
 import { calendarEffect } from '../lib/lh-core';
 import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
 
@@ -17,10 +17,22 @@ const nextAction = (stage: string, requiresApproval: boolean, lang: 'en' | 'ar')
 
 export function OperatorView({ navigate }: { navigate: (path: string) => void }) {
   const { lang, mode, dataset, executeNextEnquiryAction, recordCommunityApproval, getPartnerName } = useOperating();
+  const [approvalEvidence, setApprovalEvidence] = React.useState<Record<string, string>>({});
+  const [approvalErrors, setApprovalErrors] = React.useState<Record<string, string>>({});
   const active = dataset.enquiries.filter((item) => !['completed', 'declined', 'expired', 'cancelled'].includes(item.stage));
   const holds = active.filter((item) => calendarEffect(item).blocksCalendar).length;
   const approvalQueue = active.filter((item) => item.stage === 'community_approval_pending').length;
   const payments = dataset.enquiries.reduce((sum, item) => sum + (item.payment?.receivedAt ? item.payment.amountEgp : 0), 0);
+
+  const captureApproval = (enquiryId: string) => {
+    setApprovalErrors((current) => ({ ...current, [enquiryId]: '' }));
+    try {
+      recordCommunityApproval(enquiryId, approvalEvidence[enquiryId]);
+      setApprovalEvidence((current) => ({ ...current, [enquiryId]: '' }));
+    } catch (error) {
+      setApprovalErrors((current) => ({ ...current, [enquiryId]: error instanceof Error ? error.message : 'Unable to record approval evidence.' }));
+    }
+  };
 
   return (
     <div>
@@ -35,17 +47,19 @@ export function OperatorView({ navigate }: { navigate: (path: string) => void })
               if (!home) return null;
               const action = nextAction(enquiry.stage, home.communityApprovalRequired, lang);
               const calendar = calendarEffect(enquiry);
+              const evidenceValue = approvalEvidence[enquiry.id] || '';
               return <article key={enquiry.id} className="rounded-[1.5rem] border border-clay-200 bg-white p-6">
                 <div className="grid gap-6 lg:grid-cols-[1.25fr_.8fr_.8fr_auto] lg:items-center">
                   <div><div className="flex flex-wrap items-center gap-2"><StatusPill tone={enquiry.stage.includes('approval') ? 'warn' : enquiry.stage === 'confirmed' ? 'good' : 'neutral'}>{label(enquiryLabels, enquiry.stage, lang)}</StatusPill><DemoRecordMark /></div><h2 className="mt-3 font-serif text-2xl text-ink-950">{enquiry.guestName} · {lang === 'ar' ? home.nameAr : home.name}</h2><p className="mt-2 text-xs text-ink-500">{enquiry.checkIn} → {enquiry.checkOut} · {enquiry.adults + enquiry.children} {bi(lang, 'guests', 'ضيوف')}</p></div>
                   <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><CircleDollarSign size={14} className="text-terracotta-700" />{enquiry.quote ? money(enquiry.quote.totalEgp, lang) : bi(lang, 'Not quoted', 'لم يتم التسعير')}</span><span className="flex items-center gap-2"><CalendarClock size={14} className="text-terracotta-700" />{calendar.blocksCalendar ? bi(lang, 'Calendar blocked', 'التقويم محجوز') : bi(lang, 'No calendar block', 'لا يوجد حجب للتقويم')}</span></div>
                   <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><UserRoundCheck size={14} className="text-terracotta-700" />{getPartnerName(home.operatorPartnerId)}</span><span className="flex items-center gap-2"><ShieldCheck size={14} className="text-terracotta-700" />{home.communityApprovalRequired ? bi(lang, 'Community gate applies', 'بوابة الكمبوند مطلوبة') : bi(lang, 'No community gate', 'لا توجد بوابة كمبوند')}</span></div>
                   <div className="lg:text-end">
-                    {enquiry.stage === 'community_approval_pending' ? mode === 'demo' ? <button onClick={() => recordCommunityApproval(enquiry.id)} className="button-secondary whitespace-nowrap"><CheckCircle2 size={14} />{bi(lang, 'Record issued approval', 'تسجيل موافقة صادرة')}</button> : <StatusPill tone="warn">{bi(lang, 'Await external evidence', 'بانتظار دليل خارجي')}</StatusPill> : action ? <button onClick={() => executeNextEnquiryAction(enquiry.id)} className="button-primary whitespace-nowrap">{action}<ArrowRight size={14} className="rtl:rotate-180" /></button> : <StatusPill>{bi(lang, 'No action', 'لا إجراء')}</StatusPill>}
+                    {enquiry.stage === 'community_approval_pending' ? mode === 'demo' ? <button onClick={() => captureApproval(enquiry.id)} className="button-secondary whitespace-nowrap"><CheckCircle2 size={14} />{bi(lang, 'Record issued approval', 'تسجيل موافقة صادرة')}</button> : <div className="min-w-[250px] space-y-2"><input aria-label={bi(lang, 'External approval evidence reference', 'مرجع دليل الموافقة الخارجية')} value={evidenceValue} onChange={(event) => setApprovalEvidence((current) => ({ ...current, [enquiry.id]: event.target.value }))} className="field-input" placeholder={bi(lang, 'Issued approval reference', 'مرجع الموافقة الصادرة')} /><button disabled={!evidenceValue.trim()} onClick={() => captureApproval(enquiry.id)} className="button-secondary w-full justify-center whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40"><CheckCircle2 size={14} />{bi(lang, 'Record external approval', 'تسجيل الموافقة الخارجية')}</button></div> : action ? <button onClick={() => executeNextEnquiryAction(enquiry.id)} className="button-primary whitespace-nowrap">{action}<ArrowRight size={14} className="rtl:rotate-180" /></button> : <StatusPill>{bi(lang, 'No action', 'لا إجراء')}</StatusPill>}
                   </div>
                 </div>
+                {approvalErrors[enquiry.id] && <p className="mt-4 rounded-xl bg-red-50 p-3 text-xs text-red-700">{approvalErrors[enquiry.id]}</p>}
                 {enquiry.hold?.expiresAt && <div className={`mt-5 flex items-center gap-2 rounded-xl p-3 text-[10px] ${calendar.blocksCalendar ? 'bg-terracotta-50 text-terracotta-900' : 'bg-clay-100 text-ink-500'}`}><Clock3 size={14} />{bi(lang, 'Hold expires', 'ينتهي الحجز المؤقت')}: {new Date(enquiry.hold.expiresAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB')}</div>}
-                {enquiry.stage === 'community_approval_pending' && <div className="mt-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-[10px] leading-5 text-amber-900"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{bi(lang, 'The button records an approval already issued by the named authority; it does not let the operator issue one.', 'الزر يسجل موافقة صدرت بالفعل من الجهة المحددة؛ ولا يمنح المشغل صلاحية إصدارها.')}</div>}
+                {enquiry.stage === 'community_approval_pending' && <div className="mt-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-[10px] leading-5 text-amber-900"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{bi(lang, 'This records an approval already issued by the named authority; it does not let the operator issue one. Live requires the external evidence reference.', 'هذا يسجل موافقة صدرت بالفعل من الجهة المحددة ولا يمنح المشغل صلاحية إصدارها. الوضع الفعلي يتطلب مرجع الدليل الخارجي.')}</div>}
               </article>;
             })}
           </div>

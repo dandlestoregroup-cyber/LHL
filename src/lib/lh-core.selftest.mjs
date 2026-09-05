@@ -1,7 +1,9 @@
 import {
   BOOKING_SPINE,
   MOMENT_KEYS,
+  SHIELD_GATE_KEYS,
   SUPPLY_STAGES,
+  TRUST_GATE_KEYS,
   assertDatasetBoundary,
   calendarEffect,
   canConfirmStay,
@@ -10,6 +12,7 @@ import {
   evaluateEvidence,
   evaluateGoLive,
   evaluateRateFloor,
+  evaluateStayDates,
   publicPropertyFacts,
   resolveBookingMode,
 } from './lh-core.js';
@@ -22,6 +25,8 @@ const assert = (condition, message) => {
 };
 
 assert(MOMENT_KEYS.length === 6 && new Set(MOMENT_KEYS).size === 6, 'six exact canonical Moments are locked');
+assert(TRUST_GATE_KEYS.length === 6 && new Set(TRUST_GATE_KEYS).size === 6, 'six exact TRUST gates are locked');
+assert(SHIELD_GATE_KEYS.length === 6 && new Set(SHIELD_GATE_KEYS).size === 6, 'six exact SHIELD gates are locked');
 assert(SUPPLY_STAGES.join('|') === 'sourced|owner_engaged|assessment_scheduled|decision_pending|activation_ready|live|paused|declined', 'supply stages are locked');
 assert(BOOKING_SPINE[0] === 'received' && BOOKING_SPINE.at(-1) === 'completed', 'booking spine runs received to completed');
 assert(!evaluateEvidence('listing').canProve, 'listing cannot prove a Moment');
@@ -39,6 +44,14 @@ assert(!publicPropertyFacts(liveProperty).showRate, 'public cards never expose a
 assert(!evaluateRateFloor(liveProperty, 5999).allowed, 'below-floor quote is rejected');
 assert(evaluateRateFloor(liveProperty, 6000).allowed, 'quote at floor is accepted');
 
+const validDates = evaluateStayDates('2026-09-12', '2026-09-15');
+assert(validDates.allowed && validDates.nights === 3, 'valid stay dates return exact nights');
+assert(!evaluateStayDates('', '2026-09-15').allowed, 'empty check-in is rejected');
+assert(!evaluateStayDates('2026-09-15', '').allowed, 'empty check-out is rejected');
+assert(!evaluateStayDates('2026-09-15', '2026-09-15').allowed, 'same-day check-in and check-out is rejected');
+assert(!evaluateStayDates('2026-09-16', '2026-09-15').allowed, 'reversed stay dates are rejected');
+assert(!evaluateStayDates('2026-02-30', '2026-03-02').allowed, 'invalid calendar dates are rejected');
+
 const activeHold = { active: true, expiresAt: '2026-09-04T12:00:00.000Z' };
 const paidEnquiry = { stage: 'payment_received', quote: { nightlyRateEgp: 6500 }, hold: activeHold, payment: { receivedAt: '2026-09-01T10:00:00.000Z' }, communityApproval: { status: 'not_required' } };
 const now = new Date('2026-09-01T12:00:00.000Z');
@@ -49,11 +62,17 @@ assert(calendarEffect({ stage: 'hold', hold: activeHold }, now).blocksCalendar =
 assert(resolveBookingMode({ ...liveProperty, communityApprovalRequired: true }).instantAllowed === false, 'community approval disables instant');
 assert(resolveBookingMode({ ...liveProperty, calendarAuthority: 'external' }).instantAllowed === false, 'external calendar disables instant');
 
-const gates = Array.from({ length: 6 }, (_, index) => ({ key: `${index}`, status: 'passed' }));
-const assessment = { independenceConfirmed: true, trustGates: gates, shieldGates: gates, provenMomentKeys: ['slow_morning', 'long_table'] };
-assert(evaluateAssessment(assessment).passed, 'independent all-clear assessment with two Moments passes');
+const trustGates = TRUST_GATE_KEYS.map((key) => ({ key, status: 'passed' }));
+const shieldGates = SHIELD_GATE_KEYS.map((key) => ({ key, status: 'passed' }));
+const assessment = { independenceConfirmed: true, trustGates, shieldGates, provenMomentKeys: ['slow_morning', 'long_table'] };
+assert(evaluateAssessment(assessment).passed, 'independent all-clear assessment with complete gate sets and two Moments passes');
 assert(!evaluateAssessment({ ...assessment, independenceConfirmed: false }).passed, 'non-independent assessment fails');
 assert(!evaluateAssessment({ ...assessment, provenMomentKeys: ['slow_morning'] }).passed, 'one proven Moment fails');
+assert(!evaluateAssessment({ ...assessment, trustGates: [] }).passed, 'empty TRUST gate set fails');
+assert(!evaluateAssessment({ ...assessment, shieldGates: [] }).passed, 'empty SHIELD gate set fails');
+assert(!evaluateAssessment({ ...assessment, trustGates: trustGates.slice(0, 5) }).passed, 'missing TRUST gate fails');
+assert(!evaluateAssessment({ ...assessment, shieldGates: [...shieldGates.slice(0, 5), shieldGates[0]] }).passed, 'duplicate SHIELD gate fails');
+assert(!evaluateAssessment({ ...assessment, shieldGates: shieldGates.map((gate, index) => index === 0 ? { ...gate, status: 'failed' } : gate) }).passed, 'failed SHIELD gate fails');
 
 const ownerDecision = { decision: 'go', decidedAt: '2026-08-30', payoutReady: true, nightlyFloorEgp: 6000, conditions: [] };
 assert(evaluateGoLive(liveProperty, assessment, ownerDecision).allowed, 'complete assessment and owner mandate allow Live');
