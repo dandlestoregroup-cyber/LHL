@@ -128,7 +128,7 @@ export async function recordInventoryBaseline(
 
   const active = (await listDocuments<Enquiry>('enquiries'))
     .map((item) => item.data)
-    .some((enquiry) => enquiry.dataMode === 'live' && !enquiry.synthetic && enquiry.propertyId === propertyId && enquiry.stage === 'confirmed' && Boolean(enquiry.proofStay?.preStay));
+    .some((enquiry) => enquiry.dataMode === 'live' && !enquiry.synthetic && enquiry.propertyId === propertyId && Boolean(enquiry.proofStay?.preStay) && !enquiry.proofStay?.postStay);
   if (active) throw new LiveStoreError('inventory_baseline_locked_by_active_stay', 409);
 
   const items = normalizeBaselineItems(input.items);
@@ -226,6 +226,7 @@ export async function captureProofStaySnapshot(
   if (!enquiry.proofStay?.preStay) throw new LiveStoreError('proofstay_pre_required', 409);
   if (enquiry.proofStay.postStay) throw new LiveStoreError('proofstay_post_already_captured', 409);
   const pre = enquiry.proofStay.preStay;
+  if (pre.baselineCapturedAt !== baseline.capturedAt) throw new LiveStoreError('proofstay_baseline_changed_before_post', 409);
   const preByKey = new Map(pre.observations.map((observation) => [observation.key, observation]));
   const changedKeys = observations
     .filter((observation) => {
