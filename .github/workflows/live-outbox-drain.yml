@@ -1,0 +1,63 @@
+name: Live outbox drain
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lhl-live-outbox-drain
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      LHL_APP_URL: ${{ secrets.LHL_APP_URL }}
+      LHL_OUTBOX_DRAIN_SECRET: ${{ secrets.LHL_OUTBOX_DRAIN_SECRET }}
+    steps:
+      - name: Report unconfigured scheduler
+        if: env.LHL_APP_URL == '' || env.LHL_OUTBOX_DRAIN_SECRET == ''
+        run: echo 'Live outbox drain is inert until LHL_APP_URL and LHL_OUTBOX_DRAIN_SECRET repository secrets are configured.'
+
+      - name: Drain committed Live events
+        if: env.LHL_APP_URL != '' && env.LHL_OUTBOX_DRAIN_SECRET != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="${LHL_APP_URL%/}"
+          case "$base_url" in
+            https://*) ;;
+            *) echo '::error::LHL_APP_URL must use https://'; exit 1 ;;
+          esac
+
+          response="$({
+            curl \
+              --silent \
+              --show-error \
+              --fail-with-body \
+              --retry 2 \
+              --retry-all-errors \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --request POST \
+              --header "x-lhl-outbox-secret: ${LHL_OUTBOX_DRAIN_SECRET}" \
+              --header 'content-type: application/json' \
+              --data '{"limit":20}' \
+              "${base_url}/api/internal/live-outbox/drain"
+          })"
+
+          printf '%s' "$response" | jq -e '
+            (.checked | type == "number") and
+            (.delivered | type == "number") and
+            (.retryScheduled | type == "number")
+          ' >/dev/null
+
+          checked="$(printf '%s' "$response" | jq -r '.checked')"
+          delivered="$(printf '%s' "$response" | jq -r '.delivered')"
+          retry_scheduled="$(printf '%s' "$response" | jq -r '.retryScheduled')"
+          echo "Live outbox drain verified: checked=${checked}, delivered=${delivered}, retryScheduled=${retry_scheduled}"
