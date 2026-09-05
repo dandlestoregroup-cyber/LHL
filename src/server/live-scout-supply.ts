@@ -1,4 +1,4 @@
-import type { Partner, Property } from '../types';
+import type { Property } from '../types';
 import { commitDocuments, getDocument } from './firestore-rest';
 import type { LiveSession } from './session-auth';
 import { LiveStoreError, sessionPartner } from './live-store';
@@ -10,7 +10,7 @@ const cleanString = (value: unknown, field: string, max = 180): string => {
   return value.trim();
 };
 
-export async function recordScoutOwnerEngagement(
+export async function recordScoutOwnerConsent(
   session: LiveSession,
   propertyId: string,
   input: Record<string, unknown>,
@@ -25,24 +25,17 @@ export async function recordScoutOwnerEngagement(
     throw new LiveStoreError('property_not_found', 404);
   }
   if (propertyStored.data.supplyStage !== 'sourced' || propertyStored.data.scoutPartnerId !== scout.id) {
-    throw new LiveStoreError('source_scout_owner_engagement_required', 403);
+    throw new LiveStoreError('source_scout_consent_required', 403);
   }
-
-  const ownerPartnerId = cleanString(input.ownerPartnerId, 'owner_partner_id', 160);
-  const ownerStored = await getDocument<Partner>('partners', ownerPartnerId);
-  const owner = ownerStored?.data;
-  if (!owner || owner.dataMode !== 'live' || owner.synthetic || owner.status !== 'active' || owner.role !== 'owner') {
-    throw new LiveStoreError('active_owner_required', 409);
+  if (propertyStored.data.ownerConsentReference) {
+    throw new LiveStoreError('owner_consent_already_recorded', 409);
   }
 
   const ownerConsentReference = cleanString(input.ownerConsentReference, 'owner_consent_reference', 180);
-  const now = new Date().toISOString();
   const property: Property = {
     ...propertyStored.data,
-    ownerPartnerId: owner.id,
     ownerConsentReference,
-    supplyStage: 'owner_engaged',
-    updatedAt: now,
+    updatedAt: new Date().toISOString(),
   };
 
   await commitDocuments([{
