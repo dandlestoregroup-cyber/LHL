@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { deriveLiveOutboxRecord, isBusinessCollection } from './live-outbox-record';
 
 export interface StoredDocument<T> {
   data: T;
@@ -48,7 +49,7 @@ async function serviceAccountToken(): Promise<string> {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      grant_type: 'urn:ietf:params:oauth2:grant-type:jwt-bearer',
       assertion,
     }),
     signal: AbortSignal.timeout(8000),
@@ -111,6 +112,11 @@ interface FirestoreDocumentResponse {
   updateTime?: string;
 }
 
+interface FirestoreCommitResponse {
+  writeResults?: Array<{ updateTime?: string }>;
+  commitTime?: string;
+}
+
 const documentBase = (): string => {
   const projectId = env('FIREBASE_PROJECT_ID');
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents`;
@@ -130,6 +136,45 @@ async function firestoreFetch(url: string, init: RequestInit = {}): Promise<Resp
     },
     signal: init.signal || AbortSignal.timeout(8000),
   });
+}
+
+const firestoreWrite = (write: AtomicDocumentWrite) => ({
+  update: {
+    name: documentName(write.collection, write.id),
+    fields: encodeFields(write.data),
+  },
+  currentDocument: write.mode === 'create'
+    ? { exists: false }
+    : { updateTime: write.expectedUpdateTime },
+});
+
+const withDerivedOutbox = (writes: AtomicDocumentWrite[]): AtomicDocumentWrite[] => {
+  const augmented: AtomicDocumentWrite[] = [];
+  for (const write of writes) {
+    augmented.push(write);
+    if (!isBusinessCollection(write.collection)) continue;
+    const derived = deriveLiveOutboxRecord(write.mode === 'create' ? 'created' : 'replaced', write.collection, write.id, write.data);
+    if (!derived) continue;
+    augmented.push({
+      mode: 'create',
+      collection: 'liveOutbox',
+      id: derived.id,
+      data: derived.data,
+    });
+  }
+  return augmented;
+};
+
+async function commitRaw(writes: AtomicDocumentWrite[]): Promise<FirestoreCommitResponse> {
+  if (writes.length === 0) return {};
+  if (writes.length > 20) throw new Error('Firestore atomic commit is limited to 20 writes in LHL.');
+  const response = await firestoreFetch(`${documentBase()}:commit`, {
+    method: 'POST',
+    body: JSON.stringify({ writes: writes.map(firestoreWrite) }),
+  });
+  if (response.status === 409 || response.status === 412) throw new Error('record_changed_concurrently');
+  if (!response.ok) throw new Error(`Firestore atomic commit failed: ${response.status}`);
+  return response.json() as Promise<FirestoreCommitResponse>;
 }
 
 export async function getDocument<T>(collection: string, id: string): Promise<StoredDocument<T> | null> {
@@ -160,6 +205,17 @@ export async function listDocuments<T>(collection: string): Promise<Array<Stored
 }
 
 export async function createDocument<T extends Record<string, unknown>>(collection: string, id: string, data: T): Promise<StoredDocument<T>> {
+  if (isBusinessCollection(collection)) {
+    const writes = withDerivedOutbox([{ mode: 'create', collection, id, data }]);
+    try {
+      const result = await commitRaw(writes);
+      return { data, updateTime: result.writeResults?.[0]?.updateTime || result.commitTime || '' };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'record_changed_concurrently') throw new Error('record_already_exists');
+      throw error;
+    }
+  }
+
   const url = new URL(documentName(collection, id));
   url.searchParams.set('currentDocument.exists', 'false');
   const response = await firestoreFetch(url.toString(), {
@@ -178,6 +234,17 @@ export async function replaceDocument<T extends Record<string, unknown>>(
   data: T,
   expectedUpdateTime?: string,
 ): Promise<StoredDocument<T>> {
+  if (isBusinessCollection(collection) && expectedUpdateTime) {
+    const result = await commitRaw(withDerivedOutbox([{
+      mode: 'replace',
+      collection,
+      id,
+      data,
+      expectedUpdateTime,
+    }]));
+    return { data, updateTime: result.writeResults?.[0]?.updateTime || result.commitTime || '' };
+  }
+
   const url = new URL(documentName(collection, id));
   if (expectedUpdateTime) url.searchParams.set('currentDocument.updateTime', expectedUpdateTime);
   const response = await firestoreFetch(url.toString(), {
@@ -191,22 +258,5 @@ export async function replaceDocument<T extends Record<string, unknown>>(
 }
 
 export async function commitDocuments(writes: AtomicDocumentWrite[]): Promise<void> {
-  if (writes.length === 0) return;
-  if (writes.length > 20) throw new Error('Firestore atomic commit is limited to 20 writes in LHL.');
-  const response = await firestoreFetch(`${documentBase()}:commit`, {
-    method: 'POST',
-    body: JSON.stringify({
-      writes: writes.map((write) => ({
-        update: {
-          name: documentName(write.collection, write.id),
-          fields: encodeFields(write.data),
-        },
-        currentDocument: write.mode === 'create'
-          ? { exists: false }
-          : { updateTime: write.expectedUpdateTime },
-      })),
-    }),
-  });
-  if (response.status === 409 || response.status === 412) throw new Error('record_changed_concurrently');
-  if (!response.ok) throw new Error(`Firestore atomic commit failed: ${response.status}`);
+  await commitRaw(withDerivedOutbox(writes));
 }
