@@ -129,14 +129,17 @@ export async function acceptPartnerInvite(token: unknown, password: unknown): Pr
   }
 
   const startedFromPending = initial.data.status === 'pending';
-  let claim = initial;
+  let claimData = initial.data;
+  let claimUpdateTime = initial.updateTime;
   if (startedFromPending) {
     const claiming: PartnerInvite = { ...initial.data, status: 'claiming', updatedAt: new Date().toISOString() };
-    claim = await replaceDocument('partnerInvites', id, claiming as unknown as Record<string, unknown>, initial.updateTime)
+    const claimed = await replaceDocument('partnerInvites', id, claiming as unknown as Record<string, unknown>, initial.updateTime)
       .catch((error) => {
         if (error instanceof Error && error.message === 'record_changed_concurrently') throw new LiveStoreError('invite_already_claimed', 409);
         throw error;
       });
+    claimData = claiming;
+    claimUpdateTime = claimed.updateTime;
   }
 
   let identityCreated = !startedFromPending;
@@ -172,14 +175,14 @@ export async function acceptPartnerInvite(token: unknown, password: unknown): Pr
 
     const acceptedAt = new Date().toISOString();
     const accepted: PartnerInvite = {
-      ...claim.data,
+      ...claimData,
       status: 'accepted',
       updatedAt: acceptedAt,
       acceptedAt,
       acceptedPartnerId: partner.id,
     };
     try {
-      await replaceDocument('partnerInvites', id, accepted as unknown as Record<string, unknown>, claim.updateTime);
+      await replaceDocument('partnerInvites', id, accepted as unknown as Record<string, unknown>, claimUpdateTime);
     } catch (error) {
       const latest = await getDocument<PartnerInvite>('partnerInvites', id);
       if (!latest || latest.data.status !== 'accepted' || latest.data.acceptedPartnerId !== partner.id) throw error;
@@ -191,7 +194,7 @@ export async function acceptPartnerInvite(token: unknown, password: unknown): Pr
     // so the same token + credentials can safely resume instead of reopening signup.
     if (!identityCreated && startedFromPending) {
       const restored: PartnerInvite = { ...initial.data, status: 'pending', updatedAt: new Date().toISOString() };
-      await replaceDocument('partnerInvites', id, restored as unknown as Record<string, unknown>, claim.updateTime).catch(() => undefined);
+      await replaceDocument('partnerInvites', id, restored as unknown as Record<string, unknown>, claimUpdateTime).catch(() => undefined);
     }
     if (error instanceof LiveStoreError) throw error;
     const code = error instanceof Error ? error.message : 'invite_acceptance_failed';
