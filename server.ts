@@ -9,6 +9,11 @@ import {
 } from './src/lib/automation-gateway';
 import { drainLiveOutbox } from './src/server/live-outbox';
 import {
+  captureProofStaySnapshot,
+  recordInventoryBaseline,
+  recordStayReadiness,
+} from './src/server/live-assurance';
+import {
   LiveStoreError,
   advanceLiveEnquiry,
   bootstrapFirstScout,
@@ -104,6 +109,7 @@ const datasetResponse = async (req: Request) => {
       ...property,
       ownerConsentReference: undefined,
       communityAuthorityPartnerId: undefined,
+      inventoryBaseline: undefined,
     }));
   }
   return dataset;
@@ -299,11 +305,39 @@ app.post('/api/live/properties/:id/activate', async (req, res) => {
   }
 });
 
+app.post('/api/live/properties/:id/inventory-baseline', async (req, res) => {
+  try {
+    const property = await recordInventoryBaseline(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
 app.post('/api/live/enquiries', async (req, res) => {
   if (!publicEnquiryLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'enquiry_rate_limited' });
   try {
     const enquiry = await createLiveEnquiry(req.body || {});
     return res.status(201).json({ enquiry });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/enquiries/:id/readiness', async (req, res) => {
+  try {
+    const enquiry = await recordStayReadiness(requireSession(req), req.params.id, req.body || {});
+    return res.json({ enquiry, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/enquiries/:id/proofstay/:phase', async (req, res) => {
+  try {
+    if (req.params.phase !== 'pre_stay' && req.params.phase !== 'post_stay') throw new LiveStoreError('invalid_proofstay_phase', 400);
+    const enquiry = await captureProofStaySnapshot(requireSession(req), req.params.id, req.params.phase, req.body || {});
+    return res.json({ enquiry, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
