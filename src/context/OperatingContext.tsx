@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { DataMode, Enquiry, EnquiryStage, Language, MomentKey, OperatingDataset, Property } from '../types';
 import { OperatingRepository } from '../lib/operating-repository';
-import { canConfirmStay, evaluateRateFloor, isHoldActive } from '../lib/lh-core';
+import { canConfirmStay, evaluateRateFloor, evaluateStayDates, isHoldActive } from '../lib/lh-core';
 import { automationPayload, publishAutomationEvent } from '../lib/automation';
 
 interface NewEnquiryInput {
@@ -27,7 +27,7 @@ interface OperatingContextValue {
   getPartnerName: (id?: string) => string;
   createEnquiry: (input: NewEnquiryInput) => Enquiry;
   executeNextEnquiryAction: (id: string) => void;
-  recordCommunityApproval: (id: string) => void;
+  recordCommunityApproval: (id: string, evidenceReference?: string) => void;
   createScoutLead: (name: string, nameAr: string, location: string, locationAr: string) => void;
   resetActiveDataset: () => void;
 }
@@ -68,6 +68,14 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     if (!property || property.supplyStage !== 'live' || !property.publiclyVisible) {
       throw new Error('A stay enquiry can only be created for a public Live property.');
     }
+    const dateCheck = evaluateStayDates(input.checkIn, input.checkOut);
+    if (!dateCheck.allowed) throw new Error(dateCheck.reason);
+    if (!Number.isInteger(input.adults) || input.adults < 1 || !Number.isInteger(input.children) || input.children < 0 || input.adults + input.children > property.maxGuests) {
+      throw new Error('Guest count must be valid and within the property capacity.');
+    }
+    if (!property.provenMoments.some((moment) => moment.key === input.requestedMoment)) {
+      throw new Error('The requested Moment must be independently proven for this property.');
+    }
     const now = new Date().toISOString();
     const created: Enquiry = {
       id: `${mode}-enquiry-${Date.now()}`,
@@ -104,9 +112,11 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     const target = dataset.enquiries.find((item) => item.id === id);
     const property = target && dataset.properties.find((item) => item.id === target.propertyId);
     if (!target || !property) return;
+    const dateCheck = evaluateStayDates(target.checkIn, target.checkOut);
+    if (!dateCheck.allowed) throw new Error(dateCheck.reason);
     const now = new Date();
     const at = now.toISOString();
-    const nights = Math.max(1, Math.round((new Date(target.checkOut).getTime() - new Date(target.checkIn).getTime()) / 86400000));
+    const nights = dateCheck.nights;
     let updated: Enquiry = { ...target, updatedAt: at };
     let next: EnquiryStage | null = null;
     let note = '';
@@ -116,6 +126,7 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     else if (target.stage === 'availability_checked') {
       next = 'quoted'; note = 'Operator issued an in-floor accommodation quote.';
       const nightlyRateEgp = (property.nightlyFloorEgp || 0) + 500;
+      if (!evaluateRateFloor(property, nightlyRateEgp).allowed) return;
       updated.quote = { nightlyRateEgp, nights, accommodationEgp: nightlyRateEgp * nights, feesEgp: 0, totalEgp: nightlyRateEgp * nights, issuedAt: at };
     } else if (target.stage === 'quoted') {
       if (!evaluateRateFloor(property, target.quote?.nightlyRateEgp ?? 0).allowed) return;
@@ -153,17 +164,25 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
-  const recordCommunityApproval = (id: string) => {
-    if (mode !== 'demo') return;
+  const recordCommunityApproval = (id: string, evidenceReference?: string) => {
     const target = dataset.enquiries.find((item) => item.id === id);
-    if (!target || target.stage !== 'community_approval_pending' || !target.communityApproval?.authorityPartnerId) return;
+    const property = target && dataset.properties.find((item) => item.id === target.propertyId);
+    if (!target || !property || target.stage !== 'community_approval_pending' || !target.communityApproval?.authorityPartnerId) return;
+    if (!property.communityApprovalRequired || property.communityAuthorityPartnerId !== target.communityApproval.authorityPartnerId) {
+      throw new Error('The recorded community authority does not match the property mandate.');
+    }
+    const externalEvidence = evidenceReference?.trim();
+    const resolvedEvidence = mode === 'demo' ? (externalEvidence || `DEMO-COMMUNITY-${Date.now()}`) : externalEvidence;
+    if (!resolvedEvidence) {
+      throw new Error('An external community approval evidence reference is required in Live.');
+    }
     const at = new Date().toISOString();
     const updated: Enquiry = {
       ...target,
       stage: 'community_approved',
       updatedAt: at,
-      communityApproval: { ...target.communityApproval, status: 'approved', evidenceReference: `${mode.toUpperCase()}-COMMUNITY-${Date.now()}` },
-      timeline: [...target.timeline, { stage: 'community_approved', at, note: 'Operator recorded approval issued by the named external authority.', byPartnerId: 'partner-operator-lina' }],
+      communityApproval: { ...target.communityApproval, status: 'approved', evidenceReference: resolvedEvidence },
+      timeline: [...target.timeline, { stage: 'community_approved', at, note: 'Operator recorded approval already issued by the named external authority.', byPartnerId: property.operatorPartnerId }],
     };
     commit({ ...dataset, asOf: at, enquiries: dataset.enquiries.map((item) => item.id === id ? updated : item) });
     publishAutomationEvent('community_approval.recorded', mode, {
