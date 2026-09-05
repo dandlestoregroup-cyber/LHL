@@ -10,6 +10,10 @@ interface AccessToken {
   expiresAt: number;
 }
 
+export type AtomicDocumentWrite =
+  | { mode: 'create'; collection: string; id: string; data: Record<string, unknown> }
+  | { mode: 'replace'; collection: string; id: string; data: Record<string, unknown>; expectedUpdateTime: string };
+
 let cachedToken: AccessToken | null = null;
 
 const env = (name: string): string => {
@@ -112,6 +116,9 @@ const documentBase = (): string => {
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents`;
 };
 
+const documentName = (collection: string, id: string): string =>
+  `${documentBase()}/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`;
+
 async function firestoreFetch(url: string, init: RequestInit = {}): Promise<Response> {
   const token = await serviceAccountToken();
   return fetch(url, {
@@ -126,8 +133,7 @@ async function firestoreFetch(url: string, init: RequestInit = {}): Promise<Resp
 }
 
 export async function getDocument<T>(collection: string, id: string): Promise<StoredDocument<T> | null> {
-  const url = `${documentBase()}/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`;
-  const response = await firestoreFetch(url);
+  const response = await firestoreFetch(documentName(collection, id));
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Firestore read failed: ${response.status}`);
   const document = await response.json() as FirestoreDocumentResponse;
@@ -154,7 +160,7 @@ export async function listDocuments<T>(collection: string): Promise<Array<Stored
 }
 
 export async function createDocument<T extends Record<string, unknown>>(collection: string, id: string, data: T): Promise<StoredDocument<T>> {
-  const url = new URL(`${documentBase()}/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`);
+  const url = new URL(documentName(collection, id));
   url.searchParams.set('currentDocument.exists', 'false');
   const response = await firestoreFetch(url.toString(), {
     method: 'PATCH',
@@ -172,7 +178,7 @@ export async function replaceDocument<T extends Record<string, unknown>>(
   data: T,
   expectedUpdateTime?: string,
 ): Promise<StoredDocument<T>> {
-  const url = new URL(`${documentBase()}/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`);
+  const url = new URL(documentName(collection, id));
   if (expectedUpdateTime) url.searchParams.set('currentDocument.updateTime', expectedUpdateTime);
   const response = await firestoreFetch(url.toString(), {
     method: 'PATCH',
@@ -182,4 +188,25 @@ export async function replaceDocument<T extends Record<string, unknown>>(
   if (!response.ok) throw new Error(`Firestore update failed: ${response.status}`);
   const document = await response.json() as FirestoreDocumentResponse;
   return { data: decodeFields(document.fields || {}) as T, updateTime: document.updateTime || '' };
+}
+
+export async function commitDocuments(writes: AtomicDocumentWrite[]): Promise<void> {
+  if (writes.length === 0) return;
+  if (writes.length > 20) throw new Error('Firestore atomic commit is limited to 20 writes in LHL.');
+  const response = await firestoreFetch(`${documentBase()}:commit`, {
+    method: 'POST',
+    body: JSON.stringify({
+      writes: writes.map((write) => ({
+        update: {
+          name: documentName(write.collection, write.id),
+          fields: encodeFields(write.data),
+        },
+        currentDocument: write.mode === 'create'
+          ? { exists: false }
+          : { updateTime: write.expectedUpdateTime },
+      })),
+    }),
+  });
+  if (response.status === 409 || response.status === 412) throw new Error('record_changed_concurrently');
+  if (!response.ok) throw new Error(`Firestore atomic commit failed: ${response.status}`);
 }
