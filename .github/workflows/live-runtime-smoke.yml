@@ -1,0 +1,43 @@
+name: Live runtime smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lhl-live-runtime-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      LHL_APP_URL: ${{ secrets.LHL_APP_URL }}
+    steps:
+      - name: Report unconfigured runtime
+        if: env.LHL_APP_URL == ''
+        run: echo 'Live runtime smoke is inert until the LHL_APP_URL repository secret points to the deployed current LHL service.'
+
+      - name: Verify Express shell and Live persistence
+        if: env.LHL_APP_URL != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="${LHL_APP_URL%/}"
+          case "$base_url" in
+            https://*) ;;
+            *) echo '::error::LHL_APP_URL must use https://'; exit 1 ;;
+          esac
+
+          auth_response="$(curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 "${base_url}/api/auth/me")"
+          printf '%s' "$auth_response" | jq -e '.authenticated == false and .partner == null' >/dev/null
+          echo 'Express/auth shell: ok'
+
+          live_response="$(curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 "${base_url}/api/live/dataset")"
+          printf '%s' "$live_response" | jq -e '.dataset.mode == "live" and (.dataset.properties | type == "array")' >/dev/null
+          echo 'Firestore-backed anonymous Live dataset: ok'
