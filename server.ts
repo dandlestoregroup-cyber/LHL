@@ -18,6 +18,15 @@ import {
   sessionPartner,
 } from './src/server/live-store';
 import {
+  activateLiveProperty,
+  assignCommunityAuthorityToProperty,
+  assignOperatorToProperty,
+  assignOwnerToProperty,
+  schedulePropertyAssessment,
+  submitPropertyAssessment,
+  submitPropertyOwnerDecision,
+} from './src/server/live-supply';
+import {
   acceptPartnerInvite,
   issuePartnerInvite,
   listPartnerInvites,
@@ -69,6 +78,8 @@ const inviteUrl = (token: string): string => {
   url.searchParams.set('token', token);
   return url.toString();
 };
+
+const datasetResponse = async (req: Request) => loadLiveDataset(readSession(req));
 
 app.post('/api/auth/sign-up', async (req, res) => {
   if (!authLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'auth_rate_limited' });
@@ -124,8 +135,7 @@ app.get('/api/auth/me', async (req, res) => {
 
 app.get('/api/live/dataset', async (req, res) => {
   try {
-    const dataset = await loadLiveDataset(readSession(req));
-    return res.json({ dataset });
+    return res.json({ dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
@@ -134,7 +144,7 @@ app.get('/api/live/dataset', async (req, res) => {
 app.post('/api/live/bootstrap/scout', async (req, res) => {
   try {
     const partner = await bootstrapFirstScout(requireSession(req), req.body || {});
-    return res.status(201).json({ partner, dataset: await loadLiveDataset(readSession(req)) });
+    return res.status(201).json({ partner, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
@@ -170,7 +180,70 @@ app.post('/api/live/invites/:id/revoke', async (req, res) => {
 app.post('/api/live/scout/properties', async (req, res) => {
   try {
     const property = await createScoutProperty(requireSession(req), req.body || {});
-    return res.status(201).json({ property, dataset: await loadLiveDataset(readSession(req)) });
+    return res.status(201).json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/assign-owner', async (req, res) => {
+  try {
+    const property = await assignOwnerToProperty(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/assign-operator', async (req, res) => {
+  try {
+    const property = await assignOperatorToProperty(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/assign-community-authority', async (req, res) => {
+  try {
+    const property = await assignCommunityAuthorityToProperty(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/schedule-assessment', async (req, res) => {
+  try {
+    const assessment = await schedulePropertyAssessment(requireSession(req), req.params.id, req.body || {});
+    return res.json({ assessment, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/assessment', async (req, res) => {
+  try {
+    const assessment = await submitPropertyAssessment(requireSession(req), req.params.id, req.body || {});
+    return res.json({ assessment, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/owner-decision', async (req, res) => {
+  try {
+    const decision = await submitPropertyOwnerDecision(requireSession(req), req.params.id, req.body || {});
+    return res.json({ decision, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/properties/:id/activate', async (req, res) => {
+  try {
+    const property = await activateLiveProperty(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
@@ -189,7 +262,7 @@ app.post('/api/live/enquiries', async (req, res) => {
 app.post('/api/live/enquiries/:id/advance', async (req, res) => {
   try {
     const enquiry = await advanceLiveEnquiry(requireSession(req), req.params.id, req.body || {});
-    return res.json({ enquiry, dataset: await loadLiveDataset(readSession(req)) });
+    return res.json({ enquiry, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
@@ -198,7 +271,7 @@ app.post('/api/live/enquiries/:id/advance', async (req, res) => {
 app.post('/api/live/enquiries/:id/community-approval', async (req, res) => {
   try {
     const enquiry = await recordLiveCommunityApproval(requireSession(req), req.params.id, req.body?.evidenceReference);
-    return res.json({ enquiry, dataset: await loadLiveDataset(readSession(req)) });
+    return res.json({ enquiry, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
