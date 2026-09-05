@@ -5,28 +5,36 @@ import { bi, label, supplyLabels } from '../lib/display';
 import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
 
 export function ScoutView() {
-  const { lang, dataset, createScoutLead } = useOperating();
+  const { lang, mode, auth, dataset, createScoutLead } = useOperating();
   const scouts = dataset.partners.filter((item) => item.role === 'scout');
+  const canSource = mode === 'demo' ? scouts.length > 0 : auth.partner?.role === 'scout';
   const [open, setOpen] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState('');
   const [form, setForm] = React.useState({ name: '', nameAr: '', location: '', locationAr: '' });
   const sourced = dataset.properties.filter((item) => ['sourced', 'owner_engaged', 'assessment_scheduled'].includes(item.supplyStage));
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.name.trim() || !form.location.trim()) return;
-    createScoutLead(form.name, form.nameAr, form.location, form.locationAr);
-    setForm({ name: '', nameAr: '', location: '', locationAr: '' });
-    setSaved(true);
-    setOpen(false);
+    setBusy(true); setError('');
+    try {
+      await createScoutLead(form.name, form.nameAr, form.location, form.locationAr);
+      setForm({ name: '', nameAr: '', location: '', locationAr: '' });
+      setSaved(true); setOpen(false);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to save sourced lead.');
+    } finally { setBusy(false); }
   };
 
   return (
     <div>
-      <PageHeader eyebrow="Scout sourcing" eyebrowAr="توريد الكشاف" title="Find the home. Do not certify it." titleAr="اكتشف البيت، لكن لا تمنحه الاعتماد." description="Scouts own sourcing, first contact, consent, and listing-level evidence. Every claim stays nominated until an independent assessor visits." descriptionAr="يمتلك الكشاف مسؤولية الترشيح والتواصل الأول والموافقة وأدلة الإعلان. يظل كل ادعاء مجرد ترشيح حتى زيارة مقيّم مستقل." action={<button disabled={scouts.length === 0} onClick={() => { setOpen(true); setSaved(false); }} className="button-primary"><Plus size={15} />{scouts.length === 0 ? bi(lang, 'Scout partner required', 'يلزم كشاف شريك') : bi(lang, 'Source a property', 'أضف عقاراً مرشحاً')}</button>} />
+      <PageHeader eyebrow="Scout sourcing" eyebrowAr="توريد الكشاف" title="Find the home. Do not certify it." titleAr="اكتشف البيت، لكن لا تمنحه الاعتماد." description="Scouts own sourcing, first contact, consent, and listing-level evidence. Every claim stays nominated until an independent assessor visits." descriptionAr="يمتلك الكشاف مسؤولية الترشيح والتواصل الأول والموافقة وأدلة الإعلان. يظل كل ادعاء مجرد ترشيح حتى زيارة مقيّم مستقل." action={<button disabled={!canSource} onClick={() => { setOpen(true); setSaved(false); }} className="button-primary"><Plus size={15} />{canSource ? bi(lang, 'Source a property', 'أضف عقاراً مرشحاً') : bi(lang, 'Scout authority required', 'يلزم صلاحية كشاف')}</button>} />
       <section className="page-shell py-10">
-        {saved && <div className="mb-6 rounded-2xl border border-sage-200 bg-sage-50 p-4 text-sm text-sage-900">{bi(lang, 'Lead saved inside the active dataset only.', 'تم حفظ الترشيح داخل مجموعة البيانات الحالية فقط.')}</div>}
-        {open && <form onSubmit={submit} className="mb-8 rounded-[1.5rem] border border-terracotta-200 bg-white p-6 shadow-xl"><div className="flex items-center gap-2 text-terracotta-700"><Compass size={18} /><strong>{bi(lang, 'New sourcing lead', 'ترشيح جديد')}</strong></div><p className="mt-2 text-xs text-ink-500">{bi(lang, 'No Moment, availability, or quality claim is created here.', 'لا يتم هنا إنشاء أي ادعاء عن اللحظات أو الإتاحة أو الجودة.')}</p><div className="mt-5 grid gap-4 md:grid-cols-2"><label className="field-label">{bi(lang, 'English name', 'الاسم بالإنجليزية')}<input className="field-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label><label className="field-label">{bi(lang, 'Arabic name', 'الاسم بالعربية')}<input className="field-input" value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in English', 'الموقع بالإنجليزية')}<input className="field-input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in Arabic', 'الموقع بالعربية')}<input className="field-input" value={form.locationAr} onChange={(e) => setForm({ ...form, locationAr: e.target.value })} /></label></div><div className="mt-5 flex gap-3"><button className="button-primary">{bi(lang, 'Save sourced lead', 'حفظ العقار المرشح')}</button><button type="button" onClick={() => setOpen(false)} className="button-secondary">{bi(lang, 'Cancel', 'إلغاء')}</button></div></form>}
+        {saved && <div className="mb-6 rounded-2xl border border-sage-200 bg-sage-50 p-4 text-sm text-sage-900">{mode === 'live' ? bi(lang, 'Live lead stored on the server.', 'تم حفظ الترشيح الفعلي على الخادم.') : bi(lang, 'Demo lead saved inside the synthetic dataset.', 'تم حفظ الترشيح داخل البيانات التجريبية.')}</div>}
+        {error && <div className="mb-6 rounded-2xl bg-red-50 p-4 text-xs text-red-700">{error}</div>}
+        {open && <form onSubmit={submit} className="mb-8 rounded-[1.5rem] border border-terracotta-200 bg-white p-6 shadow-xl"><div className="flex items-center gap-2 text-terracotta-700"><Compass size={18} /><strong>{bi(lang, 'New sourcing lead', 'ترشيح جديد')}</strong></div><p className="mt-2 text-xs text-ink-500">{bi(lang, 'No Moment, availability, or quality claim is created here.', 'لا يتم هنا إنشاء أي ادعاء عن اللحظات أو الإتاحة أو الجودة.')}</p><div className="mt-5 grid gap-4 md:grid-cols-2"><label className="field-label">{bi(lang, 'English name', 'الاسم بالإنجليزية')}<input className="field-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label><label className="field-label">{bi(lang, 'Arabic name', 'الاسم بالعربية')}<input className="field-input" value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in English', 'الموقع بالإنجليزية')}<input className="field-input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></label><label className="field-label">{bi(lang, 'Location in Arabic', 'الموقع بالعربية')}<input className="field-input" value={form.locationAr} onChange={(e) => setForm({ ...form, locationAr: e.target.value })} /></label></div><div className="mt-5 flex gap-3"><button disabled={busy} className="button-primary">{busy ? bi(lang, 'Saving…', 'جارٍ الحفظ…') : bi(lang, 'Save sourced lead', 'حفظ العقار المرشح')}</button><button type="button" onClick={() => setOpen(false)} className="button-secondary">{bi(lang, 'Cancel', 'إلغاء')}</button></div></form>}
 
         <div className="grid gap-3 md:grid-cols-3">
           <Metric label="Active scouts" labelAr="كشافون نشطون" value={scouts.length} detail="Partner records with sourcing authority" detailAr="سجلات شركاء بصلاحية التوريد" />
