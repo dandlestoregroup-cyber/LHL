@@ -78,6 +78,7 @@ export interface Property extends BaseRecord {
   summaryAr: string;
   supplyStage: SupplyStage;
   ownerPartnerId?: string;
+  ownerConsentReference?: string;
   scoutPartnerId: string;
   operatorPartnerId?: string;
   assessorPartnerId?: string;
@@ -100,6 +101,14 @@ export interface Property extends BaseRecord {
 
 export type GateStatus = 'passed' | 'pending' | 'failed';
 
+export interface AssessmentGate {
+  key: string;
+  label: string;
+  labelAr: string;
+  status: GateStatus;
+  evidenceReference?: string;
+}
+
 export interface Assessment extends BaseRecord {
   propertyId: string;
   assessorPartnerId: string;
@@ -107,10 +116,11 @@ export interface Assessment extends BaseRecord {
   scheduledFor?: string;
   completedAt?: string;
   result: 'scheduled' | 'passed' | 'conditions' | 'failed';
-  trustGates: Array<{ key: string; label: string; labelAr: string; status: GateStatus }>;
-  shieldGates: Array<{ key: string; label: string; labelAr: string; status: GateStatus }>;
+  trustGates: AssessmentGate[];
+  shieldGates: AssessmentGate[];
   provenMomentKeys: MomentKey[];
   evidenceCount: number;
+  evidenceReferences?: string[];
   recommendation: string;
   recommendationAr: string;
 }

@@ -35,8 +35,11 @@ assert(evaluateEvidence('independent_assessment').canProve, 'independent assessm
 
 const liveProperty = {
   supplyStage: 'live', publiclyVisible: true, joiningVisible: false, sealIssued: true,
+  ownerPartnerId: 'owner-1', assessorPartnerId: 'assessor-1', operatorPartnerId: 'operator-1',
   nightlyFloorEgp: 6000, payoutReady: true, calendarAuthority: 'little_hut', bookingMode: 'instant',
   communityApprovalRequired: false, activationChecklistComplete: true,
+  maxGuests: 4, bedroomCount: 2, heroImage: 'https://example.com/home.jpg',
+  provenMoments: [{ key: 'slow_morning' }, { key: 'long_table' }],
 };
 assert(publicPropertyFacts(liveProperty).bookable, 'sealed public Live property is bookable');
 assert(!publicPropertyFacts({ ...liveProperty, supplyStage: 'activation_ready' }).bookable, 'activation-ready property is not bookable');
@@ -64,7 +67,7 @@ assert(resolveBookingMode({ ...liveProperty, calendarAuthority: 'external' }).in
 
 const trustGates = TRUST_GATE_KEYS.map((key) => ({ key, status: 'passed' }));
 const shieldGates = SHIELD_GATE_KEYS.map((key) => ({ key, status: 'passed' }));
-const assessment = { independenceConfirmed: true, trustGates, shieldGates, provenMomentKeys: ['slow_morning', 'long_table'] };
+const assessment = { assessorPartnerId: 'assessor-1', independenceConfirmed: true, trustGates, shieldGates, provenMomentKeys: ['slow_morning', 'long_table'] };
 assert(evaluateAssessment(assessment).passed, 'independent all-clear assessment with complete gate sets and two Moments passes');
 assert(!evaluateAssessment({ ...assessment, independenceConfirmed: false }).passed, 'non-independent assessment fails');
 assert(!evaluateAssessment({ ...assessment, provenMomentKeys: ['slow_morning'] }).passed, 'one proven Moment fails');
@@ -74,11 +77,17 @@ assert(!evaluateAssessment({ ...assessment, trustGates: trustGates.slice(0, 5) }
 assert(!evaluateAssessment({ ...assessment, shieldGates: [...shieldGates.slice(0, 5), shieldGates[0]] }).passed, 'duplicate SHIELD gate fails');
 assert(!evaluateAssessment({ ...assessment, shieldGates: shieldGates.map((gate, index) => index === 0 ? { ...gate, status: 'failed' } : gate) }).passed, 'failed SHIELD gate fails');
 
-const ownerDecision = { decision: 'go', decidedAt: '2026-08-30', payoutReady: true, nightlyFloorEgp: 6000, conditions: [] };
-assert(evaluateGoLive(liveProperty, assessment, ownerDecision).allowed, 'complete assessment and owner mandate allow Live');
+const ownerDecision = { ownerPartnerId: 'owner-1', decision: 'go', decidedAt: '2026-08-30', payoutReady: true, nightlyFloorEgp: 6000, conditions: [] };
+assert(evaluateGoLive(liveProperty, assessment, ownerDecision).allowed, 'complete assessment, owner mandate, assignments, and activation allow Live');
 assert(!evaluateGoLive(liveProperty, assessment, { ...ownerDecision, decision: 'defer' }).allowed, 'defer decision blocks Live');
+assert(!evaluateGoLive({ ...liveProperty, operatorPartnerId: undefined }, assessment, ownerDecision).allowed, 'missing operator assignment blocks the system seal');
+assert(!evaluateGoLive({ ...liveProperty, heroImage: '' }, assessment, ownerDecision).allowed, 'missing public hero image blocks the system seal');
+assert(!evaluateGoLive({ ...liveProperty, maxGuests: 0 }, assessment, ownerDecision).allowed, 'missing guest capacity blocks the system seal');
+assert(!evaluateGoLive({ ...liveProperty, communityApprovalRequired: true, communityAuthorityPartnerId: undefined }, assessment, ownerDecision).allowed, 'required community policy without named authority blocks the system seal');
+assert(!evaluateGoLive(liveProperty, { ...assessment, assessorPartnerId: 'assessor-other' }, ownerDecision).allowed, 'mismatched assessment authority blocks the system seal');
+assert(!evaluateGoLive(liveProperty, assessment, { ...ownerDecision, ownerPartnerId: 'owner-other' }).allowed, 'mismatched owner authority blocks the system seal');
 
-const communityProperty = { ...liveProperty, communityApprovalRequired: true };
+const communityProperty = { ...liveProperty, communityApprovalRequired: true, communityAuthorityPartnerId: 'community-1' };
 assert(!canConfirmStay(communityProperty, { ...paidEnquiry, communityApproval: { status: 'pending' } }, now).allowed, 'pending community approval blocks confirmation after payment');
 assert(canConfirmStay(communityProperty, { ...paidEnquiry, communityApproval: { status: 'approved' } }, now).allowed, 'approved community gate permits confirmation');
 
