@@ -3,6 +3,8 @@ import type { AtomicDocumentWrite } from './firestore-rest';
 import { getDocument, listDocuments, replaceDocument } from './firestore-rest';
 
 export type LiveOutboxType =
+  | 'record.created'
+  | 'record.replaced'
   | 'supply.lead_created'
   | 'supply.owner_consent_recorded'
   | 'supply.owner_assigned'
