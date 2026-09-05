@@ -1,4 +1,4 @@
-import type { Enquiry, OperatingDataset, Partner, PartnerRole, Property } from '../types';
+import type { Assessment, Enquiry, GateStatus, MomentKey, OperatingDataset, OwnerDecision, Partner, PartnerRole, Property } from '../types';
 
 export interface LiveAuthState {
   authenticated: boolean;
@@ -40,6 +40,39 @@ export interface IssuePartnerInviteInput {
   organisation?: string;
   serviceArea: string;
   serviceAreaAr: string;
+}
+
+export interface AssessmentFindingInput {
+  status: Exclude<GateStatus, 'pending'>;
+  evidenceReference: string;
+}
+
+export interface SubmitAssessmentInput {
+  independenceConfirmed: true;
+  trustGates: Record<string, AssessmentFindingInput>;
+  shieldGates: Record<string, AssessmentFindingInput>;
+  provenMoments: Array<{ key: MomentKey; evidenceReference: string }>;
+  recommendation: string;
+  recommendationAr: string;
+}
+
+export interface OwnerDecisionInput {
+  decision: OwnerDecision['decision'];
+  nightlyFloorEgp?: number;
+  payoutReady?: boolean;
+  communityApprovalRequired?: boolean;
+  note?: string;
+  noteAr?: string;
+}
+
+export interface ActivatePropertyInput {
+  activationChecklistComplete: true;
+  calendarAuthority: 'little_hut' | 'external';
+  bookingMode: 'request' | 'instant';
+  maxGuests: number;
+  bedroomCount: number;
+  heroImage: string;
+  galleryImages: string[];
 }
 
 export class LiveApiError extends Error {
@@ -116,6 +149,34 @@ export async function revokeLivePartnerInvite(id: string): Promise<LivePartnerIn
 
 export async function createLiveScoutProperty(input: { name: string; nameAr: string; location: string; locationAr: string }): Promise<{ property: Property; dataset: OperatingDataset }> {
   return request('/api/live/scout/properties', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function assignLiveOwner(propertyId: string, ownerPartnerId: string, ownerConsentReference: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-owner`, { method: 'POST', body: JSON.stringify({ ownerPartnerId, ownerConsentReference }) });
+}
+
+export async function assignLiveOperator(propertyId: string, operatorPartnerId: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-operator`, { method: 'POST', body: JSON.stringify({ operatorPartnerId }) });
+}
+
+export async function assignLiveCommunityAuthority(propertyId: string, communityAuthorityPartnerId: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-community-authority`, { method: 'POST', body: JSON.stringify({ communityAuthorityPartnerId }) });
+}
+
+export async function scheduleLiveAssessment(propertyId: string, assessorPartnerId: string, scheduledFor: string): Promise<{ assessment: Assessment; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/schedule-assessment`, { method: 'POST', body: JSON.stringify({ assessorPartnerId, scheduledFor }) });
+}
+
+export async function submitLiveAssessment(propertyId: string, input: SubmitAssessmentInput): Promise<{ assessment: Assessment; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assessment`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function submitLiveOwnerDecision(propertyId: string, input: OwnerDecisionInput): Promise<{ decision: OwnerDecision; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/owner-decision`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function activateServerLiveProperty(propertyId: string, input: ActivatePropertyInput): Promise<{ property: Property; dataset: OperatingDataset }> {
+  return request(`/api/live/properties/${encodeURIComponent(propertyId)}/activate`, { method: 'POST', body: JSON.stringify(input) });
 }
 
 export async function createServerLiveEnquiry(input: object): Promise<Enquiry> {
