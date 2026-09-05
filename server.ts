@@ -7,6 +7,7 @@ import {
   createDemoAutomationGuard,
   createFixedWindowRateLimiter,
 } from './src/lib/automation-gateway';
+import { drainLiveOutbox } from './src/server/live-outbox';
 import {
   LiveStoreError,
   advanceLiveEnquiry,
@@ -65,6 +66,21 @@ const sendError = (res: Response, error: unknown): Response => {
   if (error instanceof LiveStoreError) return res.status(error.status).json({ error: error.code });
   console.error('[LHL server]', error);
   return res.status(500).json({ error: 'server_error' });
+};
+
+const safeSecretEqual = (left: string, right: string): boolean => {
+  const a = Buffer.from(left);
+  const b = Buffer.from(right);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+};
+
+const requireOutboxSecret = (req: Request): void => {
+  const configured = process.env.LHL_OUTBOX_SECRET?.trim();
+  if (!configured) throw new LiveStoreError('live_outbox_not_configured', 503);
+  const supplied = req.headers['x-lhl-outbox-secret'];
+  if (typeof supplied !== 'string' || !safeSecretEqual(supplied, configured)) {
+    throw new LiveStoreError('invalid_outbox_secret', 401);
+  }
 };
 
 const inviteUrl = (token: string): string => {
@@ -306,6 +322,17 @@ app.post('/api/live/enquiries/:id/community-approval', async (req, res) => {
   try {
     const enquiry = await recordLiveCommunityApproval(requireSession(req), req.params.id, req.body?.evidenceReference);
     return res.json({ enquiry, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/internal/live-outbox/drain', async (req, res) => {
+  try {
+    requireOutboxSecret(req);
+    const limit = Number(req.body?.limit || 20);
+    const result = await drainLiveOutbox(Number.isFinite(limit) ? limit : 20);
+    return res.json(result);
   } catch (error) {
     return sendError(res, error);
   }

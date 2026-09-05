@@ -23,12 +23,12 @@ The locked business doctrine is in [`docs/operating-doctrine.md`](docs/operating
 
 ## Live production boundary
 
-Live requires the server-only values documented in [`.env.example`](.env.example): Firebase Auth API key, Firestore project/service-account credentials, an HMAC session secret, and the one bootstrap email.
+Live requires the server-only values documented in [`.env.example`](.env.example): Firebase Auth API key, Firestore project/service-account credentials, an HMAC session secret, bootstrap email, and the automation secrets when Activepieces is enabled.
 
-The first configured identity may create exactly one initial verified Scout Partner record. After that, Live sourcing is role-backed and server-persisted. Public Live enquiries are written by the server; operator quote, hold, payment evidence, community approval evidence, and confirmation transitions are also server-owned. Platform-admin visibility never grants an Operator or Owner business action.
+The first configured identity may create exactly one initial verified Scout Partner record. After that, Partner access is invitation-only. Live supply progresses through Scout sourcing/consent, independent Assessor evidence, reserved Owner decision, and Operator activation; only the server can issue the Live seal after every gate passes. Public Live enquiries and booking transitions are also server-owned.
 
 ## Activepieces
 
-LHL has one signed outbound automation gateway. See [`docs/activepieces.md`](docs/activepieces.md).
+See [`docs/activepieces.md`](docs/activepieces.md).
 
-Activepieces remains orchestration only. Demo events can use the signed gateway. Live automation side effects remain disabled until the new persisted Live events are replay-safe and verified against server state; persistence alone is not treated as permission to trigger external actions.
+Demo continues through the signed simulation gateway. Live automation now uses a durable Firestore outbox: each trusted Live business write atomically appends a sanitized event, and a secret-guarded scheduler drain signs and forwards pending events after commit. Retries use stable idempotency keys; Activepieces remains orchestration only and cannot create reserved business truth.
