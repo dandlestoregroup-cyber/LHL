@@ -70,7 +70,7 @@ export async function createLiveScoutProperty(input: { name: string; nameAr: str
   return request('/api/live/scout/properties', { method: 'POST', body: JSON.stringify(input) });
 }
 
-export async function createServerLiveEnquiry(input: Record<string, unknown>): Promise<Enquiry> {
+export async function createServerLiveEnquiry(input: object): Promise<Enquiry> {
   const result = await request<{ enquiry: Enquiry }>('/api/live/enquiries', { method: 'POST', body: JSON.stringify(input) });
   return result.enquiry;
 }
