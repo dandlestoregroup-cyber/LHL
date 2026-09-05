@@ -155,7 +155,7 @@ export async function recordLiveOwnerConsent(propertyId: string, ownerConsentRef
   return request(`/api/live/properties/${encodeURIComponent(propertyId)}/owner-consent`, { method: 'POST', body: JSON.stringify({ ownerConsentReference }) });
 }
 
-export async function assignLiveOwner(propertyId: string, ownerPartnerId: string): Promise<{ property: Property; dataset: OperatingDataset }> {
+export async function assignLiveOwner(propertyId: string, ownerPartnerId: string, _legacyConsentReference?: string): Promise<{ property: Property; dataset: OperatingDataset }> {
   return request(`/api/live/properties/${encodeURIComponent(propertyId)}/assign-owner`, { method: 'POST', body: JSON.stringify({ ownerPartnerId }) });
 }
 
