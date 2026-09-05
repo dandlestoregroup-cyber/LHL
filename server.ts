@@ -1,24 +1,30 @@
 import 'dotenv/config';
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
+import {
+  AutomationIngressError,
+  createDemoAutomationGuard,
+  createFixedWindowRateLimiter,
+} from './src/lib/automation-gateway';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const isProduction = process.env.NODE_ENV === 'production';
-const allowedEventTypes = new Set([
-  'enquiry.created',
-  'enquiry.stage_changed',
-  'community_approval.recorded',
-  'scout_lead.created',
-]);
+const configuredLimit = Number(process.env.AUTOMATION_RATE_LIMIT || 30);
+const automationRateLimit = Number.isFinite(configuredLimit) && configuredLimit > 0 ? Math.floor(configuredLimit) : 30;
+const automationGuard = createDemoAutomationGuard();
+const rateLimiter = createFixedWindowRateLimiter(automationRateLimit, 60_000);
 
 app.use('/api/activepieces', express.json({ limit: '64kb' }));
 
 app.post('/api/activepieces', async (req, res) => {
-  const event = req.body;
+  const clientKey = req.socket.remoteAddress || 'unknown';
+  if (!rateLimiter.allow(clientKey)) {
+    res.setHeader('retry-after', '60');
+    return res.status(429).json({ error: 'automation_rate_limited' });
+  }
+
   const webhookUrl = process.env.ACTIVEPIECES_WEBHOOK_URL;
   const sharedSecret = process.env.ACTIVEPIECES_SHARED_SECRET;
 
@@ -26,16 +32,14 @@ app.post('/api/activepieces', async (req, res) => {
     return res.status(503).json({ error: 'automation_not_configured' });
   }
 
-  if (
-    !event ||
-    event.version !== 1 ||
-    event.source !== 'lhl-web' ||
-    event.dataMode !== 'demo' ||
-    event.synthetic !== true ||
-    typeof event.id !== 'string' ||
-    !allowedEventTypes.has(event.type)
-  ) {
-    return res.status(400).json({ error: 'invalid_or_live_event' });
+  let prepared;
+  try {
+    prepared = automationGuard.prepare(req.body);
+  } catch (error) {
+    if (error instanceof AutomationIngressError) {
+      return res.status(error.status).json({ error: error.code });
+    }
+    return res.status(400).json({ error: 'invalid_automation_event' });
   }
 
   let parsedWebhook: URL;
@@ -51,7 +55,7 @@ app.post('/api/activepieces', async (req, res) => {
   }
 
   const timestamp = Date.now().toString();
-  const body = JSON.stringify(event);
+  const body = JSON.stringify(prepared.event);
   const signature = crypto
     .createHmac('sha256', sharedSecret)
     .update(`${timestamp}.${body}`)
@@ -62,7 +66,7 @@ app.post('/api/activepieces', async (req, res) => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-lhl-event-id': event.id,
+        'x-lhl-event-id': prepared.event.id,
         'x-lhl-timestamp': timestamp,
         'x-lhl-signature': `sha256=${signature}`,
         'x-lhl-simulation': 'true',
@@ -75,18 +79,19 @@ app.post('/api/activepieces', async (req, res) => {
       return res.status(502).json({ error: 'automation_upstream_rejected', status: upstream.status });
     }
 
-    return res.status(202).json({ accepted: true, eventId: event.id });
+    prepared.commit();
+    return res.status(202).json({ accepted: true, eventId: prepared.event.id });
   } catch {
     return res.status(502).json({ error: 'automation_upstream_unavailable' });
   }
 });
 
 if (isProduction) {
-  const root = path.dirname(fileURLToPath(import.meta.url));
-  const dist = path.join(root, 'dist');
+  const dist = path.join(process.cwd(), 'dist');
   app.use(express.static(dist));
   app.get('*', (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 } else {
+  const { createServer: createViteServer } = await import('vite');
   const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
   app.use(vite.middlewares);
 }
