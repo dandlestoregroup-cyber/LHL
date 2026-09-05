@@ -17,11 +17,12 @@ import {
   recordLiveCommunityApproval,
   sessionPartner,
 } from './src/server/live-store';
-import { recordScoutOwnerEngagement } from './src/server/live-scout-supply';
+import { recordScoutOwnerConsent } from './src/server/live-scout-supply';
 import {
   activateLiveProperty,
   assignCommunityAuthorityToProperty,
   assignOperatorToProperty,
+  assignOwnerToProperty,
   schedulePropertyAssessment,
   submitPropertyAssessment,
   submitPropertyOwnerDecision,
@@ -197,10 +198,26 @@ app.post('/api/live/scout/properties', async (req, res) => {
   }
 });
 
+app.post('/api/live/properties/:id/owner-consent', async (req, res) => {
+  try {
+    const property = await recordScoutOwnerConsent(requireSession(req), req.params.id, req.body || {});
+    return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
 app.post('/api/live/properties/:id/assign-owner', async (req, res) => {
   try {
-    const property = await recordScoutOwnerEngagement(requireSession(req), req.params.id, req.body || {});
-    return res.json({ property, dataset: await datasetResponse(req) });
+    const session = requireSession(req);
+    const dataset = await loadLiveDataset(session);
+    const property = dataset.properties.find((item) => item.id === req.params.id);
+    if (!property?.ownerConsentReference) throw new LiveStoreError('scout_owner_consent_required', 409);
+    const updated = await assignOwnerToProperty(session, req.params.id, {
+      ...(req.body || {}),
+      ownerConsentReference: property.ownerConsentReference,
+    });
+    return res.json({ property: updated, dataset: await datasetResponse(req) });
   } catch (error) {
     return sendError(res, error);
   }
