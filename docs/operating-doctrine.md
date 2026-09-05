@@ -12,7 +12,7 @@ The app has exactly five business entities:
 4. **OwnerDecision** — the owner’s explicit go/defer/decline decision and commercial mandate.
 5. **Enquiry** — the single booking record from initial interest through stay completion or closure.
 
-Views, cards, queues, holds, payments, and approvals are projections of these five entities, not separate sources of truth.
+Views, cards, queues, holds, payments, approvals, inventory baselines, readiness checks, and ProofStay snapshots are projections or nested operating evidence of these five entities, not separate sources of truth.
 
 ## Exact Moments
 
@@ -47,6 +47,7 @@ The record may also end as `declined`, `expired`, or `cancelled`. Stages not req
 - A hold blocks only when it has a future `expiresAt`; it releases automatically at expiry.
 - Payment may be recorded only against an in-policy quote and an active hold.
 - Community approval, where required, is a hard gate before confirmation.
+- In Live, a confirmed stay cannot be closed as completed until the current inventory baseline, a ready check, and a pre-stay ProofStay snapshot agree.
 
 ## Partner model and authority boundaries
 
@@ -55,7 +56,7 @@ The record may also end as `declined`, `expired`, or `cancelled`. Stages not req
 | Scout | Source leads, capture owner consent and listing-level evidence | Prove Moments, assess, set owner terms, quote, confirm |
 | Owner | Property truth, minimum nightly floor, payout readiness, go/defer/decline decision | Assess own property, grant seal, execute booking stages |
 | Independent assessor | Physical evidence, TRUST/SHIELD results, proven Moments, recommendation | Source commission, set price, decide for owner, execute bookings |
-| Operator | Activation checklist, calendar verification, quote, expiring hold, payment record, approval evidence, stay execution | Lower owner floor, fabricate owner decision, assess, grant community approval |
+| Operator | Activation checklist, calendar verification, quote, expiring hold, payment record, approval evidence, stay execution, inventory baseline, readiness, ProofStay capture | Lower owner floor, fabricate owner decision, assess, grant community approval |
 | Community authority | Issue or decline the external guest approval | Change price, property assessment, payment, or booking data |
 
 The platform administrator may switch datasets and inspect all surfaces. That capability does not grant business authority inside a record.
@@ -73,6 +74,19 @@ A property can become Live only when all are true:
 - activation checklist is complete.
 
 Silence is not approval. A seal without an owner decision is not Live.
+
+## Stay assurance
+
+Stay assurance is nested operational evidence on the existing **Property** and **Enquiry** records. It is not a sixth business entity and does not create a parallel source of truth.
+
+- The assigned Operator may record a Property inventory baseline only for a sealed Live home. Each expected item carries a quantity and an evidence reference.
+- Once a confirmed stay has a pre-stay snapshot, that baseline is locked for the active stay. A changed baseline invalidates stale readiness/pre-stay evidence rather than silently reinterpreting it.
+- A confirmed stay receives six readiness checks: access, cleanliness, utilities, sleeping setup, safety, and Moment setup. The server derives `ready` only when every check passes with evidence.
+- The pre-stay ProofStay snapshot must cover every baseline item, match the expected quantity exactly, and record each item in good condition with evidence.
+- A Live stay may move from `confirmed` to `completed` only when readiness is ready and the pre-stay snapshot references the current baseline.
+- After completion, the Operator may capture the post-stay snapshot. The server compares it to the immutable pre-stay snapshot and derives either `verified_unchanged` or `attention_required` plus the changed item keys.
+- ProofStay records operational before/after condition only. It does **not** assign blame or legal liability, prove or revoke a Moment, alter the independent assessment, change owner terms, grant or remove the Little Hut seal, create community approval, or prove payment.
+- Inventory/readiness/ProofStay evidence references are internal operating evidence and are never exposed in the anonymous public Property projection or Live automation payloads.
 
 ## Rate-floor rule
 
