@@ -25,7 +25,13 @@ The locked business doctrine is in [`docs/operating-doctrine.md`](docs/operating
 
 Live requires the server-only values documented in [`.env.example`](.env.example): Firebase Auth API key, Firestore project/service-account credentials, an HMAC session secret, bootstrap email, and the automation secrets when Activepieces is enabled.
 
-The first configured identity may create exactly one initial verified Scout Partner record. After that, Partner access is invitation-only. Live supply progresses through Scout sourcing/consent, independent Assessor evidence, reserved Owner decision, and Operator activation; only the server can issue the Live seal after every gate passes. Public Live enquiries and booking transitions are also server-owned.
+The first configured identity may create exactly one initial verified Scout Partner record. After that, Partner access is invitation-only. Live supply progresses through Scout sourcing/consent, independent Assessor evidence, reserved Owner decision, and Operator activation; only the server can issue the Live seal after every gate passes. Public Live enquiries and booking transitions are also server-owned. Confirmed stays require the current inventory baseline, readiness, and pre-stay ProofStay before completion; post-stay ProofStay is then compared server-side.
+
+## Deployment
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the production target, exact environment variables, GitHub smoke gates, and the real end-to-end release criteria. The production project must be linked to `dandlestoregroup-cyber/LHL`, not an older Little Hut repository.
+
+The repository pins Node `24.x` for Vercel and includes `.github/workflows/live-runtime-smoke.yml`. Once `LHL_APP_URL` is configured, that workflow verifies both the Express/auth shell and the Firestore-backed anonymous Live dataset.
 
 ## Activepieces
 
