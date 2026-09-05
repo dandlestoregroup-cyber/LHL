@@ -49,6 +49,7 @@ export interface BaseRecord {
 export interface Partner extends BaseRecord {
   role: PartnerRole;
   status: PartnerStatus;
+  platformAdmin?: boolean;
   name: string;
   nameAr: string;
   organisation?: string;
