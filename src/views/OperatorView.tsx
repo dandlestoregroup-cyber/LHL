@@ -1,319 +1,113 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRequests } from '../context/RequestContext';
-import { UserCheck, CheckCircle2, Calendar, ShieldCheck, DollarSign, ArrowRight, AlertCircle, Clock, Lock, Key, Filter, Layers, AlertTriangle } from 'lucide-react';
-import { BookingStage } from '../types';
+import React from 'react';
+import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, ShieldCheck, UserRoundCheck } from 'lucide-react';
+import { useOperating } from '../context/OperatingContext';
+import { bi, enquiryLabels, label, money } from '../lib/display';
+import { calendarEffect } from '../lib/lh-core';
+import { DemoRecordMark, EmptyState, Metric, PageHeader, StatusPill } from '../components/ui';
+import { StayAssurancePanel } from '../components/StayAssurancePanel';
+import type { AdvanceLiveInput } from '../lib/live-api';
 
-interface OperatorViewProps {
-  navigate: (path: string) => void;
-}
+const nextAction = (stage: string, requiresApproval: boolean, lang: 'en' | 'ar') => {
+  const copy: Record<string, [string, string]> = {
+    received: ['Qualify enquiry', 'تأهيل الطلب'], qualified: ['Check availability', 'فحص الإتاحة'], availability_checked: ['Issue in-floor quote', 'إصدار سعر داخل الحد'],
+    quoted: ['Place 2-hour hold', 'حجز مؤقت لساعتين'], hold: ['Request payment', 'طلب الدفع'], payment_pending: ['Record payment', 'تسجيل الدفع'],
+    payment_received: requiresApproval ? ['Submit for community approval', 'الإرسال لموافقة الكمبوند'] : ['Confirm stay', 'تأكيد الإقامة'], community_approved: ['Confirm stay', 'تأكيد الإقامة'], confirmed: ['Complete stay', 'إكمال الإقامة'],
+  };
+  const value = copy[stage];
+  return value ? bi(lang, value[0], value[1]) : null;
+};
 
-export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
-  const { lang, t, user, isRTL } = useAuth();
-  const { mode, roleVisibleRequests, updateRequestStatus, properties } = useRequests();
+type ActionDraft = { nightlyRate?: string; paymentReference?: string; paymentAmount?: string; approvalEvidence?: string };
 
-  const [selectedStageFilter, setSelectedStageFilter] = useState<string>('all');
-  const [quoteInput, setQuoteInput] = useState<string>('1500');
-  const [feedbackMessage, setFeedbackMessage] = useState('');
+export function OperatorView({ navigate }: { navigate: (path: string) => void }) {
+  const { lang, mode, auth, dataset, executeNextEnquiryAction, recordCommunityApproval, getPartnerName } = useOperating();
+  const canOperate = mode === 'demo' || auth.partner?.role === 'operator';
+  const [drafts, setDrafts] = React.useState<Record<string, ActionDraft>>({});
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [busyId, setBusyId] = React.useState('');
+  const active = dataset.enquiries.filter((item) => !['completed', 'declined', 'expired', 'cancelled'].includes(item.stage));
+  const holds = active.filter((item) => calendarEffect(item).blocksCalendar).length;
+  const approvalQueue = active.filter((item) => item.stage === 'community_approval_pending').length;
+  const payments = dataset.enquiries.reduce((sum, item) => sum + (item.payment?.receivedAt ? item.payment.amountEgp : 0), 0);
 
-  const assignedProperties = properties.filter(p => p.assignedOperatorIds.includes(user.id) || user.role === 'bps');
+  const updateDraft = (id: string, patch: ActionDraft) => setDrafts((current) => ({ ...current, [id]: { ...(current[id] || {}), ...patch } }));
 
-  const filteredRequests = roleVisibleRequests.filter(req => {
-    if (selectedStageFilter === 'all') return true;
-    if (selectedStageFilter === 'enquiry') return req.bookingStage === 'enquiry';
-    if (selectedStageFilter === 'quote') return req.bookingStage === 'quote' || req.bookingStage === 'qualified';
-    if (selectedStageFilter === 'hold') return req.bookingStage === 'hold';
-    if (selectedStageFilter === 'payment') return req.bookingStage === 'payment';
-    if (selectedStageFilter === 'confirmed') return req.bookingStage === 'confirmed';
-    return true;
-  });
-
-  const handleAction = (
-    reqId: string,
-    action: 'qualify' | 'quote' | 'hold' | 'confirm' | 'decline',
-    propertyId: string
-  ) => {
-    setFeedbackMessage('');
-    const prop = properties.find(p => p.id === propertyId);
-    const rateFloor = prop?.rateFloor || 400;
-
-    let targetStatus: 'validated' | 'readiness_confirmed' | 'quoted' | 'confirmed' | 'declined' = 'validated';
-    let targetStage: BookingStage = 'qualified';
-    let quoteVal: number | undefined = undefined;
-    let notes = '';
-
-    if (action === 'qualify') {
-      targetStatus = 'validated';
-      targetStage = 'qualified';
-      notes = lang === 'ar' ? 'تم التحقق من أهلية الضيف وسلطة التقويم المباشرة.' : 'Guest qualified & direct calendar authority verified.';
-    } else if (action === 'quote') {
-      const inputVal = parseFloat(quoteInput) || 1500;
-      // Enforce rate floor protection!
-      quoteVal = Math.max(inputVal, rateFloor * 3);
-      targetStatus = 'quoted';
-      targetStage = 'quote';
-      notes = lang === 'ar' 
-        ? `تم إصدار عرض السعر بقيمة $${quoteVal} (محمي بسعر المالك الأدنى: $${rateFloor}/ليلة).` 
-        : `Quoted $${quoteVal} for stay (Protected by Owner Rate Floor: $${rateFloor}/night).`;
-    } else if (action === 'hold') {
-      targetStatus = 'readiness_confirmed';
-      targetStage = 'hold';
-      notes = lang === 'ar' ? 'تم تثبيت حجز مؤقت لمدة ٤٨ ساعة على التقويم.' : 'Calendar hold placed for 48 hours.';
-    } else if (action === 'confirm') {
-      targetStatus = 'confirmed';
-      targetStage = 'confirmed';
-      notes = lang === 'ar' ? 'تم استلام تصريح البوابة وتأكيد الإقامة رسمياً.' : 'Community gate pass cleared & stay confirmed.';
-    } else if (action === 'decline') {
-      targetStatus = 'declined';
-      targetStage = 'declined';
-      notes = lang === 'ar' ? 'اعتذار عن الطلب وتحرير التقويم.' : 'Declined & calendar released.';
+  const runAction = async (enquiryId: string, stage: string) => {
+    if (!canOperate) return;
+    const draft = drafts[enquiryId] || {};
+    const input: AdvanceLiveInput = {};
+    if (mode === 'live' && stage === 'availability_checked') {
+      const value = Number(draft.nightlyRate);
+      if (!Number.isFinite(value) || value <= 0) { setErrors((current) => ({ ...current, [enquiryId]: bi(lang, 'Enter the real nightly accommodation quote.', 'أدخل سعر الإقامة الليلي الحقيقي.') })); return; }
+      input.nightlyRateEgp = value;
     }
-
-    const result = updateRequestStatus(reqId, targetStatus, notes, quoteVal, { bookingStage: targetStage });
-    if (result.success) {
-      setFeedbackMessage(
-        lang === 'ar'
-          ? `تم تحديث المرحلة بنجاح إلى: ${targetStage}`
-          : `Request advanced successfully to: ${targetStage}`
-      );
-    } else {
-      setFeedbackMessage(result.error || 'Execution blocked by Authority Matrix');
+    if (mode === 'live' && stage === 'payment_pending') {
+      const amount = Number(draft.paymentAmount);
+      if (!draft.paymentReference?.trim() || !Number.isFinite(amount) || amount <= 0) { setErrors((current) => ({ ...current, [enquiryId]: bi(lang, 'Payment reference and exact received amount are required.', 'مرجع الدفع والمبلغ المستلم فعلياً مطلوبان.') })); return; }
+      input.paymentReference = draft.paymentReference.trim();
+      input.paymentAmountEgp = amount;
     }
+    setBusyId(enquiryId); setErrors((current) => ({ ...current, [enquiryId]: '' }));
+    try { await executeNextEnquiryAction(enquiryId, input); }
+    catch (error) { setErrors((current) => ({ ...current, [enquiryId]: error instanceof Error ? error.message : 'Unable to advance enquiry.' })); }
+    finally { setBusyId(''); }
+  };
+
+  const captureApproval = async (enquiryId: string) => {
+    if (!canOperate) return;
+    const evidence = drafts[enquiryId]?.approvalEvidence;
+    setBusyId(enquiryId); setErrors((current) => ({ ...current, [enquiryId]: '' }));
+    try { await recordCommunityApproval(enquiryId, evidence); }
+    catch (error) { setErrors((current) => ({ ...current, [enquiryId]: error instanceof Error ? error.message : 'Unable to record approval evidence.' })); }
+    finally { setBusyId(''); }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-12">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#E9DED1] gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0F5859]/10 text-[#0F5859] border border-[#0F5859]/30 text-[10px] uppercase font-bold tracking-widest rounded-xs mb-3">
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>{t.operator.title}</span>
-            </div>
-            <h1 className="font-serif-editorial text-3xl md:text-5xl text-[#0D2340]">
-              {lang === 'ar' ? `مكتب تشغيل: ${user.nameAr || user.name}` : `Operator Desk: ${user.name}`}
-            </h1>
-            <p className="text-[#6D7480] text-sm mt-2 max-w-2xl">
-              {t.operator.subtitle}
-            </p>
-          </div>
+    <div>
+      <PageHeader eyebrow="Operator execution" eyebrowAr="تنفيذ المشغل" title="One queue from enquiry to completed stay." titleAr="قائمة واحدة من الطلب حتى اكتمال الإقامة." description="Operators verify, quote above the owner floor, place expiring holds, record payment evidence, submit community cases, and close stays only after readiness and pre-stay assurance are evidenced." descriptionAr="يتحقق المشغل ويصدر سعراً أعلى من حد المالك ويضع حجوزات مؤقتة منتهية ويسجل دليل الدفع ويرسل حالات الكمبوند ولا يغلق الإقامة إلا بعد توثيق الجاهزية وما قبل الإقامة." action={<button onClick={() => navigate('/pipeline')} className="button-primary">{bi(lang, 'Open full pipeline', 'افتح المسار الكامل')}<ArrowRight size={15} className="rtl:rotate-180" /></button>} />
+      <section className="page-shell py-10">
+        {mode === 'live' && !canOperate && <div className="mb-6 rounded-xl bg-amber-50 p-4 text-xs text-amber-900">{bi(lang, 'Inspection only. Your Live Partner role is not Operator, so execution controls are disabled.', 'عرض فقط. صلاحية الشريك الفعلية ليست مشغلاً، لذلك أدوات التنفيذ معطلة.')}</div>}
+        <div className="grid gap-3 md:grid-cols-4"><Metric label="Active enquiries" labelAr="طلبات نشطة" value={active.length} /><Metric label="Calendar blocks" labelAr="حجوزات تحجب التقويم" value={holds} detail="Active holds + confirmed" detailAr="الحجوزات المؤقتة النشطة + المؤكدة" tone="terracotta" /><Metric label="Approval queue" labelAr="قائمة الموافقات" value={approvalQueue} /><Metric label="Payments recorded" labelAr="مدفوعات مسجلة" value={money(payments, lang)} tone="ink" /></div>
 
-          <div className="flex items-center gap-3">
-            <span className="px-3.5 py-1.5 bg-white border border-[#E9DED1] text-xs font-mono text-[#0D2340] rounded-xs">
-              {lang === 'ar' ? `العقارات المدارة: ${assignedProperties.length}` : `Portfolio: ${assignedProperties.length} Homes`}
-            </span>
-          </div>
-        </div>
+        <StayAssurancePanel />
 
-        {/* Feedback Alert */}
-        {feedbackMessage && (
-          <div className="my-6 p-4 bg-white border-l-4 border-[#0F5859] rounded-xs shadow-xs text-xs font-semibold text-[#0D2340] flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#0F5859]" />
-            <span>{feedbackMessage}</span>
-          </div>
-        )}
-
-        {/* Operational Realism Banners (if in demo mode or active hold/gate states) */}
-        {mode === 'demo' && (
-          <div className="my-6 space-y-3">
-            {/* Community Gate Locked Alert */}
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-sm text-xs text-amber-900 flex items-start gap-3">
-              <Lock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold uppercase tracking-wider block">
-                  {lang === 'ar' ? 'تنبيه بوابة الكمبوند المغلقة (Community Approval Gate)' : 'Community Approval Gate Locked'}
-                </span>
-                <p className="mt-0.5 text-amber-800 leading-relaxed">
-                  {t.operator.communityGateAlert}
-                </p>
-              </div>
-            </div>
-
-            {/* Rate Floor Protection Alert */}
-            <div className="p-4 bg-[#0F5859]/10 border border-[#0F5859]/20 rounded-sm text-xs text-[#0F5859] flex items-start gap-3">
-              <ShieldCheck className="w-4 h-4 text-[#0F5859] shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold uppercase tracking-wider block">
-                  {lang === 'ar' ? 'نظام حماية السعر الأدنى (Rate Floor Guard)' : 'Rate Floor Protected Booking'}
-                </span>
-                <p className="mt-0.5 text-[#0F5859] leading-relaxed">
-                  {t.operator.rateFloorProtectedAlert}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Filter Tabs by Booking Stage */}
-        <div className="flex flex-wrap items-center justify-between gap-4 my-8 pb-3 border-b border-[#E9DED1]">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider">
-            {[
-              { id: 'all', label: t.operator.filterAll },
-              { id: 'enquiry', label: t.operator.filterEnquiries },
-              { id: 'quote', label: t.operator.filterQuotes },
-              { id: 'hold', label: t.operator.filterHolds },
-              { id: 'payment', label: t.operator.filterPayments }
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setSelectedStageFilter(f.id)}
-                className={`px-3 py-1.5 rounded-xs transition-all border ${
-                  selectedStageFilter === f.id
-                    ? 'bg-[#0D2340] text-white border-[#0D2340]'
-                    : 'bg-white text-[#6D7480] border-[#E9DED1] hover:text-[#0D2340]'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <span className="text-xs font-mono text-[#6D7480]">
-            {filteredRequests.length} {lang === 'ar' ? 'طلبات نشطة' : 'Active Requests'}
-          </span>
-        </div>
-
-        {/* Requests List */}
-        <div className="space-y-6">
-          {filteredRequests.length === 0 ? (
-            <div className="bg-white border border-[#E9DED1] p-12 text-center rounded-sm">
-              <p className="text-sm text-[#6D7480]">{t.operator.emptyQueue}</p>
-            </div>
-          ) : (
-            filteredRequests.map((req) => {
-              const prop = properties.find(p => p.id === req.propertyId);
-              const rateFloor = prop?.rateFloor || 400;
-
-              return (
-                <div
-                  key={req.id}
-                  className="bg-white border border-[#E9DED1] p-6 md:p-8 rounded-sm shadow-xs hover:border-[#0D2340]/40 transition-all space-y-6"
-                >
-                  {/* Top Info Row */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#FAF7F2] gap-4">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-serif-editorial text-2xl text-[#0D2340] font-bold">
-                          {req.guestName}
-                        </span>
-                        <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded-xs bg-[#0F5859] text-white">
-                          STAGE: {req.bookingStage || req.status}
-                        </span>
-                        {(req.rateFloorProtected || req.isRateFloorProtected) && (
-                          <span className="px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs bg-amber-100 text-amber-900 border border-amber-300">
-                            RATE FLOOR LOCKED (${rateFloor}/NIGHT)
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-[#6D7480] mt-1">
-                        {lang === 'ar' ? prop?.nameAr : prop?.name} • {req.partySize} {lang === 'ar' ? 'ضيوف' : 'Guests'} • {req.dates?.checkIn || req.checkIn} → {req.dates?.checkOut || req.checkOut}
-                      </p>
-                    </div>
-
-                    <div className="text-right text-xs font-mono text-[#6D7480]">
-                      <div>{lang === 'ar' ? 'التركيز:' : 'Focus:'} <span className="font-semibold text-[#0D2340]">{req.momentRequested || req.momentFocus}</span></div>
-                      {req.quotedAmount && (
-                        <div className="text-[#B74C2B] font-bold text-sm mt-0.5">
-                          ${req.quotedAmount} {lang === 'ar' ? 'مجموع العرض' : 'Quoted Total'}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Guest Intent Notes */}
-                  <div className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs text-xs text-[#2C3E50] leading-relaxed">
-                    <span className="font-bold text-[#0D2340] block mb-1 uppercase tracking-wider text-[10px]">
-                      {lang === 'ar' ? 'ملاحظات الضيف والغاية من الإقامة:' : 'Guest Intention & Notes:'}
-                    </span>
-                    "{req.notes}"
-                  </div>
-
-                  {/* Community Gate Status Notice */}
-                  {(req.communityApprovalStatus || req.communityGateStatus) && (
-                    <div className="p-3 bg-stone-50 border border-stone-200 rounded-xs flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-3.5 h-3.5 text-[#6D7480]" />
-                        <span className="font-semibold text-[#0D2340]">
-                          {lang === 'ar' ? 'حالة بوابة الكمبوند:' : 'Compound Gate Status:'}
-                        </span>
-                        <span className="font-mono text-stone-700">{req.communityApprovalStatus || req.communityGateStatus}</span>
-                      </div>
-                      <span className="text-[11px] text-[#6D7480]">
-                        {lang === 'ar' ? 'كود الدخول يصدر بعد رفع الهويات' : 'Pass released after ID clearance'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Execution Actions Toolbar */}
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-[#FAF7F2]">
-                    <div className="flex flex-wrap items-center gap-3">
-                      {req.bookingStage === 'enquiry' && (
-                        <button
-                          onClick={() => handleAction(req.id, 'qualify', req.propertyId)}
-                          className="px-4 py-2 bg-[#0D2340] hover:bg-[#B74C2B] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors"
-                        >
-                          {lang === 'ar' ? 'تأهيل الاستفسار والتحقق' : '1. Qualify Intake'}
-                        </button>
-                      )}
-
-                      {(req.bookingStage === 'enquiry' || req.bookingStage === 'qualified') && (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            step={50}
-                            value={quoteInput}
-                            onChange={(e) => setQuoteInput(e.target.value)}
-                            placeholder="Quote Amount"
-                            className="w-24 px-2 py-1.5 text-xs border border-[#E9DED1] rounded-xs font-mono"
-                          />
-                          <button
-                            onClick={() => handleAction(req.id, 'quote', req.propertyId)}
-                            className="px-4 py-2 bg-[#B74C2B] hover:bg-[#A33E20] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors"
-                          >
-                            {lang === 'ar' ? 'إصدار عرض السعر' : '2. Issue Quote'}
-                          </button>
-                        </div>
-                      )}
-
-                      {req.bookingStage === 'quote' && (
-                        <button
-                          onClick={() => handleAction(req.id, 'hold', req.propertyId)}
-                          className="px-4 py-2 bg-[#0F5859] hover:bg-[#0D2340] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors"
-                        >
-                          {lang === 'ar' ? 'تثبيت حجز مؤقت (Hold)' : '3. Place 48h Hold'}
-                        </button>
-                      )}
-
-                      {(req.bookingStage === 'hold' || req.bookingStage === 'payment') && (
-                        <button
-                          onClick={() => handleAction(req.id, 'confirm', req.propertyId)}
-                          className="px-4 py-2 bg-[#0F5859] hover:bg-[#071324] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors flex items-center gap-1.5"
-                        >
-                          <Key className="w-3.5 h-3.5 text-[#C8A15A]" />
-                          <span>{lang === 'ar' ? 'اعتماد تصريح البوابة وتأكيد الحجز' : '4. Clear Gate & Confirm'}</span>
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() => handleAction(req.id, 'decline', req.propertyId)}
-                        className="px-3 py-2 bg-white text-gray-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider rounded-xs border border-[#E9DED1] transition-colors"
-                      >
-                        {lang === 'ar' ? 'اعتذار / تحرير' : 'Decline'}
-                      </button>
-                    </div>
-
-                    <div className="text-[11px] text-[#6D7480] font-mono">
-                      {lang === 'ar' ? 'سجل التدقيق موحد' : 'Audit Sync: 100%'}
-                    </div>
+        {dataset.enquiries.length === 0 ? <div className="mt-10"><EmptyState title="No Live booking enquiries yet" titleAr="لا توجد طلبات حجز فعلية بعد" description="The operator queue is ready. It will populate from a real public home enquiry; Demo enquiries cannot appear here while Live is active." descriptionAr="قائمة المشغل جاهزة. ستظهر السجلات من طلب حقيقي على بيت منشور؛ ولا يمكن للطلبات التجريبية الظهور هنا أثناء الوضع الفعلي." actionLabel="View public homes" actionLabelAr="عرض البيوت العامة" onAction={() => navigate('/')} /></div> : (
+          <div className="mt-10 space-y-4">
+            {active.map((enquiry) => {
+              const home = dataset.properties.find((item) => item.id === enquiry.propertyId);
+              if (!home) return null;
+              const action = nextAction(enquiry.stage, home.communityApprovalRequired, lang);
+              const calendar = calendarEffect(enquiry);
+              const draft = drafts[enquiry.id] || {};
+              const busy = busyId === enquiry.id;
+              const completionReady = mode !== 'live' || enquiry.stage !== 'confirmed' || Boolean(
+                home.inventoryBaseline?.items.length &&
+                enquiry.readinessCheck?.status === 'ready' &&
+                enquiry.proofStay?.preStay &&
+                enquiry.readinessCheck.baselineCapturedAt === home.inventoryBaseline.capturedAt &&
+                enquiry.proofStay.preStay.baselineCapturedAt === home.inventoryBaseline.capturedAt
+              );
+              return <article key={enquiry.id} className="rounded-[1.5rem] border border-clay-200 bg-white p-6">
+                <div className="grid gap-6 lg:grid-cols-[1.25fr_.8fr_.8fr_auto] lg:items-center">
+                  <div><div className="flex flex-wrap items-center gap-2"><StatusPill tone={enquiry.stage.includes('approval') ? 'warn' : enquiry.stage === 'confirmed' ? 'good' : 'neutral'}>{label(enquiryLabels, enquiry.stage, lang)}</StatusPill><DemoRecordMark /></div><h2 className="mt-3 font-serif text-2xl text-ink-950">{enquiry.guestName} · {lang === 'ar' ? home.nameAr : home.name}</h2><p className="mt-2 text-xs text-ink-500">{enquiry.checkIn} → {enquiry.checkOut} · {enquiry.adults + enquiry.children} {bi(lang, 'guests', 'ضيوف')}</p></div>
+                  <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><CircleDollarSign size={14} className="text-terracotta-700" />{enquiry.quote ? money(enquiry.quote.totalEgp, lang) : bi(lang, 'Not quoted', 'لم يتم التسعير')}</span><span className="flex items-center gap-2"><CalendarClock size={14} className="text-terracotta-700" />{calendar.blocksCalendar ? bi(lang, 'Calendar blocked', 'التقويم محجوز') : bi(lang, 'No calendar block', 'لا يوجد حجب للتقويم')}</span></div>
+                  <div className="space-y-2 text-xs text-ink-600"><span className="flex items-center gap-2"><UserRoundCheck size={14} className="text-terracotta-700" />{getPartnerName(home.operatorPartnerId)}</span><span className="flex items-center gap-2"><ShieldCheck size={14} className="text-terracotta-700" />{home.communityApprovalRequired ? bi(lang, 'Community gate applies', 'بوابة الكمبوند مطلوبة') : bi(lang, 'No community gate', 'لا توجد بوابة كمبوند')}</span></div>
+                  <div className="min-w-[250px] lg:text-end">
+                    {enquiry.stage === 'community_approval_pending' ? mode === 'demo' ? <button disabled={!canOperate || busy} onClick={() => void captureApproval(enquiry.id)} className="button-secondary whitespace-nowrap"><CheckCircle2 size={14} />{bi(lang, 'Record issued approval', 'تسجيل موافقة صادرة')}</button> : canOperate ? <div className="space-y-2"><input aria-label={bi(lang, 'External approval evidence reference', 'مرجع دليل الموافقة الخارجية')} value={draft.approvalEvidence || ''} onChange={(event) => updateDraft(enquiry.id, { approvalEvidence: event.target.value })} className="field-input" placeholder={bi(lang, 'Issued approval reference', 'مرجع الموافقة الصادرة')} /><button disabled={busy || !draft.approvalEvidence?.trim()} onClick={() => void captureApproval(enquiry.id)} className="button-secondary w-full justify-center whitespace-nowrap disabled:opacity-40"><CheckCircle2 size={14} />{bi(lang, 'Record external approval', 'تسجيل الموافقة الخارجية')}</button></div> : <StatusPill tone="warn">{bi(lang, 'Operator required', 'يلزم المشغل')}</StatusPill>
+                    : mode === 'live' && enquiry.stage === 'availability_checked' && canOperate ? <div className="space-y-2"><input type="number" min={1} className="field-input" value={draft.nightlyRate || ''} onChange={(event) => updateDraft(enquiry.id, { nightlyRate: event.target.value })} placeholder={bi(lang, 'Nightly accommodation EGP', 'سعر الإقامة الليلي بالجنيه')} /><button disabled={busy} onClick={() => void runAction(enquiry.id, enquiry.stage)} className="button-primary w-full justify-center">{action}</button></div>
+                    : mode === 'live' && enquiry.stage === 'payment_pending' && canOperate ? <div className="space-y-2"><input className="field-input" value={draft.paymentReference || ''} onChange={(event) => updateDraft(enquiry.id, { paymentReference: event.target.value })} placeholder={bi(lang, 'External payment reference', 'مرجع الدفع الخارجي')} /><input type="number" min={1} className="field-input" value={draft.paymentAmount || ''} onChange={(event) => updateDraft(enquiry.id, { paymentAmount: event.target.value })} placeholder={bi(lang, 'Amount received EGP', 'المبلغ المستلم بالجنيه')} /><button disabled={busy} onClick={() => void runAction(enquiry.id, enquiry.stage)} className="button-primary w-full justify-center">{action}</button></div>
+                    : action ? <button disabled={!canOperate || busy || !completionReady} onClick={() => void runAction(enquiry.id, enquiry.stage)} className="button-primary whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40">{action}<ArrowRight size={14} className="rtl:rotate-180" /></button> : <StatusPill>{bi(lang, 'No action', 'لا إجراء')}</StatusPill>}
                   </div>
                 </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+                {!completionReady && enquiry.stage === 'confirmed' && <p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">{bi(lang, 'Complete the current inventory baseline, readiness check, and pre-stay ProofStay above before closing this stay.', 'أكمل خط أساس المحتويات الحالي وفحص الجاهزية وإثبات ما قبل الإقامة أعلاه قبل إغلاق الإقامة.')}</p>}
+                {errors[enquiry.id] && <p className="mt-4 rounded-xl bg-red-50 p-3 text-xs text-red-700">{errors[enquiry.id]}</p>}
+                {enquiry.hold?.expiresAt && <div className={`mt-5 flex items-center gap-2 rounded-xl p-3 text-[10px] ${calendar.blocksCalendar ? 'bg-terracotta-50 text-terracotta-900' : 'bg-clay-100 text-ink-500'}`}><Clock3 size={14} />{bi(lang, 'Hold expires', 'ينتهي الحجز المؤقت')}: {new Date(enquiry.hold.expiresAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB')}</div>}
+                {enquiry.stage === 'community_approval_pending' && <div className="mt-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-[10px] leading-5 text-amber-900"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{bi(lang, 'This records an approval already issued by the named authority; it does not let the operator issue one. Live requires the external evidence reference.', 'هذا يسجل موافقة صدرت بالفعل من الجهة المحددة ولا يمنح المشغل صلاحية إصدارها. الوضع الفعلي يتطلب مرجع الدليل الخارجي.')}</div>}
+              </article>;
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
-};
+}

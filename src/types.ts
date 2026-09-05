@@ -1,245 +1,270 @@
-/**
- * Little Hut Type Definitions
- */
+export type DataMode = 'demo' | 'live';
+export type Language = 'en' | 'ar';
 
-export type OperatingMode = 'demo' | 'live';
+export type PartnerRole = 'owner' | 'scout' | 'operator' | 'assessor' | 'community_authority';
+export type PartnerStatus = 'active' | 'invited' | 'inactive';
 
-export type UserRole = 'guest' | 'owner' | 'operator' | 'bps' | 'scout';
+export type MomentKey =
+  | 'slow_morning'
+  | 'long_table'
+  | 'afternoon_drift'
+  | 'night_swim'
+  | 'fire_conversation'
+  | 'silent_reading';
 
-export interface UserProfile {
+export type SupplyStage =
+  | 'sourced'
+  | 'owner_engaged'
+  | 'assessment_scheduled'
+  | 'decision_pending'
+  | 'activation_ready'
+  | 'live'
+  | 'paused'
+  | 'declined';
+
+export type EnquiryStage =
+  | 'received'
+  | 'qualified'
+  | 'availability_checked'
+  | 'quoted'
+  | 'hold'
+  | 'payment_pending'
+  | 'payment_received'
+  | 'community_approval_pending'
+  | 'community_approved'
+  | 'confirmed'
+  | 'completed'
+  | 'declined'
+  | 'expired'
+  | 'cancelled';
+
+export interface BaseRecord {
   id: string;
-  name: string;
-  nameAr?: string;
-  email: string;
-  role: UserRole;
-  assignedPropertyIds?: string[];
-  organization?: string;
+  dataMode: DataMode;
+  synthetic: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type PropertyLifecycle = 'shortlisted' | 'sealed' | 'live' | 'monitored' | 'suspended' | 'offline';
-
-export type SupplyStage = 'submitted' | 'checked' | 'prepared' | 'signed' | 'live';
-export type PropertySupplyStage = SupplyStage;
-
-export type CanonicalMomentId = 
-  | 'slow_morning' 
-  | 'late_breakfast' 
-  | 'barefoot_afternoon' 
-  | 'family_play' 
-  | 'the_long_sit' 
-  | 'under_stars';
-
-export type MomentState = 'possible' | 'enabled' | 'ruled_out' | 'unknown';
-
-export type CanonicalMomentsRecord = Record<CanonicalMomentId, MomentState>;
-
-export interface PropertyMomentFit {
-  momentId: CanonicalMomentId;
+export interface Partner extends BaseRecord {
+  role: PartnerRole;
+  status: PartnerStatus;
+  platformAdmin?: boolean;
   name: string;
   nameAr: string;
-  state: MomentState;
-  evidenceSource: 'site_visit' | 'acoustic_sensor' | 'listing_claim' | 'owner_statement' | 'none';
-  notes: string;
-  notesAr: string;
+  organisation?: string;
+  phoneMasked?: string;
+  serviceArea: string;
+  serviceAreaAr: string;
 }
 
-export interface PropertyData {
+export interface PropertyMoment {
+  key: MomentKey;
+  title: string;
+  titleAr: string;
+  summary: string;
+  summaryAr: string;
+  evidenceId: string;
+  provenAt: string;
+}
+
+export type InventoryCondition = 'good' | 'attention' | 'missing';
+
+export interface InventoryBaselineItem {
+  key: string;
+  label: string;
+  labelAr: string;
+  expectedQuantity: number;
+  evidenceReference: string;
+}
+
+export interface InventoryBaseline {
+  capturedAt: string;
+  capturedByPartnerId: string;
+  items: InventoryBaselineItem[];
+}
+
+export type ReadinessCheckKey = 'access' | 'cleanliness' | 'utilities' | 'sleeping' | 'safety' | 'moment_setup';
+
+export interface ReadinessCheckItem {
+  key: ReadinessCheckKey;
+  status: 'passed' | 'failed';
+  evidenceReference: string;
+}
+
+export interface StayReadinessCheck {
+  checkedAt: string;
+  checkedByPartnerId: string;
+  baselineCapturedAt: string;
+  status: 'ready' | 'blocked';
+  items: ReadinessCheckItem[];
+  note: string;
+  noteAr: string;
+}
+
+export interface ProofStayObservation {
+  key: string;
+  observedQuantity: number;
+  condition: InventoryCondition;
+  evidenceReference: string;
+}
+
+export interface ProofStaySnapshot {
   id: string;
+  phase: 'pre_stay' | 'post_stay';
+  capturedAt: string;
+  capturedByPartnerId: string;
+  baselineCapturedAt: string;
+  observations: ProofStayObservation[];
+}
+
+export interface ProofStayResult {
+  status: 'verified_unchanged' | 'attention_required';
+  comparedAt: string;
+  preSnapshotId: string;
+  postSnapshotId: string;
+  changedKeys: string[];
+}
+
+export interface ProofStayRecord {
+  preStay?: ProofStaySnapshot;
+  postStay?: ProofStaySnapshot;
+  result?: ProofStayResult;
+}
+
+export interface Property extends BaseRecord {
   slug: string;
   name: string;
   nameAr: string;
   location: string;
   locationAr: string;
-  tagline: string;
-  taglineAr: string;
-  description: string;
-  descriptionAr: string;
-  lifecycle: PropertyLifecycle;
-  supplyStage?: SupplyStage;
-  publicState?: 'joining' | 'live' | 'unlisted';
-  ownerId: string;
-  partnerName?: string;
-  assignedOperatorIds: string[];
-  assignedOperatorNames?: string[];
+  summary: string;
+  summaryAr: string;
+  supplyStage: SupplyStage;
+  ownerPartnerId?: string;
+  ownerConsentReference?: string;
+  scoutPartnerId: string;
+  operatorPartnerId?: string;
+  assessorPartnerId?: string;
+  communityAuthorityPartnerId?: string;
+  publiclyVisible: boolean;
+  joiningVisible: boolean;
   sealIssued: boolean;
-  sealIssuedDate?: string;
-  publiclyAnnounced: boolean;
-  maxCapacity: number;
-  rateFloor?: number; // Internal minimum rate floor protecting against underpricing
-  calendarAuthority: 'lh_direct' | 'subscribed' | 'external' | 'unknown';
+  maxGuests: number;
+  bedroomCount: number;
+  calendarAuthority: 'little_hut' | 'external' | 'unknown';
   bookingMode: 'request' | 'instant';
   communityApprovalRequired: boolean;
-  littleHutHoldsCalendar: boolean;
+  activationChecklistComplete: boolean;
+  payoutReady: boolean;
+  nightlyFloorEgp?: number;
   heroImage: string;
   galleryImages: string[];
-  gallery?: string[];
-  isDemo?: boolean;
-  canonicalMoments?: PropertyMomentFit[] | CanonicalMomentsRecord;
-  provenMoments: Array<{
-    id: string;
-    title: string;
-    titleAr: string;
-    description: string;
-    descriptionAr: string;
-    provenBy: string;
-    level: string;
-  }>;
-  reviews?: Array<{ id: string; guestName: string; rating: number; text: string }>;
-  avgRating?: number;
+  provenMoments: PropertyMoment[];
+  inventoryBaseline?: InventoryBaseline;
 }
 
-export type BookingStage = 
-  | 'enquiry' 
-  | 'qualified' 
-  | 'quote' 
-  | 'hold' 
-  | 'payment' 
-  | 'confirmed' 
-  | 'declined';
+export type GateStatus = 'passed' | 'pending' | 'failed';
 
-export type RequestStatus = 
-  | 'pending_operator' 
-  | 'validated' 
-  | 'readiness_confirmed' 
-  | 'quoted' 
-  | 'confirmed' 
-  | 'declined';
+export interface AssessmentGate {
+  key: string;
+  label: string;
+  labelAr: string;
+  status: GateStatus;
+  evidenceReference?: string;
+}
 
-export interface BookingRequest {
-  id: string;
+export interface Assessment extends BaseRecord {
   propertyId: string;
-  propertyName: string;
-  propertyNameAr: string;
-  propertySlug: string;
-  guestId: string;
-  guestName: string;
-  guestEmail: string;
-  partySize: number;
-  dates: {
-    checkIn: string;
-    checkOut: string;
-  };
-  checkIn?: string;
-  checkOut?: string;
-  momentFocus?: string;
-  momentRequested: string;
-  notes?: string;
-  status: RequestStatus;
-  bookingStage?: BookingStage;
-  createdAt: string;
-  updatedAt: string;
-  operatorNotes?: string;
-  quotedAmount?: number;
-  rateFloorApplied?: number;
-  rateFloorProtected?: boolean;
-  isRateFloorProtected?: boolean;
-  holdExpiresAt?: string;
-  isHoldExpired?: boolean;
-  paidAt?: string;
-  communityApprovalStatus?: 'not_required' | 'pending' | 'granted' | 'blocked';
-  communityApprovalNote?: string;
-  communityGateStatus?: string;
-  gatePassIssued?: boolean;
-  assignedOperatorName?: string;
-  isDemo?: boolean;
-  qualification: {
-    qualified: boolean;
-    mode: 'request' | 'instant';
-    reason: string;
-  };
+  assessorPartnerId: string;
+  independenceConfirmed: boolean;
+  scheduledFor?: string;
+  completedAt?: string;
+  result: 'scheduled' | 'passed' | 'conditions' | 'failed';
+  trustGates: AssessmentGate[];
+  shieldGates: AssessmentGate[];
+  provenMomentKeys: MomentKey[];
+  evidenceCount: number;
+  evidenceReferences?: string[];
+  recommendation: string;
+  recommendationAr: string;
 }
 
-export interface Partner {
-  id: string;
-  name: string;
-  nameAr: string;
-  type: 'owner' | 'operator_company' | 'trust';
-  contactPerson: string;
-  email: string;
-  phone: string;
-  assignedPropertyIds: string[];
-  status: 'active' | 'onboarding' | 'vetted';
-  jurisdiction: string;
-  joinedDate: string;
-  isDemo?: boolean;
-}
-
-export interface OwnerDecision {
-  id: string;
+export interface OwnerDecision extends BaseRecord {
   propertyId: string;
-  propertyName: string;
-  ownerId: string;
-  ownerName: string;
-  type: 'launch_approval' | 'rate_floor_setting' | 'calendar_delegation' | 'maintenance_signoff';
-  decision: 'approved' | 'rejected' | 'delegated';
-  title?: string;
-  titleAr?: string;
-  status?: string;
-  description?: string;
-  descriptionAr?: string;
-  summaryEn: string;
-  summaryAr: string;
-  conditions: string[];
-  rateFloorValue?: number;
+  ownerPartnerId: string;
+  decision: 'go' | 'defer' | 'decline';
   decidedAt: string;
-  signedAt?: string;
-  signedBy: string;
-  isDemo?: boolean;
+  nightlyFloorEgp?: number;
+  payoutReady: boolean;
+  conditions: Array<{ label: string; resolved: boolean; launchBlocking: boolean }>;
+  note: string;
+  noteAr: string;
 }
 
-export interface ScoutCandidate {
-  id: string;
-  scoutId: string;
-  scoutName: string;
-  propertyName: string;
-  propertyNameAr: string;
-  location: string;
-  locationAr: string;
-  estimatedCapacity: number;
-  architecturalStyle: string;
-  leadSource: string;
-  notes: string;
-  notesAr: string;
-  status: 'submitted_for_review' | 'under_triage' | 'escalated_to_bps' | 'rejected';
-  candidateImage: string;
-  createdAt: string;
-  isDemo?: boolean;
+export interface EnquiryTimelineEvent {
+  stage: EnquiryStage;
+  at: string;
+  byPartnerId?: string;
+  note: string;
 }
 
-export interface InternalAssessment {
-  id: string;
+export interface Enquiry extends BaseRecord {
   propertyId: string;
-  assessedBy: string;
-  updatedAt: string;
-  trustGates: Array<{
-    id: string;
-    name: string;
-    nameAr: string;
-    status: 'passed' | 'failed' | 'pending';
-    score: number;
-  }>;
-  shieldChecks: Array<{
-    id: string;
-    name: string;
-    nameAr: string;
-    status: 'passed' | 'failed' | 'pending';
-    details: string;
-  }>;
-  littleHutHourChecked: boolean;
-  provenMomentsCount: number;
-  sealAllowed: boolean;
-  evidenceDrift: string;
-  lastReadinessProof: string;
-  isDemo?: boolean;
+  guestName: string;
+  guestPhoneMasked: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  requestedMoment: MomentKey;
+  stage: EnquiryStage;
+  source: 'direct' | 'broker' | 'instagram' | 'returning_guest';
+  quote?: {
+    nightlyRateEgp: number;
+    nights: number;
+    accommodationEgp: number;
+    feesEgp: number;
+    totalEgp: number;
+    issuedAt: string;
+  };
+  hold?: { expiresAt: string; active: boolean };
+  payment?: { amountEgp: number; receivedAt?: string; reference?: string };
+  communityApproval?: {
+    required: boolean;
+    status: 'not_required' | 'not_submitted' | 'pending' | 'approved' | 'declined';
+    authorityPartnerId?: string;
+    evidenceReference?: string;
+  };
+  readinessCheck?: StayReadinessCheck;
+  proofStay?: ProofStayRecord;
+  timeline: EnquiryTimelineEvent[];
 }
 
-export interface SecurityTestResult {
-  id: string;
-  title: string;
-  titleAr: string;
-  description: string;
-  status: 'passed' | 'failed';
-  expected: string;
-  actual: string;
-  enforcedBy: 'Firestore Security Rules' | 'Authority Matrix Engine' | 'Domain Core Engine';
+export interface OperatingDataset {
+  mode: DataMode;
+  label: string;
+  labelAr: string;
+  asOf: string;
+  partners: Partner[];
+  properties: Property[];
+  assessments: Assessment[];
+  ownerDecisions: OwnerDecision[];
+  enquiries: Enquiry[];
 }
+
+export type BusinessAction =
+  | 'source_property'
+  | 'write_assessment'
+  | 'submit_owner_decision'
+  | 'set_owner_floor'
+  | 'activate_property'
+  | 'record_inventory_baseline'
+  | 'record_stay_readiness'
+  | 'record_proofstay_snapshot'
+  | 'issue_quote'
+  | 'place_hold'
+  | 'record_payment'
+  | 'issue_community_approval'
+  | 'record_community_approval'
+  | 'confirm_stay';
