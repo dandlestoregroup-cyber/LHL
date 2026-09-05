@@ -18,6 +18,11 @@ export function isBusinessCollection(collection: string): collection is Business
   return ['properties', 'assessments', 'ownerDecisions', 'enquiries'].includes(collection);
 }
 
+const nestedField = (value: unknown, field: string): unknown =>
+  typeof value === 'object' && value && !Array.isArray(value)
+    ? (value as Record<string, unknown>)[field]
+    : undefined;
+
 const summarize = (collection: BusinessCollection, data: Record<string, unknown>): Record<string, unknown> => {
   if (collection === 'properties') {
     return {
@@ -25,6 +30,7 @@ const summarize = (collection: BusinessCollection, data: Record<string, unknown>
       publiclyVisible: data.publiclyVisible === true,
       sealIssued: data.sealIssued === true,
       communityApprovalRequired: data.communityApprovalRequired === true,
+      inventoryBaselineReady: Boolean(data.inventoryBaseline),
     };
   }
   if (collection === 'assessments') {
@@ -41,12 +47,17 @@ const summarize = (collection: BusinessCollection, data: Record<string, unknown>
       payoutReady: data.payoutReady === true,
     };
   }
+  const proofStay = typeof data.proofStay === 'object' && data.proofStay && !Array.isArray(data.proofStay)
+    ? data.proofStay as Record<string, unknown>
+    : undefined;
   return {
     propertyId: data.propertyId,
     stage: data.stage,
-    communityApprovalStatus: typeof data.communityApproval === 'object' && data.communityApproval
-      ? (data.communityApproval as Record<string, unknown>).status
-      : undefined,
+    communityApprovalStatus: nestedField(data.communityApproval, 'status'),
+    readinessStatus: nestedField(data.readinessCheck, 'status'),
+    preStayCaptured: Boolean(proofStay?.preStay),
+    postStayCaptured: Boolean(proofStay?.postStay),
+    proofStayStatus: nestedField(proofStay?.result, 'status'),
   };
 };
 

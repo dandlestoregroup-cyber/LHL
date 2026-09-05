@@ -68,6 +68,70 @@ export interface PropertyMoment {
   provenAt: string;
 }
 
+export type InventoryCondition = 'good' | 'attention' | 'missing';
+
+export interface InventoryBaselineItem {
+  key: string;
+  label: string;
+  labelAr: string;
+  expectedQuantity: number;
+  evidenceReference: string;
+}
+
+export interface InventoryBaseline {
+  capturedAt: string;
+  capturedByPartnerId: string;
+  items: InventoryBaselineItem[];
+}
+
+export type ReadinessCheckKey = 'access' | 'cleanliness' | 'utilities' | 'sleeping' | 'safety' | 'moment_setup';
+
+export interface ReadinessCheckItem {
+  key: ReadinessCheckKey;
+  status: 'passed' | 'failed';
+  evidenceReference: string;
+}
+
+export interface StayReadinessCheck {
+  checkedAt: string;
+  checkedByPartnerId: string;
+  baselineCapturedAt: string;
+  status: 'ready' | 'blocked';
+  items: ReadinessCheckItem[];
+  note: string;
+  noteAr: string;
+}
+
+export interface ProofStayObservation {
+  key: string;
+  observedQuantity: number;
+  condition: InventoryCondition;
+  evidenceReference: string;
+}
+
+export interface ProofStaySnapshot {
+  id: string;
+  phase: 'pre_stay' | 'post_stay';
+  capturedAt: string;
+  capturedByPartnerId: string;
+  baselineCapturedAt: string;
+  observations: ProofStayObservation[];
+}
+
+export interface ProofStayResult {
+  status: 'verified_unchanged' | 'attention_required';
+  comparedAt: string;
+  preSnapshotId: string;
+  postSnapshotId: string;
+  changedKeys: string[];
+}
+
+export interface ProofStayRecord {
+  preStay?: ProofStaySnapshot;
+  postStay?: ProofStaySnapshot;
+  result?: ProofStayResult;
+}
+
 export interface Property extends BaseRecord {
   slug: string;
   name: string;
@@ -97,6 +161,7 @@ export interface Property extends BaseRecord {
   heroImage: string;
   galleryImages: string[];
   provenMoments: PropertyMoment[];
+  inventoryBaseline?: InventoryBaseline;
 }
 
 export type GateStatus = 'passed' | 'pending' | 'failed';
@@ -171,6 +236,8 @@ export interface Enquiry extends BaseRecord {
     authorityPartnerId?: string;
     evidenceReference?: string;
   };
+  readinessCheck?: StayReadinessCheck;
+  proofStay?: ProofStayRecord;
   timeline: EnquiryTimelineEvent[];
 }
 
@@ -192,6 +259,9 @@ export type BusinessAction =
   | 'submit_owner_decision'
   | 'set_owner_floor'
   | 'activate_property'
+  | 'record_inventory_baseline'
+  | 'record_stay_readiness'
+  | 'record_proofstay_snapshot'
   | 'issue_quote'
   | 'place_hold'
   | 'record_payment'

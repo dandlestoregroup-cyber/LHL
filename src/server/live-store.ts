@@ -27,6 +27,7 @@ const publicProperty = (property: Property): Property => ({
   nightlyFloorEgp: undefined,
   payoutReady: false,
   activationChecklistComplete: false,
+  inventoryBaseline: undefined,
 });
 
 async function partnerFor(session: LiveSession): Promise<Partner> {
@@ -276,7 +277,15 @@ export async function advanceLiveEnquiry(session: LiveSession, id: string, input
   } else if (target.stage === 'community_approved') {
     if (!canConfirmStay(property, target, now).allowed) throw new LiveStoreError('confirmation_gates_not_satisfied', 409);
     next = 'confirmed'; note = 'Operator confirmed after recording the external approval.';
-  } else if (target.stage === 'confirmed') { next = 'completed'; note = 'Stay outcome recorded as completed.'; }
+  } else if (target.stage === 'confirmed') {
+    if (!property.inventoryBaseline?.items.length || target.readinessCheck?.status !== 'ready' || !target.proofStay?.preStay) {
+      throw new LiveStoreError('stay_assurance_required_before_completion', 409);
+    }
+    if (target.readinessCheck.baselineCapturedAt !== property.inventoryBaseline.capturedAt || target.proofStay.preStay.baselineCapturedAt !== property.inventoryBaseline.capturedAt) {
+      throw new LiveStoreError('stay_assurance_baseline_is_stale', 409);
+    }
+    next = 'completed'; note = 'Stay outcome recorded as completed after readiness and pre-stay assurance evidence.';
+  }
   if (!next) throw new LiveStoreError('no_available_transition', 409);
   updated.stage = next;
   updated.timeline = [...updated.timeline, { stage: next, at, note, byPartnerId: partner.id }];
