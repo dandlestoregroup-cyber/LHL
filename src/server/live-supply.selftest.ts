@@ -2,8 +2,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const supplySource = fs.readFileSync(new URL('./live-supply.ts', import.meta.url), 'utf8');
+const scoutSupplySource = fs.readFileSync(new URL('./live-scout-supply.ts', import.meta.url), 'utf8');
 const firestoreSource = fs.readFileSync(new URL('./firestore-rest.ts', import.meta.url), 'utf8');
 const serverSource = fs.readFileSync(new URL('../../server.ts', import.meta.url), 'utf8');
+
+assert(scoutSupplySource.includes("scout.role !== 'scout'"), 'owner consent evidence requires the Scout role');
+assert(scoutSupplySource.includes('propertyStored.data.scoutPartnerId !== scout.id'), 'owner consent evidence requires the sourcing Scout');
+assert(scoutSupplySource.includes('ownerConsentReference'), 'Scout consent evidence is persisted before Owner binding');
+assert(serverSource.includes("/api/live/properties/:id/owner-consent"), 'server exposes the source-Scout consent action');
+assert(serverSource.includes('scout_owner_consent_required'), 'admin Owner binding requires prior stored Scout consent');
+assert(serverSource.includes('ownerConsentReference: undefined'), 'anonymous Live dataset strips private owner-consent evidence');
+assert(serverSource.includes('communityAuthorityPartnerId: undefined'), 'anonymous Live dataset strips internal community authority identifiers');
+assert(serverSource.includes('owner_decision_pause_cannot_be_reassessed'), 'a paused Owner decision cannot be rerouted into reassessment');
 
 assert(supplySource.includes("requireCurrentPartner(session, 'assessor')"), 'assessment submission requires the Assessor role');
 assert(supplySource.includes('propertyStored.data.assessorPartnerId !== assessor.id'), 'assessment submission requires the assigned Assessor');
