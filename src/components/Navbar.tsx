@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, RefreshCw, RotateCcw, Route, Settings2, UsersRound } from 'lucide-react';
+import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, RefreshCw, RotateCcw, Route, Settings2, UserCog, UsersRound } from 'lucide-react';
 import { useOperating } from '../context/OperatingContext';
 import { bi } from '../lib/display';
 
@@ -16,6 +16,9 @@ const navigation = [
 export function Navbar({ currentPath, navigate }: { currentPath: string; navigate: (path: string) => void }) {
   const { mode, setMode, lang, toggleLanguage, dataset, resetActiveDataset, auth, signOut } = useOperating();
   const [showReset, setShowReset] = React.useState(false);
+  const visibleNavigation = mode === 'live' && auth.partner?.platformAdmin
+    ? [...navigation, { path: '/partners', label: 'Partners', labelAr: 'الشركاء', icon: UserCog }]
+    : navigation;
   return (
     <header className="sticky top-0 z-50 border-b border-clay-200 bg-ivory-50/95 backdrop-blur-xl">
       <div className={`mode-ribbon ${mode === 'demo' ? 'mode-ribbon-demo' : 'mode-ribbon-live'}`}>
@@ -41,7 +44,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
           <span className="mt-1 block text-[9px] font-bold uppercase tracking-[0.23em] text-terracotta-700">{bi(lang, 'Quiet stays · real proof', 'إقامات هادئة · دليل حقيقي')}</span>
         </button>
         <nav className="hidden items-center gap-1 xl:flex">
-          {navigation.map(({ path, label, labelAr, icon: Icon }) => {
+          {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
             const active = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
             return <button key={path} onClick={() => navigate(path)} className={`nav-link ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
           })}
@@ -53,7 +56,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
         </div>
       </div>
       <nav className="page-shell flex gap-1 overflow-x-auto pb-3 xl:hidden">
-        {navigation.map(({ path, label, labelAr, icon: Icon }) => {
+        {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
           const active = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
           return <button key={path} onClick={() => navigate(path)} className={`nav-link shrink-0 ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
         })}
