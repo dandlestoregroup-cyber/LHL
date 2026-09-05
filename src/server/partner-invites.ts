@@ -1,0 +1,203 @@
+import crypto from 'node:crypto';
+import type { Partner, PartnerRole } from '../types';
+import { createDocument, getDocument, listDocuments, replaceDocument } from './firestore-rest';
+import { authenticatePassword, type LiveSession } from './session-auth';
+import { LiveStoreError, sessionPartner } from './live-store';
+
+export type PartnerInviteStatus = 'pending' | 'claiming' | 'accepted' | 'revoked';
+
+export interface PartnerInvite {
+  id: string;
+  dataMode: 'live';
+  synthetic: false;
+  email: string;
+  role: PartnerRole;
+  name: string;
+  nameAr: string;
+  organisation?: string;
+  serviceArea: string;
+  serviceAreaAr: string;
+  status: PartnerInviteStatus;
+  createdByPartnerId: string;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  acceptedPartnerId?: string;
+}
+
+export type PartnerInviteSummary = PartnerInvite;
+
+const INVITE_TTL_MS = 48 * 60 * 60 * 1000;
+const ROLES = new Set<PartnerRole>(['owner', 'scout', 'operator', 'assessor', 'community_authority']);
+
+const requireString = (value: unknown, field: string, max = 160): string => {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > max) {
+    throw new LiveStoreError(`invalid_${field}`);
+  }
+  return value.trim();
+};
+
+const requireEmail = (value: unknown): string => {
+  const email = requireString(value, 'email', 254).toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw new LiveStoreError('invalid_email');
+  return email;
+};
+
+export function hashInviteToken(token: string): string {
+  return crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+export function inviteCanBeAccepted(invite: Pick<PartnerInvite, 'status' | 'expiresAt'>, now = new Date()): boolean {
+  return invite.status === 'pending' && new Date(invite.expiresAt).getTime() > now.getTime();
+}
+
+export function inviteCanResume(invite: Pick<PartnerInvite, 'status' | 'expiresAt'>, now = new Date()): boolean {
+  return invite.status === 'claiming' && new Date(invite.expiresAt).getTime() > now.getTime();
+}
+
+const requirePlatformAdmin = async (session: LiveSession): Promise<Partner> => {
+  const partner = await sessionPartner(session);
+  if (!partner || partner.status !== 'active' || !partner.platformAdmin) {
+    throw new LiveStoreError('platform_admin_required', 403);
+  }
+  return partner;
+};
+
+export async function issuePartnerInvite(session: LiveSession, input: Record<string, unknown>): Promise<{ invite: PartnerInviteSummary; token: string }> {
+  const admin = await requirePlatformAdmin(session);
+  const email = requireEmail(input.email);
+  const role = requireString(input.role, 'role', 40) as PartnerRole;
+  if (!ROLES.has(role)) throw new LiveStoreError('invalid_role');
+
+  const now = new Date();
+  const existingInvites = await listDocuments<PartnerInvite>('partnerInvites');
+  const duplicate = existingInvites.some(({ data }) => data.email === email && (inviteCanBeAccepted(data, now) || inviteCanResume(data, now)));
+  if (duplicate) throw new LiveStoreError('pending_invite_exists', 409);
+
+  const token = crypto.randomBytes(32).toString('base64url');
+  const id = hashInviteToken(token);
+  const createdAt = now.toISOString();
+  const invite: PartnerInvite = {
+    id,
+    dataMode: 'live',
+    synthetic: false,
+    email,
+    role,
+    name: requireString(input.name, 'name', 120),
+    nameAr: typeof input.nameAr === 'string' && input.nameAr.trim() ? input.nameAr.trim().slice(0, 120) : requireString(input.name, 'name', 120),
+    organisation: typeof input.organisation === 'string' && input.organisation.trim() ? input.organisation.trim().slice(0, 160) : undefined,
+    serviceArea: requireString(input.serviceArea, 'service_area', 120),
+    serviceAreaAr: typeof input.serviceAreaAr === 'string' && input.serviceAreaAr.trim() ? input.serviceAreaAr.trim().slice(0, 120) : requireString(input.serviceArea, 'service_area', 120),
+    status: 'pending',
+    createdByPartnerId: admin.id,
+    createdAt,
+    updatedAt: createdAt,
+    expiresAt: new Date(now.getTime() + INVITE_TTL_MS).toISOString(),
+  };
+  await createDocument('partnerInvites', id, invite as unknown as Record<string, unknown>);
+  return { invite, token };
+}
+
+export async function listPartnerInvites(session: LiveSession): Promise<PartnerInviteSummary[]> {
+  await requirePlatformAdmin(session);
+  const invites = await listDocuments<PartnerInvite>('partnerInvites');
+  return invites
+    .map(({ data }) => data)
+    .filter((invite) => invite.dataMode === 'live' && !invite.synthetic)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function revokePartnerInvite(session: LiveSession, id: string): Promise<PartnerInviteSummary> {
+  await requirePlatformAdmin(session);
+  const stored = await getDocument<PartnerInvite>('partnerInvites', id);
+  if (!stored) throw new LiveStoreError('invite_not_found', 404);
+  if (stored.data.status === 'accepted') throw new LiveStoreError('accepted_invite_cannot_be_revoked', 409);
+  if (stored.data.status === 'revoked') return stored.data;
+  const now = new Date().toISOString();
+  const updated: PartnerInvite = { ...stored.data, status: 'revoked', updatedAt: now };
+  await replaceDocument('partnerInvites', id, updated as unknown as Record<string, unknown>, stored.updateTime);
+  return updated;
+}
+
+export async function acceptPartnerInvite(token: unknown, password: unknown): Promise<{ uid: string; email: string; partner: Partner }> {
+  const rawToken = requireString(token, 'invite_token', 200);
+  const id = hashInviteToken(rawToken);
+  const initial = await getDocument<PartnerInvite>('partnerInvites', id);
+  if (!initial || (!inviteCanBeAccepted(initial.data) && !inviteCanResume(initial.data))) {
+    throw new LiveStoreError('invite_invalid_or_expired', 410);
+  }
+
+  const startedFromPending = initial.data.status === 'pending';
+  let claimData = initial.data;
+  let claimUpdateTime = initial.updateTime;
+  if (startedFromPending) {
+    const claiming: PartnerInvite = { ...initial.data, status: 'claiming', updatedAt: new Date().toISOString() };
+    const claimed = await replaceDocument('partnerInvites', id, claiming as unknown as Record<string, unknown>, initial.updateTime)
+      .catch((error) => {
+        if (error instanceof Error && error.message === 'record_changed_concurrently') throw new LiveStoreError('invite_already_claimed', 409);
+        throw error;
+      });
+    claimData = claiming;
+    claimUpdateTime = claimed.updateTime;
+  }
+
+  let identityCreated = !startedFromPending;
+  try {
+    const identity = await authenticatePassword(initial.data.email, String(password || ''), startedFromPending);
+    identityCreated = true;
+    let partner: Partner;
+    const existingPartner = await getDocument<Partner>('partners', identity.uid);
+    if (existingPartner) {
+      partner = existingPartner.data;
+      if (partner.dataMode !== 'live' || partner.synthetic || partner.role !== initial.data.role || partner.status !== 'active') {
+        throw new LiveStoreError('existing_partner_conflicts_with_invite', 409);
+      }
+    } else {
+      const now = new Date().toISOString();
+      partner = {
+        id: identity.uid,
+        dataMode: 'live',
+        synthetic: false,
+        createdAt: now,
+        updatedAt: now,
+        role: initial.data.role,
+        status: 'active',
+        platformAdmin: false,
+        name: initial.data.name,
+        nameAr: initial.data.nameAr,
+        organisation: initial.data.organisation,
+        serviceArea: initial.data.serviceArea,
+        serviceAreaAr: initial.data.serviceAreaAr,
+      };
+      await createDocument('partners', partner.id, partner as unknown as Record<string, unknown>);
+    }
+
+    const acceptedAt = new Date().toISOString();
+    const accepted: PartnerInvite = {
+      ...claimData,
+      status: 'accepted',
+      updatedAt: acceptedAt,
+      acceptedAt,
+      acceptedPartnerId: partner.id,
+    };
+    try {
+      await replaceDocument('partnerInvites', id, accepted as unknown as Record<string, unknown>, claimUpdateTime);
+    } catch (error) {
+      const latest = await getDocument<PartnerInvite>('partnerInvites', id);
+      if (!latest || latest.data.status !== 'accepted' || latest.data.acceptedPartnerId !== partner.id) throw error;
+    }
+    return { uid: identity.uid, email: identity.email, partner };
+  } catch (error) {
+    // Before Firebase creates an identity, release the claim so the invitee can correct
+    // a weak password or transient auth error. After identity creation, leave `claiming`
+    // so the same token + credentials can safely resume instead of reopening signup.
+    if (!identityCreated && startedFromPending) {
+      const restored: PartnerInvite = { ...initial.data, status: 'pending', updatedAt: new Date().toISOString() };
+      await replaceDocument('partnerInvites', id, restored as unknown as Record<string, unknown>, claimUpdateTime).catch(() => undefined);
+    }
+    if (error instanceof LiveStoreError) throw error;
+    const code = error instanceof Error ? error.message : 'invite_acceptance_failed';
+    throw new LiveStoreError(code, 400);
+  }
+}

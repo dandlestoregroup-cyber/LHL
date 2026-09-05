@@ -3,11 +3,13 @@ import { Navbar } from './components/Navbar';
 import { OperatingProvider, useOperating } from './context/OperatingContext';
 import { bi } from './lib/display';
 import { EmptyState } from './components/ui';
+import { AcceptInviteView } from './views/AcceptInviteView';
 import { AssessmentView } from './views/AssessmentView';
 import { JoiningView } from './views/JoiningView';
 import { LiveAccessView } from './views/LiveAccessView';
 import { OperatorView } from './views/OperatorView';
 import { OwnerView } from './views/OwnerView';
+import { PartnerAdminView } from './views/PartnerAdminView';
 import { PipelineView } from './views/PipelineView';
 import { PropertyView } from './views/PropertyView';
 import { PublicHomesView } from './views/PublicHomesView';
@@ -39,6 +41,14 @@ function AppContent() {
   };
 
   const operationalGate = () => {
+    if (currentPath === '/accept-invite') return null;
+    if (currentPath === '/partners') {
+      if (mode !== 'live') return <div className="page-shell py-16"><EmptyState title="Partner access is Live-only" titleAr="صلاحيات الشركاء متاحة في الوضع الفعلي فقط" description="Switch to Live before issuing or revoking real Partner invitations." descriptionAr="انتقل إلى الوضع الفعلي قبل إصدار أو إلغاء دعوات شركاء حقيقية." /></div>;
+      if (authLoading || liveLoading) return <div className="page-shell py-20 text-sm text-ink-500">{bi(lang, 'Loading verified Live access…', 'جارٍ تحميل صلاحية الوضع الفعلي…')}</div>;
+      if (!auth.authenticated || !auth.partner) return <LiveAccessView />;
+      if (!auth.partner.platformAdmin) return <div className="page-shell py-16"><EmptyState title="Platform admin required" titleAr="يلزم مسؤول المنصة" description="Partner invitations change who may enter Live and are not a normal business-role action." descriptionAr="دعوات الشركاء تغيّر من يمكنه دخول الوضع الفعلي وليست إجراءً عادياً لصلاحيات التشغيل." /></div>;
+      return null;
+    }
     if (mode !== 'live' || !routeRoles[currentPath]) return null;
     if (authLoading || liveLoading) return <div className="page-shell py-20 text-sm text-ink-500">{bi(lang, 'Loading verified Live access…', 'جارٍ تحميل صلاحية الوضع الفعلي…')}</div>;
     if (!auth.authenticated || !auth.partner) return <LiveAccessView />;
@@ -50,10 +60,12 @@ function AppContent() {
   };
 
   const renderRoute = () => {
+    if (currentPath === '/accept-invite') return <AcceptInviteView />;
     const gated = operationalGate();
     if (gated) return gated;
     if (currentPath === '/') return <PublicHomesView navigate={navigate} />;
     if (currentPath === '/joining') return <JoiningView navigate={navigate} />;
+    if (currentPath === '/partners') return <PartnerAdminView />;
     if (currentPath === '/scout') return <ScoutView />;
     if (currentPath === '/owner') return <OwnerView navigate={navigate} />;
     if (currentPath === '/operator') return <OperatorView navigate={navigate} />;

@@ -1,4 +1,4 @@
-import type { Enquiry, OperatingDataset, Partner, Property } from '../types';
+import type { Enquiry, OperatingDataset, Partner, PartnerRole, Property } from '../types';
 
 export interface LiveAuthState {
   authenticated: boolean;
@@ -10,6 +10,36 @@ export interface AdvanceLiveInput {
   nightlyRateEgp?: number;
   paymentReference?: string;
   paymentAmountEgp?: number;
+}
+
+export interface LivePartnerInvite {
+  id: string;
+  dataMode: 'live';
+  synthetic: false;
+  email: string;
+  role: PartnerRole;
+  name: string;
+  nameAr: string;
+  organisation?: string;
+  serviceArea: string;
+  serviceAreaAr: string;
+  status: 'pending' | 'claiming' | 'accepted' | 'revoked';
+  createdByPartnerId: string;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  acceptedPartnerId?: string;
+}
+
+export interface IssuePartnerInviteInput {
+  email: string;
+  role: PartnerRole;
+  name: string;
+  nameAr: string;
+  organisation?: string;
+  serviceArea: string;
+  serviceAreaAr: string;
 }
 
 export class LiveApiError extends Error {
@@ -53,6 +83,10 @@ export async function signUpLive(email: string, password: string): Promise<LiveA
   return request<LiveAuthState>('/api/auth/sign-up', { method: 'POST', body: JSON.stringify({ email, password }) });
 }
 
+export async function acceptLiveInvite(token: string, password: string): Promise<LiveAuthState> {
+  return request<LiveAuthState>('/api/auth/accept-invite', { method: 'POST', body: JSON.stringify({ token, password }) });
+}
+
 export async function signOutLive(): Promise<void> {
   await request<void>('/api/auth/sign-out', { method: 'POST' });
 }
@@ -64,6 +98,20 @@ export async function fetchLiveDataset(): Promise<OperatingDataset> {
 
 export async function bootstrapLiveScout(input: { name: string; nameAr: string; organisation?: string; serviceArea: string; serviceAreaAr: string }): Promise<{ partner: Partner; dataset: OperatingDataset }> {
   return request('/api/live/bootstrap/scout', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function listLivePartnerInvites(): Promise<LivePartnerInvite[]> {
+  const result = await request<{ invites: LivePartnerInvite[] }>('/api/live/invites');
+  return result.invites;
+}
+
+export async function issueLivePartnerInvite(input: IssuePartnerInviteInput): Promise<{ invite: LivePartnerInvite; inviteUrl: string }> {
+  return request('/api/live/invites', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function revokeLivePartnerInvite(id: string): Promise<LivePartnerInvite> {
+  const result = await request<{ invite: LivePartnerInvite }>(`/api/live/invites/${encodeURIComponent(id)}/revoke`, { method: 'POST' });
+  return result.invite;
 }
 
 export async function createLiveScoutProperty(input: { name: string; nameAr: string; location: string; locationAr: string }): Promise<{ property: Property; dataset: OperatingDataset }> {

@@ -18,6 +18,12 @@ import {
   sessionPartner,
 } from './src/server/live-store';
 import {
+  acceptPartnerInvite,
+  issuePartnerInvite,
+  listPartnerInvites,
+  revokePartnerInvite,
+} from './src/server/partner-invites';
+import {
   authenticatePassword,
   clearSession,
   readSession,
@@ -51,6 +57,19 @@ const sendError = (res: Response, error: unknown): Response => {
   return res.status(500).json({ error: 'server_error' });
 };
 
+const inviteUrl = (token: string): string => {
+  const appUrl = process.env.APP_URL?.trim();
+  if (!appUrl) throw new LiveStoreError('app_url_not_configured', 503);
+  let url: URL;
+  try {
+    url = new URL('/accept-invite', appUrl);
+  } catch {
+    throw new LiveStoreError('app_url_invalid', 503);
+  }
+  url.searchParams.set('token', token);
+  return url.toString();
+};
+
 app.post('/api/auth/sign-up', async (req, res) => {
   if (!authLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'auth_rate_limited' });
   const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
@@ -63,6 +82,17 @@ app.post('/api/auth/sign-up', async (req, res) => {
   } catch (error) {
     const code = error instanceof Error ? error.message : 'authentication_failed';
     return res.status(400).json({ error: code });
+  }
+});
+
+app.post('/api/auth/accept-invite', async (req, res) => {
+  if (!authLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'auth_rate_limited' });
+  try {
+    const accepted = await acceptPartnerInvite(req.body?.token, req.body?.password);
+    const session = setSession(res, accepted.uid, accepted.email);
+    return res.status(201).json({ authenticated: true, email: session.email, partner: accepted.partner });
+  } catch (error) {
+    return sendError(res, error);
   }
 });
 
@@ -105,6 +135,33 @@ app.post('/api/live/bootstrap/scout', async (req, res) => {
   try {
     const partner = await bootstrapFirstScout(requireSession(req), req.body || {});
     return res.status(201).json({ partner, dataset: await loadLiveDataset(readSession(req)) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.get('/api/live/invites', async (req, res) => {
+  try {
+    const invites = await listPartnerInvites(requireSession(req));
+    return res.json({ invites });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/invites', async (req, res) => {
+  try {
+    const issued = await issuePartnerInvite(requireSession(req), req.body || {});
+    return res.status(201).json({ invite: issued.invite, inviteUrl: inviteUrl(issued.token) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/live/invites/:id/revoke', async (req, res) => {
+  try {
+    const invite = await revokePartnerInvite(requireSession(req), req.params.id);
+    return res.json({ invite });
   } catch (error) {
     return sendError(res, error);
   }
