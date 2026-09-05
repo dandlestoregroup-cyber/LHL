@@ -11,9 +11,15 @@ export interface AutomationEvent<TPayload extends Record<string, unknown> = Reco
   id: string;
   type: AutomationEventType;
   source: 'lhl-web';
-  dataMode: DataMode;
-  synthetic: boolean;
+  dataMode: 'demo';
+  synthetic: true;
   occurredAt: string;
+  payload: TPayload;
+}
+
+export interface AutomationIngress<TPayload extends Record<string, unknown> = Record<string, unknown>> {
+  type: AutomationEventType;
+  dataMode: 'demo';
   payload: TPayload;
 }
 
@@ -36,35 +42,16 @@ interface EnquiryStageChangedPayload extends Record<string, unknown> {
   toStage: EnquiryStage;
 }
 
-const createEventId = () => `evt_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-
-export function buildAutomationEvent<TPayload extends Record<string, unknown>>(
-  type: AutomationEventType,
-  dataMode: DataMode,
-  payload: TPayload,
-): AutomationEvent<TPayload> {
-  return {
-    version: 1,
-    id: createEventId(),
-    type,
-    source: 'lhl-web',
-    dataMode,
-    synthetic: dataMode === 'demo',
-    occurredAt: new Date().toISOString(),
-    payload,
-  };
-}
-
-async function postAutomationEvent(event: AutomationEvent): Promise<void> {
+async function postAutomationEvent(input: AutomationIngress): Promise<void> {
   const response = await fetch('/api/activepieces', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(event),
+    body: JSON.stringify(input),
   });
 
   if (!response.ok) {
     const detail = await response.text().catch(() => '');
-    throw new Error(`Automation gateway rejected ${event.type}: ${response.status}${detail ? ` ${detail}` : ''}`);
+    throw new Error(`Automation gateway rejected ${input.type}: ${response.status}${detail ? ` ${detail}` : ''}`);
   }
 }
 
@@ -77,8 +64,8 @@ export function publishAutomationEvent<TPayload extends Record<string, unknown>>
   // trigger real-world automation until Live persistence moves server-side.
   if (dataMode !== 'demo') return;
 
-  const event = buildAutomationEvent(type, dataMode, payload);
-  void postAutomationEvent(event).catch((error) => {
+  const input: AutomationIngress<TPayload> = { type, dataMode: 'demo', payload };
+  void postAutomationEvent(input).catch((error) => {
     console.warn('[LHL automation]', error);
   });
 }
