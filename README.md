@@ -31,4 +31,6 @@ The first configured identity may create exactly one initial verified Scout Part
 
 See [`docs/activepieces.md`](docs/activepieces.md).
 
-Demo continues through the signed simulation gateway. Live automation now uses a durable Firestore outbox: each trusted Live business write atomically appends a sanitized event, and a secret-guarded scheduler drain signs and forwards pending events after commit. Retries use stable idempotency keys; Activepieces remains orchestration only and cannot create reserved business truth.
+Demo continues through the signed simulation gateway. Live automation uses a durable Firestore outbox: each trusted Live business write atomically appends a sanitized event, and a secret-guarded scheduler drain signs and forwards pending events after commit. Retries use stable idempotency keys; Activepieces remains orchestration only and cannot create reserved business truth.
+
+The repository includes a five-minute GitHub Actions scheduler at `.github/workflows/live-outbox-drain.yml`. It stays inert until repository secrets `LHL_APP_URL` and `LHL_OUTBOX_SECRET` are configured, then verifies every drain response before reporting success.
