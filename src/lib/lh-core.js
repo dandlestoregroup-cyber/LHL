@@ -183,7 +183,24 @@ export function evaluateGoLive(property, assessment, ownerDecision) {
   if (!ownerDecision.payoutReady || !ownerDecision.nightlyFloorEgp || ownerDecision.nightlyFloorEgp <= 0) {
     return { allowed: false, reason: 'Owner floor and payout readiness are required.' };
   }
+  if (!property?.ownerPartnerId || !property?.assessorPartnerId || !property?.operatorPartnerId) {
+    return { allowed: false, reason: 'Named owner, assessor, and operator assignments are required.' };
+  }
+  if (assessment.assessorPartnerId && assessment.assessorPartnerId !== property.assessorPartnerId) {
+    return { allowed: false, reason: 'Assessment authority does not match the assigned assessor.' };
+  }
+  if (ownerDecision.ownerPartnerId && ownerDecision.ownerPartnerId !== property.ownerPartnerId) {
+    return { allowed: false, reason: 'Owner decision authority does not match the assigned owner.' };
+  }
+  if (property.communityApprovalRequired && !property.communityAuthorityPartnerId) {
+    return { allowed: false, reason: 'A named community authority is required by this policy.' };
+  }
   if (property.calendarAuthority === 'unknown') return { allowed: false, reason: 'Calendar authority must be explicit.' };
+  if (!['request', 'instant'].includes(property.bookingMode)) return { allowed: false, reason: 'Booking mode must be explicit.' };
+  if (!Number.isInteger(property.maxGuests) || property.maxGuests < 1) return { allowed: false, reason: 'A positive guest capacity is required.' };
+  if (!Number.isInteger(property.bedroomCount) || property.bedroomCount < 0) return { allowed: false, reason: 'Bedroom count must be explicit.' };
+  if (typeof property.heroImage !== 'string' || property.heroImage.trim().length === 0) return { allowed: false, reason: 'A public hero image is required.' };
+  if ((property.provenMoments?.length || 0) < 2) return { allowed: false, reason: 'At least two proven property Moments are required.' };
   if (!property.activationChecklistComplete) return { allowed: false, reason: 'Activation checklist is incomplete.' };
   return { allowed: true, reason: 'All Live gates satisfied.' };
 }
