@@ -5,12 +5,12 @@ import { bi } from '../lib/display';
 import { DemoRecordMark, EmptyState, StatusPill } from '../components/ui';
 
 const moments = [
-  [Sun, 'Slow Morning', 'صباح هادئ'],
-  [Coffee, 'Late Breakfast', 'إفطار متأخر'],
-  [Waves, 'Barefoot Afternoon', 'ظهيرة حافية القدمين'],
-  [Users, 'Family Play', 'مرح عائلي'],
-  [Sparkles, 'The Long Sit', 'الجلسة الطويلة'],
-  [Moon, 'Under Stars', 'تحت النجوم'],
+  [Sun, 'Slow Morning', 'صباح هادئ', 'slow-morning'],
+  [Coffee, 'Late Breakfast', 'إفطار متأخر', 'late-breakfast'],
+  [Waves, 'Barefoot Afternoon', 'ظهيرة حافية القدمين', 'barefoot-afternoon'],
+  [Users, 'Family Play', 'مرح عائلي', 'family-play'],
+  [Sparkles, 'The Long Sit', 'الجلسة الطويلة', 'the-long-sit'],
+  [Moon, 'Under Stars', 'تحت النجوم', 'under-stars'],
 ] as const;
 
 export function PublicHomesView({ navigate }: { navigate: (path: string) => void }) {
@@ -26,12 +26,8 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
               <span className="text-[10px] font-bold uppercase tracking-[.2em] text-[#B84E36]">{bi(lang, 'Mediterranean & Red Sea', 'البحر المتوسط والبحر الأحمر')}</span>
             </div>
             <p className="mt-7 text-sm font-semibold uppercase tracking-[.18em] text-[#C8A15A]">{bi(lang, 'A quiet collection of coastal homes', 'مجموعة هادئة من البيوت الساحلية')}</p>
-            <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-[.96] tracking-[-.045em] text-[#2A201C] sm:text-6xl lg:text-7xl">
-              {bi(lang, 'Quiet stays. Loud memories.', 'إقامات هادئة. ذكريات لا تُنسى.')}
-            </h1>
-            <p className="mt-7 max-w-2xl text-base leading-8 text-[#6D5A50]">
-              {bi(lang, 'We do not sell square meters. Little Hut qualifies how a home actually feels: morning light, family ease, long dinners, stillness, and the moments worth travelling for.', 'نحن لا نبيع أمتاراً مربعة. ليتل هت توثق إحساس البيت فعلاً: ضوء الصباح، راحة العائلة، العشاء الطويل، الهدوء، واللحظات التي تستحق السفر من أجلها.')}
-            </p>
+            <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-[.96] tracking-[-.045em] text-[#2A201C] sm:text-6xl lg:text-7xl">{bi(lang, 'Quiet stays. Loud memories.', 'إقامات هادئة. ذكريات لا تُنسى.')}</h1>
+            <p className="mt-7 max-w-2xl text-base leading-8 text-[#6D5A50]">{bi(lang, 'We do not sell square meters. Little Hut qualifies how a home actually feels: morning light, family ease, long dinners, stillness, and the moments worth travelling for.', 'نحن لا نبيع أمتاراً مربعة. ليتل هت توثق إحساس البيت فعلاً: ضوء الصباح، راحة العائلة، العشاء الطويل، الهدوء، واللحظات التي تستحق السفر من أجلها.')}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <button onClick={() => document.getElementById('homes')?.scrollIntoView({ behavior: 'smooth' })} className="button-primary">{bi(lang, 'Explore verified homes', 'استكشف البيوت الموثقة')}<ArrowRight size={15} className="rtl:rotate-180" /></button>
               <button onClick={() => navigate('/joining')} className="button-secondary">{bi(lang, 'List & qualify a residence', 'أدرج ووثّق عقارك')}</button>
@@ -41,11 +37,12 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
           <div className="rounded-[2rem] border border-[#E2CDBD] bg-white/65 p-6 shadow-[0_30px_80px_rgba(80,52,39,.10)] backdrop-blur">
             <div className="flex items-center gap-2 text-[#B84E36]"><Sparkles size={16} /><span className="text-[10px] font-black uppercase tracking-[.2em]">{bi(lang, 'The six signature moments', 'اللحظات الست المميزة')}</span></div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {moments.map(([Icon, label, labelAr]) => (
-                <div key={label} className="flex items-center gap-3 rounded-2xl border border-[#EBDDD1] bg-[#FFFDFC] p-4">
+              {moments.map(([Icon, label, labelAr, slug]) => (
+                <button key={slug} onClick={() => navigate(`/moments/${slug}`)} className="group flex items-center gap-3 rounded-2xl border border-[#EBDDD1] bg-[#FFFDFC] p-4 text-start transition hover:-translate-y-0.5 hover:border-[#B84E36]/45 hover:shadow-sm">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FAF0EB] text-[#B84E36]"><Icon size={18} /></div>
                   <span className="font-serif text-lg text-[#2A201C]">{bi(lang, label, labelAr)}</span>
-                </div>
+                  <ArrowRight size={13} className="ms-auto text-[#B84E36] opacity-0 transition group-hover:opacity-100 rtl:rotate-180" />
+                </button>
               ))}
             </div>
             <p className="mt-5 text-xs leading-6 text-[#7D6A60]">{bi(lang, 'A home earns its public promise only from evidence actually recorded for that residence.', 'لا يحصل البيت على وعده العام إلا من دليل موثق فعلاً لهذا العقار.')}</p>
@@ -55,10 +52,7 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
 
       <section id="homes" className="page-shell py-16 md:py-20">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-[.22em] text-[#B84E36]">{bi(lang, 'The collection', 'المجموعة')}</span>
-            <h2 className="mt-3 font-serif text-4xl tracking-tight text-[#2A201C] md:text-5xl">{bi(lang, 'Book the feeling, not just the stay.', 'احجز الإحساس، وليس فقط الإقامة.')}</h2>
-          </div>
+          <div><span className="text-[10px] font-black uppercase tracking-[.22em] text-[#B84E36]">{bi(lang, 'The collection', 'المجموعة')}</span><h2 className="mt-3 font-serif text-4xl tracking-tight text-[#2A201C] md:text-5xl">{bi(lang, 'Book the feeling, not just the stay.', 'احجز الإحساس، وليس فقط الإقامة.')}</h2></div>
           <p className="max-w-md text-sm leading-7 text-[#6D5A50]">{bi(lang, 'Every public home must be independently assessed, owner-approved, operationally ready, sealed, and currently visible.', 'كل بيت منشور يجب أن يكون مُقيّماً بشكل مستقل، معتمداً من المالك، جاهزاً للتشغيل، حاصلاً على الختم، ومتاحاً للنشر حالياً.')}</p>
         </div>
 
@@ -71,26 +65,13 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
                 <button onClick={() => navigate(`/homes/${home.slug}`)} className="block w-full text-start">
                   <div className="relative aspect-[4/3] overflow-hidden bg-[#EBDDD1]">
                     <img src={home.heroImage} alt={lang === 'ar' ? home.nameAr : home.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" />
-                    <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-                      <StatusPill tone="good"><BadgeCheck size={12} />{bi(lang, 'Little Hut verified', 'موثق من ليتل هت')}</StatusPill>
-                      <span className="rounded-full bg-[#2A201C]/85 px-3 py-1 text-[9px] font-bold uppercase tracking-[.14em] text-white backdrop-blur">{bi(lang, 'Request to stay', 'طلب إقامة')}</span>
-                    </div>
+                    <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4"><StatusPill tone="good"><BadgeCheck size={12} />{bi(lang, 'Little Hut verified', 'موثق من ليتل هت')}</StatusPill><span className="rounded-full bg-[#2A201C]/85 px-3 py-1 text-[9px] font-bold uppercase tracking-[.14em] text-white backdrop-blur">{bi(lang, 'Request to stay', 'طلب إقامة')}</span></div>
                   </div>
                   <div className="p-6">
                     <DemoRecordMark />
-                    <div className="mt-3 flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-serif text-3xl leading-tight text-[#2A201C]">{lang === 'ar' ? home.nameAr : home.name}</h3>
-                        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#7D6A60]"><MapPin size={13} className="text-[#B84E36]" />{lang === 'ar' ? home.locationAr : home.location}</p>
-                      </div>
-                      <ArrowRight size={19} className="mt-1 text-[#B84E36] transition group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
-                    </div>
+                    <div className="mt-3 flex items-start justify-between gap-4"><div><h3 className="font-serif text-3xl leading-tight text-[#2A201C]">{lang === 'ar' ? home.nameAr : home.name}</h3><p className="mt-2 flex items-center gap-1.5 text-xs text-[#7D6A60]"><MapPin size={13} className="text-[#B84E36]" />{lang === 'ar' ? home.locationAr : home.location}</p></div><ArrowRight size={19} className="mt-1 text-[#B84E36] transition group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" /></div>
                     <p className="mt-5 text-sm leading-6 text-[#6D5A50]">{lang === 'ar' ? home.summaryAr : home.summary}</p>
-                    <div className="mt-6 flex flex-wrap gap-2 border-t border-[#EBDDD1] pt-4 text-[10px] font-semibold text-[#6D5A50]">
-                      <span className="inline-flex items-center gap-1"><Users size={13} />{home.maxGuests} {bi(lang, 'guests', 'ضيوف')}</span>
-                      <span className="inline-flex items-center gap-1"><Sparkles size={13} />{home.provenMoments.length} {bi(lang, 'proven Moments', 'لحظات موثقة')}</span>
-                      <span className="inline-flex items-center gap-1"><ShieldCheck size={13} />{bi(lang, 'Seal active', 'الختم فعال')}</span>
-                    </div>
+                    <div className="mt-6 flex flex-wrap gap-2 border-t border-[#EBDDD1] pt-4 text-[10px] font-semibold text-[#6D5A50]"><span className="inline-flex items-center gap-1"><Users size={13} />{home.maxGuests} {bi(lang, 'guests', 'ضيوف')}</span><span className="inline-flex items-center gap-1"><Sparkles size={13} />{home.provenMoments.length} {bi(lang, 'proven Moments', 'لحظات موثقة')}</span><span className="inline-flex items-center gap-1"><ShieldCheck size={13} />{bi(lang, 'Seal active', 'الختم فعال')}</span></div>
                   </div>
                 </button>
               </article>
