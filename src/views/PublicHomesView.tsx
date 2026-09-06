@@ -30,7 +30,7 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
             <p className="mt-7 max-w-2xl text-base leading-8 text-[#6D5A50]">{bi(lang, 'We do not sell square meters. Little Hut qualifies how a home actually feels: morning light, family ease, long dinners, stillness, and the moments worth travelling for.', 'نحن لا نبيع أمتاراً مربعة. ليتل هت توثق إحساس البيت فعلاً: ضوء الصباح، راحة العائلة، العشاء الطويل، الهدوء، واللحظات التي تستحق السفر من أجلها.')}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <button onClick={() => document.getElementById('homes')?.scrollIntoView({ behavior: 'smooth' })} className="button-primary">{bi(lang, 'Explore verified homes', 'استكشف البيوت الموثقة')}<ArrowRight size={15} className="rtl:rotate-180" /></button>
-              <button onClick={() => navigate('/joining')} className="button-secondary">{bi(lang, 'List & qualify a residence', 'أدرج ووثّق عقارك')}</button>
+              <button onClick={() => navigate('/list-property')} className="button-secondary">{bi(lang, 'List & qualify a residence', 'أدرج ووثّق عقارك')}</button>
             </div>
           </div>
 
@@ -57,7 +57,7 @@ export function PublicHomesView({ navigate }: { navigate: (path: string) => void
         </div>
 
         {publicHomes.length === 0 ? (
-          <div className="mt-10"><EmptyState icon="data" title="No verified Live homes yet" titleAr="لا توجد بيوت فعلية موثقة حتى الآن" description="Live remains intentionally empty until a property completes every evidence and authority gate." descriptionAr="يبقى الوضع الفعلي فارغاً عمداً حتى يكمل العقار جميع بوابات الدليل والصلاحية." actionLabel="Open Joining Little Hut" actionLabelAr="افتح مسار الانضمام" onAction={() => navigate('/joining')} /></div>
+          <div className="mt-10"><EmptyState icon="data" title="No verified Live homes yet" titleAr="لا توجد بيوت فعلية موثقة حتى الآن" description="Live remains intentionally empty until a property completes every evidence and authority gate." descriptionAr="يبقى الوضع الفعلي فارغاً عمداً حتى يكمل العقار جميع بوابات الدليل والصلاحية." actionLabel="See how residences join" actionLabelAr="شاهد كيف تنضم العقارات" onAction={() => navigate('/list-property')} /></div>
         ) : (
           <div className="mt-10 grid gap-7 lg:grid-cols-3">
             {publicHomes.map((home) => (
