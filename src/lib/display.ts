@@ -34,10 +34,15 @@ export const partnerRoleLabels: Record<PartnerRole, { en: string; ar: string }> 
   assessor: { en: 'Independent assessor', ar: 'مقيّم مستقل' }, community_authority: { en: 'Community authority', ar: 'جهة اعتماد الكمبوند' },
 };
 
+// Production Moment IDs remain stable so existing Live evidence keeps its identity.
+// The guest-facing labels follow the canonical Google AI Studio six-Moment taxonomy.
 export const momentLabels: Record<MomentKey, { en: string; ar: string }> = {
-  slow_morning: { en: 'Slow Morning', ar: 'الصباح الهادئ' }, long_table: { en: 'Long Table', ar: 'المائدة الممتدة' },
-  afternoon_drift: { en: 'Afternoon Drift', ar: 'سكون الظهيرة' }, night_swim: { en: 'Night Swim', ar: 'السباحة الليلية' },
-  fire_conversation: { en: 'Fire Conversation', ar: 'حوار حول النار' }, silent_reading: { en: 'Silent Reading', ar: 'القراءة الصامتة' },
+  slow_morning: { en: 'Slow Morning', ar: 'صباح هادئ' },
+  long_table: { en: 'Late Breakfast', ar: 'إفطار متأخر' },
+  afternoon_drift: { en: 'Barefoot Afternoon', ar: 'ظهيرة حافية القدمين' },
+  night_swim: { en: 'Family Play', ar: 'مرح عائلي' },
+  fire_conversation: { en: 'The Long Sit', ar: 'الجلسة الطويلة' },
+  silent_reading: { en: 'Under Stars', ar: 'تحت النجوم' },
 };
 
 export const label = <T extends string>(map: Record<T, { en: string; ar: string }>, key: T, lang: Language) => map[key][lang];

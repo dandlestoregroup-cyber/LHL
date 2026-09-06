@@ -1,10 +1,11 @@
 import React from 'react';
-import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, RefreshCw, RotateCcw, Route, Settings2, UserCog, UsersRound } from 'lucide-react';
+import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, RefreshCw, RotateCcw, Route, Settings2, Sparkles, UserCog, UsersRound } from 'lucide-react';
 import { useOperating } from '../context/OperatingContext';
 import { bi } from '../lib/display';
 
 const navigation = [
   { path: '/', label: 'Homes', labelAr: 'البيوت', icon: Home },
+  { path: '/moments/slow-morning', label: 'Moments', labelAr: 'اللحظات', icon: Sparkles },
   { path: '/joining', label: 'Joining Little Hut', labelAr: 'الانضمام لليتل هت', icon: Route },
   { path: '/scout', label: 'Scout', labelAr: 'الكشاف', icon: Compass },
   { path: '/owner', label: 'Owner', labelAr: 'المالك', icon: UsersRound },
@@ -46,7 +47,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
 
         <nav className="hidden items-center gap-1 xl:flex">
           {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
-            const active = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+            const active = path === '/' ? currentPath === '/' : path.startsWith('/moments/') ? currentPath.startsWith('/moments') : currentPath.startsWith(path);
             return <button key={path} onClick={() => navigate(path)} className={`nav-link ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
           })}
         </nav>
@@ -60,7 +61,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
 
       <nav className="page-shell flex gap-1 overflow-x-auto pb-3 xl:hidden">
         {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
-          const active = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+          const active = path === '/' ? currentPath === '/' : path.startsWith('/moments/') ? currentPath.startsWith('/moments') : currentPath.startsWith(path);
           return <button key={path} onClick={() => navigate(path)} className={`nav-link shrink-0 ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
         })}
       </nav>

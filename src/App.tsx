@@ -7,6 +7,7 @@ import { AcceptInviteView } from './views/AcceptInviteView';
 import { AssessmentView } from './views/AssessmentView';
 import { JoiningView } from './views/JoiningView';
 import { LiveAccessView } from './views/LiveAccessView';
+import { MomentView } from './views/MomentView';
 import { OperatorView } from './views/OperatorView';
 import { OwnerView } from './views/OwnerView';
 import { PartnerAdminView } from './views/PartnerAdminView';
@@ -64,6 +65,7 @@ function AppContent() {
     const gated = operationalGate();
     if (gated) return gated;
     if (currentPath === '/') return <PublicHomesView navigate={navigate} />;
+    if (currentPath.startsWith('/moments')) return <MomentView slug={currentPath.split('/')[2] || 'slow-morning'} navigate={navigate} />;
     if (currentPath === '/joining') return <JoiningView navigate={navigate} />;
     if (currentPath === '/partners') return <PartnerAdminView />;
     if (currentPath === '/scout') return <ScoutView />;
@@ -83,7 +85,7 @@ function AppContent() {
       <footer className="mt-12 border-t border-clay-200 bg-ink-950 text-white">
         <div className="page-shell grid gap-10 py-14 md:grid-cols-[1.3fr_.7fr]">
           <div><span className="font-serif text-3xl">Little Hut</span><p className="mt-3 max-w-xl text-sm leading-7 text-white/60">{bi(lang, 'A proof-led operating system for sourcing distinctive homes and carrying one guest enquiry through every booking gate.', 'نظام تشغيل قائم على التوثيق لاكتشاف البيوت المميزة ونقل طلب الضيف الواحد عبر كل بوابات الحجز.')}</p></div>
-          <div className="md:text-end"><span className={`mode-chip ${mode === 'demo' ? 'mode-chip-demo' : 'mode-chip-live'}`}>{mode.toUpperCase()}</span><p className="mt-3 text-xs text-white/55">{bi(lang, dataset.label, dataset.labelAr)}</p><p className="mt-2 text-[10px] uppercase tracking-[.14em] text-white/35">{bi(lang, 'GitHub operating build · Base44 reference only', 'نسخة تشغيل GitHub · Base44 مرجع فقط')}</p></div>
+          <div className="md:text-end"><span className={`mode-chip ${mode === 'demo' ? 'mode-chip-demo' : 'mode-chip-live'}`}>{mode.toUpperCase()}</span><p className="mt-3 text-xs text-white/55">{bi(lang, dataset.label, dataset.labelAr)}</p><p className="mt-2 text-[10px] uppercase tracking-[.14em] text-white/35">{bi(lang, 'GitHub production · Google AI Studio canonical product source', 'إنتاج GitHub · Google AI Studio هو المصدر المرجعي للمنتج')}</p></div>
         </div>
       </footer>
       <div className={`pointer-events-none fixed bottom-4 end-4 z-40 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.16em] shadow-lg ${mode === 'demo' ? 'bg-terracotta-700 text-white' : 'bg-sage-800 text-white'}`}>{mode === 'demo' ? bi(lang, 'DEMO · SYNTHETIC', 'تجريبي · افتراضي') : bi(lang, 'LIVE · SERVER TRUTH', 'فعلي · حقائق الخادم')}</div>
