@@ -1,6 +1,6 @@
 {
   "name": "Little Hut Vacations",
-  "description": "Mediterranean and Red Sea hospitality platform with verified homes, proprietary moments, authority matrix governance, authentic Arabic localization, and strictly separated Demo and Live operations.",
+  "description": "Mediterranean and Red Sea hospitality platform with verified homes, proprietary moments, Google Calendar and Gmail dynamic communications powerhouse, authority matrix governance, and authentic Arabic localization.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

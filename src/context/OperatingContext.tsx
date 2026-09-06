@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { DataMode, Enquiry, EnquiryStage, Language, MomentKey, OperatingDataset, Partner, Property } from '../types';
+import type { DataMode, Enquiry, EnquiryStage, Language, MomentKey, OperatingDataset, OwnerDecision, Partner, Property } from '../types';
 import { OperatingRepository } from '../lib/operating-repository';
 import { canConfirmStay, evaluateRateFloor, evaluateStayDates, isHoldActive } from '../lib/lh-core';
 import { automationPayload, publishAutomationEvent } from '../lib/automation';
@@ -61,6 +61,11 @@ interface OperatingContextValue {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   bootstrapScout: (input: BootstrapScoutInput) => Promise<Partner>;
+  blockPropertyNights: (propertyId: string, startDate: string, endDate: string, note?: string) => Promise<void>;
+  openPropertyNights: (propertyId: string, startDate: string, endDate: string, note?: string) => Promise<void>;
+  recordBpsAppeal: (propertyId: string, appealText: string, submittedBy?: string) => Promise<void>;
+  sendGuestGuidebook: (enquiryId: string, note?: string) => Promise<void>;
+  broadcastMomentMarketing: (propertyId: string, momentKey: string, campaignTitle: string) => Promise<void>;
 }
 
 const OperatingContext = createContext<OperatingContextValue | null>(null);
@@ -311,6 +316,87 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     return result.partner;
   };
 
+  const blockPropertyNights = async (propertyId: string, startDate: string, endDate: string, note?: string) => {
+    const now = new Date().toISOString();
+    const newDecision: OwnerDecision = {
+      id: `decision-block-${Date.now()}`,
+      dataMode: mode,
+      synthetic: mode === 'demo',
+      createdAt: now,
+      updatedAt: now,
+      propertyId,
+      type: 'calendar_delegation',
+      decision: 'defer',
+      decidedAt: now,
+      notes: note || `Owner stay block: ${startDate} to ${endDate}`,
+    } as any;
+    const updatedDecisions = [newDecision, ...(dataset.ownerDecisions || [])];
+    commitDemo({ ...dataset, asOf: now, ownerDecisions: updatedDecisions });
+    publishAutomationEvent('owner_decision.submitted' as any, mode, { propertyId, action: 'block_nights', startDate, endDate });
+  };
+
+  const openPropertyNights = async (propertyId: string, startDate: string, endDate: string, note?: string) => {
+    const now = new Date().toISOString();
+    const newDecision: OwnerDecision = {
+      id: `decision-open-${Date.now()}`,
+      dataMode: mode,
+      synthetic: mode === 'demo',
+      createdAt: now,
+      updatedAt: now,
+      propertyId,
+      type: 'calendar_delegation',
+      decision: 'go',
+      decidedAt: now,
+      notes: note || `Open vacancy declared: ${startDate} to ${endDate}`,
+    } as any;
+    const updatedDecisions = [newDecision, ...(dataset.ownerDecisions || [])];
+    commitDemo({ ...dataset, asOf: now, ownerDecisions: updatedDecisions });
+    publishAutomationEvent('owner_decision.submitted' as any, mode, { propertyId, action: 'open_nights', startDate, endDate });
+  };
+
+  const recordBpsAppeal = async (propertyId: string, appealText: string, submittedBy?: string) => {
+    const now = new Date().toISOString();
+    const newDecision: OwnerDecision = {
+      id: `decision-bps-appeal-${Date.now()}`,
+      dataMode: mode,
+      synthetic: mode === 'demo',
+      createdAt: now,
+      updatedAt: now,
+      propertyId,
+      type: 'bps_appeal',
+      decision: 'defer',
+      decidedAt: now,
+      notes: appealText,
+    } as any;
+    const updatedDecisions = [newDecision, ...(dataset.ownerDecisions || [])];
+    commitDemo({ ...dataset, asOf: now, ownerDecisions: updatedDecisions });
+    publishAutomationEvent('property.assessment_appealed' as any, mode, { propertyId, appealText, submittedBy: submittedBy || 'owner' });
+  };
+
+  const sendGuestGuidebook = async (enquiryId: string, note?: string) => {
+    const target = dataset.enquiries.find((item) => item.id === enquiryId);
+    if (!target) return;
+    const now = new Date().toISOString();
+    const updated: Enquiry = {
+      ...target,
+      updatedAt: now,
+      timeline: [
+        ...target.timeline,
+        { stage: target.stage, at: now, note: note || 'Pre-arrival guest guidebook dispatched via Gmail.', byPartnerId: 'system' },
+      ],
+    };
+    commitDemo({
+      ...dataset,
+      asOf: now,
+      enquiries: dataset.enquiries.map((item) => (item.id === enquiryId ? updated : item)),
+    });
+    publishAutomationEvent('enquiry.guidebook_sent' as any, mode, { enquiryId });
+  };
+
+  const broadcastMomentMarketing = async (propertyId: string, momentKey: string, campaignTitle: string) => {
+    publishAutomationEvent('moment.campaign_launched' as any, mode, { propertyId, momentKey, campaignTitle });
+  };
+
   const resetActiveDataset = async () => {
     if (mode === 'live') {
       await refreshLiveDataset();
@@ -326,6 +412,7 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     getPartnerName: (id?: string) => dataset.partners.find((partner) => partner.id === id)?.[lang === 'ar' ? 'nameAr' : 'name'] || (lang === 'ar' ? 'غير مسند' : 'Unassigned'),
     createEnquiry, executeNextEnquiryAction, recordCommunityApproval, createScoutLead, resetActiveDataset, refreshLiveDataset,
     auth, authLoading, liveLoading, liveError, signIn, signUp, signOut, bootstrapScout,
+    blockPropertyNights, openPropertyNights, recordBpsAppeal, sendGuestGuidebook, broadcastMomentMarketing,
   }), [mode, lang, dataset, auth, authLoading, liveLoading, liveError]);
 
   return <OperatingContext.Provider value={value}>{children}</OperatingContext.Provider>;

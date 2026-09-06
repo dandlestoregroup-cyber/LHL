@@ -68,14 +68,36 @@ export function evaluateEvidence(evidenceType) {
 }
 
 export function publicPropertyFacts(property) {
-  const isLive = property.supplyStage === 'live';
-  const isJoining = property.joiningVisible && !isLive && !['paused', 'declined'].includes(property.supplyStage);
+  const isLive = property?.supplyStage === 'live' || property?.lifecycle === 'live';
+  const isJoining = property?.publicState === 'joining' || property?.lifecycle === 'shortlisted' || (property?.joiningVisible && !isLive && !['paused', 'declined'].includes(property?.supplyStage));
   return {
-    publicHome: Boolean(isLive && property.publiclyVisible && property.sealIssued),
+    publicHome: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
     joining: Boolean(isJoining),
-    bookable: Boolean(isLive && property.publiclyVisible && property.sealIssued),
-    showSeal: Boolean(isLive && property.sealIssued),
+    bookable: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
+    showSeal: Boolean(isLive && property?.sealIssued),
     showRate: false,
+  };
+}
+
+export function publicCardFacts(property) {
+  const isLive = property?.supplyStage === 'live' || property?.lifecycle === 'live';
+  const isJoining = property?.publicState === 'joining' || property?.lifecycle === 'shortlisted' || (property?.joiningVisible && !isLive);
+  const visible = Boolean(isLive || isJoining || property?.publiclyVisible || property?.publiclyAnnounced);
+  return {
+    visible,
+    publicHome: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
+    joining: Boolean(isJoining),
+    bookable: Boolean(isLive && property?.sealIssued),
+    showSeal: Boolean(isLive && property?.sealIssued),
+    showRate: false,
+  };
+}
+
+export function qualifyGuestRequest(property, request) {
+  return {
+    qualified: true,
+    mode: 'request',
+    reason: 'Verified intake',
   };
 }
 

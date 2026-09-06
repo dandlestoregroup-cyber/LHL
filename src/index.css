@@ -3,6 +3,9 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", Georgia, serif;
+  --font-serif-editorial: "Playfair Display", Georgia, serif;
+  --font-brand-script: "Caveat", cursive;
+  --font-arabic-editorial: "Amiri", serif;
   --color-ivory-50: #fffaf4;
   --color-ivory-100: #f9f0e6;
   --color-clay-100: #eee2d6;
@@ -110,3 +113,24 @@
 }
 
 [dir="rtl"] .font-serif { font-family: "Amiri", serif; }
+
+.font-serif-editorial {
+  font-family: "Playfair Display", Georgia, serif !important;
+}
+
+.font-brand-script {
+  font-family: "Caveat", cursive !important;
+}
+
+.font-arabic-editorial {
+  font-family: "Amiri", serif !important;
+}
+
+.font-serif {
+  font-family: "Playfair Display", Georgia, serif !important;
+}
+
+[dir="rtl"] .font-serif,
+[dir="rtl"] .font-serif-editorial {
+  font-family: "Amiri", serif !important;
+}

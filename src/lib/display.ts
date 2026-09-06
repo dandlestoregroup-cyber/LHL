@@ -19,6 +19,10 @@ export const supplyLabels: Record<SupplyStage, { en: string; ar: string }> = {
   live: { en: 'Live', ar: 'متاح فعلياً' },
   paused: { en: 'Paused', ar: 'متوقف' },
   declined: { en: 'Declined', ar: 'غير مستمر' },
+  submitted: { en: 'Submitted', ar: 'مقدم' },
+  checked: { en: 'Checked', ar: 'تم الفحص' },
+  prepared: { en: 'Prepared', ar: 'جاهز' },
+  signed: { en: 'Signed', ar: 'موقع' },
 };
 
 export const enquiryLabels: Record<EnquiryStage, { en: string; ar: string }> = {

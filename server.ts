@@ -48,7 +48,7 @@ import {
 } from './src/server/session-auth';
 
 const app = express();
-const port = Number(process.env.PORT || 3000);
+const port = 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const configuredLimit = Number(process.env.AUTOMATION_RATE_LIMIT || 30);
 const automationRateLimit = Number.isFinite(configuredLimit) && configuredLimit > 0 ? Math.floor(configuredLimit) : 30;
