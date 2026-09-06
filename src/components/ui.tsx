@@ -6,16 +6,21 @@ import { bi } from '../lib/display';
 export function PageHeader({ eyebrow, eyebrowAr, title, titleAr, description, descriptionAr, action }: {
   eyebrow: string; eyebrowAr: string; title: string; titleAr: string; description: string; descriptionAr: string; action?: React.ReactNode;
 }) {
-  const { lang } = useOperating();
+  const { lang, mode } = useOperating();
   return (
-    <div className="page-shell pt-12 md:pt-16">
-      <div className="flex flex-col gap-6 border-b border-clay-200 pb-8 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-3xl">
-          <span className="eyebrow">{bi(lang, eyebrow, eyebrowAr)}</span>
-          <h1 className="display-title mt-3">{bi(lang, title, titleAr)}</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-600">{bi(lang, description, descriptionAr)}</p>
+    <div className="border-b border-[#EBDDD1] bg-[radial-gradient(circle_at_top_right,rgba(184,78,54,.08),transparent_32%),linear-gradient(180deg,#FAF5EE_0%,#FBF7F2_100%)]">
+      <div className="page-shell py-12 md:py-16">
+        <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[10px] font-black uppercase tracking-[.22em] text-[#B84E36]">{bi(lang, eyebrow, eyebrowAr)}</span>
+              <span className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[.15em] ${mode === 'demo' ? 'border-[#C8A15A]/40 bg-[#C8A15A]/10 text-[#9A762F]' : 'border-[#B84E36]/30 bg-[#B84E36]/10 text-[#B84E36]'}`}>{mode === 'demo' ? bi(lang, 'Demo workspace', 'مساحة تجريبية') : bi(lang, 'Live authority', 'صلاحية فعلية')}</span>
+            </div>
+            <h1 className="mt-4 max-w-3xl font-serif text-4xl leading-[1.02] tracking-[-.035em] text-[#2A201C] md:text-5xl">{bi(lang, title, titleAr)}</h1>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-[#6D5A50]">{bi(lang, description, descriptionAr)}</p>
+          </div>
+          {action && <div className="shrink-0">{action}</div>}
         </div>
-        {action}
       </div>
     </div>
   );
