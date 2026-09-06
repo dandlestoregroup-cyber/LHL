@@ -1,16 +1,16 @@
 import React from 'react';
-import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, RefreshCw, RotateCcw, Route, Settings2, Sparkles, UserCog, UsersRound } from 'lucide-react';
+import { Activity, ClipboardCheck, Compass, Globe2, Home, LogOut, Plus, RefreshCw, RotateCcw, Settings2, Sparkles, UserCog, UsersRound } from 'lucide-react';
 import { useOperating } from '../context/OperatingContext';
 import { bi } from '../lib/display';
 
 const navigation = [
   { path: '/', label: 'Homes', labelAr: 'البيوت', icon: Home },
   { path: '/moments/slow-morning', label: 'Moments', labelAr: 'اللحظات', icon: Sparkles },
-  { path: '/joining', label: 'Joining Little Hut', labelAr: 'الانضمام لليتل هت', icon: Route },
+  { path: '/list-property', label: 'List Residence', labelAr: 'أدرج عقارك', icon: Plus },
   { path: '/scout', label: 'Scout', labelAr: 'الكشاف', icon: Compass },
   { path: '/owner', label: 'Owner', labelAr: 'المالك', icon: UsersRound },
   { path: '/operator', label: 'Operator', labelAr: 'المشغل', icon: Activity },
-  { path: '/assessment', label: 'Assessment', labelAr: 'التقييم المستقل', icon: ClipboardCheck },
+  { path: '/assessment', label: 'Assurance', labelAr: 'التوثيق المستقل', icon: ClipboardCheck },
   { path: '/pipeline', label: 'Booking pipeline', labelAr: 'مسار الحجز', icon: Settings2 },
 ];
 
@@ -20,6 +20,13 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
   const visibleNavigation = mode === 'live' && auth.partner?.platformAdmin
     ? [...navigation, { path: '/partners', label: 'Partners', labelAr: 'الشركاء', icon: UserCog }]
     : navigation;
+
+  const isActive = (path: string) => {
+    if (path === '/') return currentPath === '/';
+    if (path.startsWith('/moments/')) return currentPath.startsWith('/moments');
+    if (path === '/list-property') return currentPath === '/list-property' || currentPath === '/onboard' || currentPath === '/joining';
+    return currentPath.startsWith(path);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#EBDDD1] bg-[#FAF5EE]/95 backdrop-blur-xl">
@@ -46,10 +53,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
         </button>
 
         <nav className="hidden items-center gap-1 xl:flex">
-          {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
-            const active = path === '/' ? currentPath === '/' : path.startsWith('/moments/') ? currentPath.startsWith('/moments') : currentPath.startsWith(path);
-            return <button key={path} onClick={() => navigate(path)} className={`nav-link ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
-          })}
+          {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => <button key={path} onClick={() => navigate(path)} className={`nav-link ${isActive(path) ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>)}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -60,10 +64,7 @@ export function Navbar({ currentPath, navigate }: { currentPath: string; navigat
       </div>
 
       <nav className="page-shell flex gap-1 overflow-x-auto pb-3 xl:hidden">
-        {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => {
-          const active = path === '/' ? currentPath === '/' : path.startsWith('/moments/') ? currentPath.startsWith('/moments') : currentPath.startsWith(path);
-          return <button key={path} onClick={() => navigate(path)} className={`nav-link shrink-0 ${active ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>;
-        })}
+        {visibleNavigation.map(({ path, label, labelAr, icon: Icon }) => <button key={path} onClick={() => navigate(path)} className={`nav-link shrink-0 ${isActive(path) ? 'nav-link-active' : ''}`}><Icon size={13} />{bi(lang, label, labelAr)}</button>)}
       </nav>
 
       {showReset && (

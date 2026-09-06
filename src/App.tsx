@@ -8,6 +8,7 @@ import { AssessmentView } from './views/AssessmentView';
 import { JoiningView } from './views/JoiningView';
 import { LiveAccessView } from './views/LiveAccessView';
 import { MomentView } from './views/MomentView';
+import { OnboardingView } from './views/OnboardingView';
 import { OperatorView } from './views/OperatorView';
 import { OwnerView } from './views/OwnerView';
 import { PartnerAdminView } from './views/PartnerAdminView';
@@ -66,6 +67,7 @@ function AppContent() {
     if (gated) return gated;
     if (currentPath === '/') return <PublicHomesView navigate={navigate} />;
     if (currentPath.startsWith('/moments')) return <MomentView slug={currentPath.split('/')[2] || 'slow-morning'} navigate={navigate} />;
+    if (currentPath === '/list-property' || currentPath === '/onboard') return <OnboardingView navigate={navigate} />;
     if (currentPath === '/joining') return <JoiningView navigate={navigate} />;
     if (currentPath === '/partners') return <PartnerAdminView />;
     if (currentPath === '/scout') return <ScoutView />;
