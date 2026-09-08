@@ -30,7 +30,7 @@ export type BusinessAction =
   | 'record_community_approval'
   | 'confirm_stay';
 
-export type UserRole = 'guest' | 'owner' | 'operator' | 'bps' | 'scout';
+export type UserRole = 'guest' | 'owner' | 'operator' | 'bps' | 'scout' | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -68,10 +68,22 @@ export type MomentKey =
   | 'fire_conversation'
   | 'silent_reading';
 
+export type VisualMomentKey =
+  | 'slow_morning'
+  | 'barefoot_afternoon'
+  | 'golden_dinner'
+  | 'quiet_reset'
+  | 'sunset_swim'
+  | 'fireside_night';
+
 export type CanonicalMomentId =
   | 'slow_morning'
-  | 'late_breakfast'
   | 'barefoot_afternoon'
+  | 'golden_dinner'
+  | 'quiet_reset'
+  | 'sunset_swim'
+  | 'fireside_night'
+  | 'late_breakfast'
   | 'family_play'
   | 'the_long_sit'
   | 'under_stars';

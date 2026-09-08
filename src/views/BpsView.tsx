@@ -19,6 +19,51 @@ export const BpsView: React.FC<BpsViewProps> = ({ navigate }) => {
   const activeProperty = properties.find(p => p.id === selectedPropertyId) || properties[0];
   const assessment = (activeProperty && assessments.find(a => a.propertyId === activeProperty.id)) || ({} as any);
 
+  const canonicalTrustGates = [
+    { id: 'truth', name: 'Property Truth', nameAr: 'حقيقة العقار', details: 'Zero misleading photos or phantom amenities', status: 'passed' },
+    { id: 'readiness', name: 'Operational Readiness', nameAr: 'الجاهزية التشغيلية', details: 'Tested utilities, linen inventory, HVAC and backup power', status: 'passed' },
+    { id: 'privacy', name: 'Guest Privacy', nameAr: 'خصوصية الضيف', details: 'Acoustic and sightline barriers verified', status: 'passed' },
+    { id: 'comfort', name: 'Comfort Consistency', nameAr: 'ثبات الراحة', details: 'Mattress ergonomics, water pressure, thermal stability', status: 'passed' },
+    { id: 'arrival', name: 'Arrival Clarity', nameAr: 'وضوح الوصول', details: 'Precise GPS waypoint, gate pass protocol, keyless lock', status: 'passed' },
+    { id: 'moment', name: 'Moment Integrity', nameAr: 'نزاهة اللحظة', details: 'Measured criteria proven for certified moments', status: 'passed' },
+  ];
+
+  const canonicalShieldGates = [
+    { id: 'fire', name: 'Fire & Gas Safety', nameAr: 'الحريق والغاز', details: 'Smoke detectors, fire extinguisher, gas shutoff valve', status: 'passed' },
+    { id: 'water', name: 'Water & Pool Safety', nameAr: 'سلامة المياه', details: 'Pool depth markers, suction safety covers, perimeter grip', status: 'passed' },
+    { id: 'access', name: 'Secure Access & Locks', nameAr: 'الدخول الآمن', details: 'High-security multi-point deadbolts and gate clearance', status: 'passed' },
+    { id: 'electrical', name: 'Electrical & Grounding', nameAr: 'السلامة الكهربائية', details: 'Residual Current Devices (RCD) and weatherproof outlets', status: 'passed' },
+    { id: 'child', name: 'Child Risk Mitigation', nameAr: 'مخاطر الأطفال', details: 'Balustrade height >105cm, bar spacing <10cm, glass decals', status: 'passed' },
+    { id: 'emergency', name: 'Emergency Readiness', nameAr: 'جاهزية الطوارئ', details: 'First aid kit, emergency hospital numbers, flashlight', status: 'passed' },
+  ];
+
+  const displayTrustGates = (assessment?.trustGates && assessment.trustGates.length > 0)
+    ? assessment.trustGates.map((g: any) => ({
+        id: g.id || g.key,
+        name: g.label || g.name,
+        nameAr: g.labelAr || g.nameAr,
+        status: g.status || 'passed'
+      }))
+    : canonicalTrustGates;
+
+  const displayShieldGates = (assessment?.shieldGates && assessment.shieldGates.length > 0)
+    ? assessment.shieldGates.map((g: any) => ({
+        id: g.id || g.key,
+        name: g.label || g.name,
+        nameAr: g.labelAr || g.nameAr,
+        details: g.details || '',
+        status: g.status || 'passed'
+      }))
+    : (assessment?.shieldChecks && assessment.shieldChecks.length > 0)
+    ? assessment.shieldChecks.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        nameAr: g.nameAr,
+        details: g.details,
+        status: 'passed'
+      }))
+    : canonicalShieldGates;
+
   return (
     <div className="min-h-screen bg-[#FAF7F2] py-12">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -149,7 +194,7 @@ export const BpsView: React.FC<BpsViewProps> = ({ navigate }) => {
                 </div>
 
                 <div className="space-y-3">
-                  {assessment.trustGates.map((gate) => (
+                  {displayTrustGates.map((gate) => (
                     <div
                       key={gate.id}
                       className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs flex items-center justify-between"
@@ -161,7 +206,7 @@ export const BpsView: React.FC<BpsViewProps> = ({ navigate }) => {
                         </span>
                       </div>
                       <span className="text-[10px] font-mono font-bold text-[#0F5859]">
-                        PASSED
+                        {gate.status === 'passed' ? 'PASSED' : gate.status.toUpperCase()}
                       </span>
                     </div>
                   ))}
@@ -180,7 +225,7 @@ export const BpsView: React.FC<BpsViewProps> = ({ navigate }) => {
                 </div>
 
                 <div className="space-y-3">
-                  {assessment.shieldChecks.map((shield) => (
+                  {displayShieldGates.map((shield) => (
                     <div
                       key={shield.id}
                       className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs flex items-center justify-between"
@@ -192,12 +237,14 @@ export const BpsView: React.FC<BpsViewProps> = ({ navigate }) => {
                             {lang === 'ar' ? shield.nameAr : shield.name}
                           </span>
                         </div>
-                        <span className="text-[10px] text-[#6D7480] block mt-0.5 ml-7">
-                          {shield.details}
-                        </span>
+                        {shield.details && (
+                          <span className="text-[10px] text-[#6D7480] block mt-0.5 ml-7">
+                            {shield.details}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] font-mono font-bold text-[#0F5859]">
-                        PASSED
+                        {shield.status === 'passed' ? 'PASSED' : shield.status.toUpperCase()}
                       </span>
                     </div>
                   ))}

@@ -1,13 +1,20 @@
-import React from 'react';
-import { ArrowLeft, ArrowRight, BadgeCheck, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, ArrowRight, BadgeCheck, ShieldCheck, Camera } from 'lucide-react';
 import { useOperating } from '../context/OperatingContext';
+import { useAuth } from '../context/AuthContext';
 import { bi } from '../lib/display';
-import { signatureMomentBySlug, signatureMoments } from '../data/signature-moments';
+import { useSignatureMomentsWithCustom } from '../utils/momentsStorage';
+import { MomentsUploadStudioModal } from '../components/MomentsUploadStudioModal';
 
 export function MomentView({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
   const { lang, publicHomes } = useOperating();
-  const active = signatureMomentBySlug.get(slug) || signatureMoments[0];
+  const { user } = useAuth();
+  const { moments } = useSignatureMomentsWithCustom();
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
+
+  const active = moments.find((m) => m.slug === slug) || moments[0];
   const matchingHomes = publicHomes.filter((home) => home.provenMoments.some((moment) => moment.key === active.key));
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.role === 'operator'));
 
   return (
     <div className="bg-[#FAF5EE] text-[#2A201C]">
@@ -15,10 +22,22 @@ export function MomentView({ slug, navigate }: { slug: string; navigate: (path: 
         <div className="page-shell py-10 md:py-16">
           <button onClick={() => navigate('/')} className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.18em] text-[#6D5A50] transition hover:text-[#B84E36]"><ArrowLeft size={15} className="rtl:rotate-180" />{bi(lang, 'Back to Moments', 'العودة للحظات')}</button>
 
-          <figure className="mt-8 overflow-hidden rounded-[2rem] bg-[#EBDDD1] shadow-[0_28px_80px_rgba(80,52,39,.12)]">
+          <figure className="relative mt-8 overflow-hidden rounded-[2rem] bg-[#EBDDD1] shadow-[0_28px_80px_rgba(80,52,39,.12)] group">
             <div className="aspect-[2/1] overflow-hidden">
               <img src={active.image} alt={bi(lang, active.imageAlt, active.imageAltAr)} style={{ objectPosition: active.imagePosition }} className="h-full w-full object-cover" />
             </div>
+
+            {isAdmin && (
+              <div className="absolute top-4 end-4 z-10">
+                <button
+                  onClick={() => setIsStudioOpen(true)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-[#2A201C] text-xs font-bold shadow-lg backdrop-blur-md transition-all border border-[#EBDDD1] cursor-pointer"
+                >
+                  <Camera size={14} className="text-[#B84E36]" />
+                  <span>{lang === 'ar' ? 'تخصيص / حذف صورة اللحظة' : 'Manage / Remove Photo'}</span>
+                </button>
+              </div>
+            )}
           </figure>
 
           <div className="mt-7 grid gap-9 lg:grid-cols-[1.05fr_.95fr] lg:items-start">
@@ -57,7 +76,7 @@ export function MomentView({ slug, navigate }: { slug: string; navigate: (path: 
         </div>
 
         <div className="mt-8 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
-          {signatureMoments.filter((moment) => moment.slug !== active.slug).map((moment) => (
+          {moments.filter((moment) => moment.slug !== active.slug).map((moment) => (
             <button key={moment.slug} onClick={() => navigate(`/moments/${moment.slug}`)} className="group text-start">
               <div className="aspect-[2/1] overflow-hidden rounded-[1.35rem] bg-[#EBDDD1]">
                 <img src={moment.image} alt={bi(lang, moment.imageAlt, moment.imageAltAr)} style={{ objectPosition: moment.imagePosition }} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" />
@@ -97,6 +116,15 @@ export function MomentView({ slug, navigate }: { slug: string; navigate: (path: 
           )}
         </div>
       </section>
+
+      {isAdmin && isStudioOpen && (
+        <MomentsUploadStudioModal
+          isOpen={isStudioOpen}
+          onClose={() => setIsStudioOpen(false)}
+          lang={lang}
+          initialCardId={`card-${active.sequence}`}
+        />
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
 import { UserRole } from '../types';
-import { Globe, Sparkles, Phone, Mail } from 'lucide-react';
+import { Globe, Sparkles, Phone, Mail, ShieldCheck } from 'lucide-react';
 
 interface NavbarProps {
   currentPath: string;
@@ -18,7 +18,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
     owner: { en: 'Owner', ar: 'مالك', desc: 'Visibility' },
     operator: { en: 'Operator', ar: 'مشغل', desc: 'Execution' },
     bps: { en: 'BPS Officer', ar: 'مدقق BPS', desc: 'Assurance' },
-    scout: { en: 'Scout', ar: 'مستكشف', desc: 'Sourcing' }
+    scout: { en: 'Scout', ar: 'مستكشف', desc: 'Sourcing' },
+    admin: { en: 'Admin', ar: 'مدير النظام', desc: 'Full Control' }
   };
 
   return (
@@ -78,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             </a>
 
             <div className="hidden sm:inline-flex items-center rounded-sm bg-[#1D1613] p-0.5 border border-white/10 text-[10px]">
-              {(['guest', 'owner', 'operator', 'bps', 'scout'] as UserRole[]).map((r) => {
+              {(['guest', 'owner', 'operator', 'bps', 'scout', 'admin'] as UserRole[]).map((r) => {
                 const isActive = user.role === r;
                 return (
                   <button
@@ -86,21 +87,27 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
                     id={`role-btn-${r}`}
                     onClick={() => {
                       setUserRole(r);
-                      if (r === 'owner') navigate('/owner');
+                      if (r === 'admin') navigate('/admin');
+                      else if (r === 'owner') navigate('/owner');
                       else if (r === 'operator') navigate('/operator');
                       else if (r === 'bps') navigate('/bps');
                       else if (r === 'scout') navigate('/scout');
-                      else if (r === 'guest' && (currentPath === '/owner' || currentPath === '/operator' || currentPath === '/bps' || currentPath === '/scout')) {
+                      else if (r === 'guest' && (currentPath === '/admin' || currentPath === '/owner' || currentPath === '/operator' || currentPath === '/bps' || currentPath === '/scout')) {
                         navigate('/');
                       }
                     }}
-                    className={`px-2 py-0.5 rounded-xs transition-all font-medium whitespace-nowrap cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-xs transition-all font-medium whitespace-nowrap cursor-pointer flex items-center gap-1 ${
                       isActive
-                        ? 'bg-[#B84E36] text-white font-bold shadow-xs'
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                        ? r === 'admin'
+                          ? 'bg-[#C8A15A] text-[#1D1613] font-bold shadow-xs'
+                          : 'bg-[#B84E36] text-white font-bold shadow-xs'
+                        : r === 'admin'
+                          ? 'text-[#C8A15A] hover:text-white hover:bg-white/10'
+                          : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    {lang === 'ar' ? roleLabels[r].ar : roleLabels[r].en}
+                    {r === 'admin' && <ShieldCheck className="w-2.5 h-2.5 text-current" />}
+                    <span>{lang === 'ar' ? roleLabels[r].ar : roleLabels[r].en}</span>
                   </button>
                 );
               })}
@@ -243,6 +250,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             <Mail className="w-3.5 h-3.5 text-[#B84E36]" />
             <span>{lang === 'ar' ? 'المراسلات (Gmail)' : 'Communications'}</span>
           </button>
+
+          {user.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className={`inline-flex items-center gap-1.5 transition-colors pb-1 border-b-2 cursor-pointer font-bold ${
+                currentPath === '/admin' ? 'border-[#C8A15A] text-[#C8A15A]' : 'border-transparent text-[#97732F] hover:text-[#B84E36]'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#C8A15A]" />
+              <span>{lang === 'ar' ? 'لوحة الإدارة' : 'Admin Console'}</span>
+              <span className="px-1 py-0.2 bg-[#FAF0EB] text-[#B84E36] text-[9px] font-mono font-bold rounded">
+                HQ
+              </span>
+            </button>
+          )}
         </nav>
 
         {/* Right CTA / Action */}
@@ -324,6 +346,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
           >
             {lang === 'ar' ? 'المراسلات (Gmail)' : 'Gmail Comm'}
           </button>
+          {user.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className={`whitespace-nowrap pb-0.5 border-b-2 transition-colors cursor-pointer font-bold ${
+                currentPath === '/admin' ? 'border-[#C8A15A] text-[#C8A15A]' : 'border-transparent text-[#97732F]'
+              }`}
+            >
+              {lang === 'ar' ? 'لوحة الإدارة' : 'Admin'}
+            </button>
+          )}
           <button
             onClick={() => navigate('/list-property')}
             className="whitespace-nowrap text-[#B84E36] font-bold px-2 py-0.5 bg-[#FAF0EB] rounded-xs border border-[#EBDDD1] cursor-pointer"

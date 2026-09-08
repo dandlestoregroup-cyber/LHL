@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BRAND_IDENTITY_CARDS, BrandVisualCard } from '../data/brandIdentityCards';
+import { signatureMoments, SignatureMoment } from '../data/signature-moments';
 
 const STORAGE_KEY = 'lh_custom_moments_imagery_v1';
 
@@ -40,17 +41,59 @@ export function updateCardImage(cardOrMomentId: string, imageUrl: string): void 
   saveCustomImagery(current);
 }
 
+const MOMENT_CORRELATIONS: Record<string, string[]> = {
+  'card-01': ['card-01', '01', 'slow_morning', 'slow-morning'],
+  '01': ['card-01', '01', 'slow_morning', 'slow-morning'],
+  'slow_morning': ['card-01', '01', 'slow_morning', 'slow-morning'],
+  'slow-morning': ['card-01', '01', 'slow_morning', 'slow-morning'],
+
+  'card-02': ['card-02', '02', 'long_table', 'late-breakfast'],
+  '02': ['card-02', '02', 'long_table', 'late-breakfast'],
+  'long_table': ['card-02', '02', 'long_table', 'late-breakfast'],
+  'late-breakfast': ['card-02', '02', 'long_table', 'late-breakfast'],
+
+  'card-03': ['card-03', '03', 'afternoon_drift', 'barefoot-afternoon'],
+  '03': ['card-03', '03', 'afternoon_drift', 'barefoot-afternoon'],
+  'afternoon_drift': ['card-03', '03', 'afternoon_drift', 'barefoot-afternoon'],
+  'barefoot-afternoon': ['card-03', '03', 'afternoon_drift', 'barefoot-afternoon'],
+
+  'card-04': ['card-04', '04', 'night_swim', 'family-play'],
+  '04': ['card-04', '04', 'night_swim', 'family-play'],
+  'night_swim': ['card-04', '04', 'night_swim', 'family-play'],
+  'family-play': ['card-04', '04', 'night_swim', 'family-play'],
+
+  'card-05': ['card-05', '05', 'fire_conversation', 'the-long-sit'],
+  '05': ['card-05', '05', 'fire_conversation', 'the-long-sit'],
+  'fire_conversation': ['card-05', '05', 'fire_conversation', 'the-long-sit'],
+  'the-long-sit': ['card-05', '05', 'fire_conversation', 'the-long-sit'],
+
+  'card-06': ['card-06', '06', 'silent_reading', 'under-stars'],
+  '06': ['card-06', '06', 'silent_reading', 'under-stars'],
+  'silent_reading': ['card-06', '06', 'silent_reading', 'under-stars'],
+  'under-stars': ['card-06', '06', 'silent_reading', 'under-stars'],
+};
+
 /**
- * Remove custom override for a specific card
+ * Remove custom override for a specific card or moment identifier
  */
-export function resetCardImage(cardOrMomentId: string): void {
+export function removeMomentImage(cardOrMomentId: string): void {
   const current = getStoredCustomImagery();
-  delete current[cardOrMomentId];
+  const keysToRemove = MOMENT_CORRELATIONS[cardOrMomentId] || [cardOrMomentId];
+  keysToRemove.forEach((key) => {
+    delete current[key];
+  });
   saveCustomImagery(current);
 }
 
 /**
- * Reset all cards to default
+ * Remove custom override for a specific card (alias for removeMomentImage)
+ */
+export function resetCardImage(cardOrMomentId: string): void {
+  removeMomentImage(cardOrMomentId);
+}
+
+/**
+ * Reset all cards to default (alias for removeAllMomentsImagery)
  */
 export function resetAllMomentsImagery(): void {
   try {
@@ -59,6 +102,10 @@ export function resetAllMomentsImagery(): void {
   } catch (err) {
     console.error('Failed to clear custom imagery:', err);
   }
+}
+
+export function removeAllMomentsImagery(): void {
+  resetAllMomentsImagery();
 }
 
 /**
@@ -144,6 +191,33 @@ export function useMomentsImagery() {
     hasAnyCustom,
     updateCardImage,
     resetCardImage,
-    resetAllMomentsImagery
+    removeMomentImage,
+    resetAllMomentsImagery,
+    removeAllMomentsImagery,
   };
+}
+
+/**
+ * Hook to get Signature Moments merged with any custom uploaded imagery
+ */
+export function useSignatureMomentsWithCustom(): { moments: SignatureMoment[]; hasAnyCustom: boolean } {
+  const { customMap, hasAnyCustom } = useMomentsImagery();
+
+  const moments = signatureMoments.map((moment) => {
+    const override =
+      customMap[moment.slug] ||
+      customMap[moment.key] ||
+      customMap[moment.sequence] ||
+      customMap[`card-${moment.sequence}`];
+
+    if (override) {
+      return {
+        ...moment,
+        image: override,
+      };
+    }
+    return moment;
+  });
+
+  return { moments, hasAnyCustom };
 }

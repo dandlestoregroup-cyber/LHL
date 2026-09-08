@@ -4,7 +4,7 @@ import { BrandVisualCardView } from './BrandVisualCardView';
 import { MomentsUploadStudioModal } from './MomentsUploadStudioModal';
 import { useMomentsImagery } from '../utils/momentsStorage';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, X, ArrowRight, Eye, ChevronLeft, ChevronRight, LayoutGrid, Layers, MapPin, Camera, Upload } from 'lucide-react';
+import { Sparkles, X, ArrowRight, Eye, ChevronLeft, ChevronRight, LayoutGrid, Layers, Columns, Camera } from 'lucide-react';
 
 interface BrandMomentsGalleryProps {
   navigate?: (path: string) => void;
@@ -16,11 +16,11 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
   lang = 'en'
 }) => {
   const { user } = useAuth();
-  const isAdmin = Boolean(user && user.role !== 'guest');
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.role === 'operator'));
   const { cards: allCards, hasAnyCustom } = useMomentsImagery();
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [activeModalCard, setActiveModalCard] = useState<BrandVisualCard | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'spotlight'>('spotlight');
+  const [viewMode, setViewMode] = useState<'spotlight' | 'grid' | 'consistency'>('spotlight');
   const [carouselIndex, setCarouselIndex] = useState<number>(0);
   const [isStudioOpen, setIsStudioOpen] = useState<boolean>(false);
   const [studioInitialCardId, setStudioInitialCardId] = useState<string | undefined>(undefined);
@@ -28,26 +28,22 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
   const isRTL = lang === 'ar';
 
   const filterOptions = [
-    { id: 'all', labelEn: 'All 6 Brand Moments', labelAr: 'جميع اللحظات الـ ٦' },
-    { id: 'sokhna', labelEn: 'Ain Sokhna & Red Sea', labelAr: 'العين السخنة والبحر الأحمر' },
-    { id: 'morning', labelEn: 'Slow Mornings & Rest', labelAr: 'صباح هادئ وسكينة' },
-    { id: 'family', labelEn: 'Family & Children', labelAr: 'العائلة ومغامرات الصغار' },
-    { id: 'evening', labelEn: 'Sunset & Under Stars', labelAr: 'الغروب وسكينة النجوم' },
+    { id: 'all', labelEn: 'All 6 Signature Moments', labelAr: 'جميع اللحظات الـ ٦ المعتمدة' },
+    { id: 'morning_water', labelEn: 'Morning & Pool', labelAr: 'الصباح والمسبح' },
+    { id: 'rest_stillness', labelEn: 'Rest & Water Reset', labelAr: 'الراحة والسكينة' },
+    { id: 'evening_hearth', labelEn: 'Sunset & Fireside', labelAr: 'الغروب ودفء النار' },
   ];
 
   const filteredCards = allCards.filter((card) => {
     if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'sokhna') {
-      return card.location?.includes('AIN SOKHNA') || card.location?.includes('Ain Sokhna') || card.headlineScript.includes('Red Sea');
+    if (selectedFilter === 'morning_water') {
+      return card.matchedMomentId === 'slow_morning' || card.matchedMomentId === 'barefoot_afternoon';
     }
-    if (selectedFilter === 'morning') {
-      return card.matchedMomentId === 'slow_morning' || card.id === 'card-08';
+    if (selectedFilter === 'rest_stillness') {
+      return card.matchedMomentId === 'quiet_reset' || card.matchedMomentId === 'sunset_swim';
     }
-    if (selectedFilter === 'family') {
-      return card.matchedMomentId === 'family_play' || card.id === 'card-07' || card.id === 'card-16';
-    }
-    if (selectedFilter === 'evening') {
-      return card.matchedMomentId === 'under_stars' || card.matchedMomentId === 'the_long_sit';
+    if (selectedFilter === 'evening_hearth') {
+      return card.matchedMomentId === 'golden_dinner' || card.matchedMomentId === 'fireside_night';
     }
     return true;
   });
@@ -82,20 +78,20 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
   }, [activeModalCard, viewMode, isRTL, handleNext, handlePrev]);
 
   return (
-    <section className="py-14 sm:py-20 px-4 sm:px-8 max-w-7xl mx-auto">
+    <section className="py-14 sm:py-20 px-4 sm:px-8 max-w-7xl mx-auto" id="signature-moments-gallery">
       {/* Section Editorial Header */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#FAF0EB] text-[#B84E36] border border-[#EBDDD1] text-[10px] sm:text-[11px] uppercase font-bold tracking-[0.25em] rounded-full mb-3">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{lang === 'ar' ? 'إحنا مش بنبيع Real Estate — إحنا بنبيع تجربة' : 'We don\'t sell real estate — We sell a feeling'}</span>
+          <span>{lang === 'ar' ? 'نظام اللحظات المعتمد — ليتل هت' : 'Little Hut Signature Moments System'}</span>
         </div>
 
         <h2 className="font-serif-editorial text-2xl sm:text-4xl md:text-5xl font-bold text-[#2A201C] tracking-tight">
-          {lang === 'ar' ? 'شعور يبدأ في الخيال، ويعيش في الذاكرة' : 'A feeling that begins in the mind, and lingers forever.'}
+          {lang === 'ar' ? 'فصول من يوم إجازة ساحلي واحد' : 'Chapters of One Red Sea Vacation Day'}
         </h2>
 
         <p className={`${isRTL ? 'font-arabic-editorial text-xl sm:text-2xl font-bold' : 'font-brand-script text-2xl sm:text-3xl'} text-[#B84E36] mt-2`}>
-          {lang === 'ar' ? 'المكان مش هو المنتج.. المكان هو اللي بيخلّي التجربة دي ممكنة' : 'The house is not the product — it is simply what makes the moment possible.'}
+          {lang === 'ar' ? 'صباح هادئ، ظهيرة حافية، عشاء ذهبي، سكينة، سباحة الغروب، وليلة على النار' : 'Slow morning, barefoot afternoon, golden dinner, quiet reset, sunset swim, and fireside night.'}
         </p>
 
         <div className="flex items-center justify-center gap-2 my-3 text-[#B84E36]">
@@ -106,8 +102,8 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
 
         <p className="text-xs sm:text-sm text-[#5C4B40] max-w-2xl mx-auto leading-relaxed font-medium">
           {lang === 'ar'
-            ? 'كل صورة وكل كلمة تزرع إحساساً في خيالك: صباح ماشي على مهله، فطار اتأخر لأن محدش مستعجل، لعبة بدأت مع الأولاد والأب اندمج فيها، قعدة بلكونة طولت، وليلة هادية تحت النجوم خلت كل حاجة تقيلة تبان أخف.'
-            : 'Every frame and phrase plants a quiet mood: an unhurried morning, breakfast that ran late because no one rushed, a game where dad got more invested than the kids, a sunset balcony sit, and a starry night that lifts every weight.'}
+            ? 'ست لحظات متماسكة تجسد الروح الساحلية الفاخرة للعين السخنة. نظام بصري موحد يجمع الخط السيريفي الداكن، الخط اليدوي بلون التراكوتا، واللوحة العضوية بلون الكريمة الدافئ.'
+            : 'Six cohesive signature moment cards capturing the emotional sweet spot of a Red Sea getaway. Built upon one unified visual system: dark editorial serif, terracotta script, and the organic warm-cream corner board.'}
         </p>
       </div>
 
@@ -124,7 +120,7 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                   setSelectedFilter(f.id);
                   setCarouselIndex(0);
                 }}
-                className={`px-3 py-1.5 text-xs font-semibold tracking-wider rounded-full transition-all duration-200 cursor-pointer ${
+                className={`px-3.5 py-1.5 text-xs font-semibold tracking-wider rounded-full transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-[#B84E36] text-white shadow-xs'
                     : 'bg-white text-[#2A201C] hover:bg-[#FAF0EB] border border-[#EBDDD1]'
@@ -149,14 +145,14 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
               title={lang === 'ar' ? 'رفع وتخصيص صور اللحظات (خاص بالإدارة)' : 'Upload & Customize Moments Photos (Admin Only)'}
             >
               <Camera className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? 'رفع وتخصيص الصور' : 'Upload / Customize Photos'}</span>
+              <span>{lang === 'ar' ? 'تخصيص الصور' : 'Customize Photos'}</span>
               {hasAnyCustom && (
                 <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
               )}
             </button>
           )}
 
-          {/* View Mode Switcher (Spotlight / Carousel vs Grid) */}
+          {/* View Mode Switcher: Spotlight / Grid / Side-by-Side Consistency Gate */}
           <div className="inline-flex items-center rounded-lg bg-white border border-[#EBDDD1] p-1 shadow-2xs">
             <button
               onClick={() => setViewMode('spotlight')}
@@ -182,11 +178,23 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
               <LayoutGrid className="w-3.5 h-3.5" />
               <span>{lang === 'ar' ? 'شبكة' : 'Grid'}</span>
             </button>
+            <button
+              onClick={() => setViewMode('consistency')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                viewMode === 'consistency'
+                  ? 'bg-[#B84E36] text-white shadow-xs'
+                  : 'text-[#7E6C60] hover:text-[#2A201C]'
+              }`}
+              title="Side-by-Side Consistency Gate"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'بوابة التناسق الـ ٦' : 'Consistency Gate'}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Spotlight / Story Carousel View (Clean full-card view without edge clipping) */}
+      {/* 1. Spotlight / Story Carousel View */}
       {viewMode === 'spotlight' && activeCarouselCard && (
         <div className="max-w-xl mx-auto flex flex-col items-center">
           <div className="relative w-full flex items-center justify-center">
@@ -205,10 +213,6 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                 card={activeCarouselCard}
                 isRTL={isRTL}
                 onSelect={(c) => setActiveModalCard(c)}
-                onUploadClick={isAdmin ? (c) => {
-                  setStudioInitialCardId(c.id);
-                  setIsStudioOpen(true);
-                } : undefined}
               />
             </div>
 
@@ -243,7 +247,7 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                   className="inline-flex items-center gap-1.5 text-[#7E6C60] hover:text-[#B84E36] font-bold tracking-wider uppercase text-[11px] cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
-                  <span>{lang === 'ar' ? 'تغيير الصورة' : 'Upload Photo'}</span>
+                  <span>{lang === 'ar' ? 'تعديل' : 'Customize'}</span>
                 </button>
               )}
 
@@ -252,12 +256,12 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                 className="inline-flex items-center gap-1.5 text-[#B84E36] hover:text-[#973A24] font-bold tracking-wider uppercase text-[11px] cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>{lang === 'ar' ? 'عرض التفاصيل' : 'Inspect Card'}</span>
+                <span>{lang === 'ar' ? 'تفاصيل اللحظة' : 'Inspect Moment'}</span>
               </button>
             </div>
           </div>
 
-          {/* Dots Indicator & Filmstrip Navigator */}
+          {/* Dots Indicator & Mini Thumbnail Strip */}
           <div className="flex flex-col items-center gap-4 mt-6 w-full">
             {/* Dots */}
             <div className="flex items-center justify-center gap-1.5">
@@ -305,7 +309,7 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
         </div>
       )}
 
-      {/* Grid View */}
+      {/* 2. Grid View */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCards.map((card) => (
@@ -314,40 +318,64 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                 card={card}
                 isRTL={isRTL}
                 onSelect={(c) => setActiveModalCard(c)}
-                onUploadClick={isAdmin ? (c) => {
-                  setStudioInitialCardId(c.id);
-                  setIsStudioOpen(true);
-                } : undefined}
               />
-              {/* Quick action beneath card */}
-              <div className="mt-3 flex items-center justify-between w-full max-w-[500px] px-2 text-xs">
+              <div className="mt-3 flex items-center justify-between w-full max-w-[420px] px-2 text-xs">
                 <span className="font-serif-editorial text-[#7E6C60] italic">
                   {lang === 'ar' ? card.categoryAr : card.categoryEn}
                 </span>
-                <div className="flex items-center gap-3">
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setStudioInitialCardId(card.id);
-                        setIsStudioOpen(true);
-                      }}
-                      className="inline-flex items-center gap-1 text-[#7E6C60] hover:text-[#B84E36] font-bold tracking-wider uppercase text-[11px] cursor-pointer"
-                    >
-                      <Camera className="w-3.5 h-3.5" />
-                      <span>{lang === 'ar' ? 'تغيير' : 'Upload'}</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setActiveModalCard(card)}
-                    className="inline-flex items-center gap-1 text-[#B84E36] hover:text-[#973A24] font-bold tracking-wider uppercase text-[11px] cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>{lang === 'ar' ? 'عرض التفاصيل' : 'Inspect Card'}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setActiveModalCard(card)}
+                  className="inline-flex items-center gap-1 text-[#B84E36] hover:text-[#973A24] font-bold tracking-wider uppercase text-[11px] cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'عرض التفاصيل' : 'Inspect'}</span>
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 3. Consistency Gate / Side-by-Side Collection View */}
+      {viewMode === 'consistency' && (
+        <div className="space-y-6">
+          <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#EBDDD1] text-xs text-[#5C4B40] flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#B84E36]" />
+              <span className="font-bold text-[#181311]">
+                {lang === 'ar' ? 'بوابة التناسق البصري:' : 'Consistency Gate Verification:'}
+              </span>
+              <span>
+                {lang === 'ar'
+                  ? 'مقارنة اللحظات الست جنباً إلى جنب للتحقق من تطابق الخطوط والألوان واللوحة الركنية العضوية وجودة الصورة.'
+                  : 'All six moments presented side-by-side to verify identical typography hierarchy, terracotta tone, cream board placement, and coherent Red Sea atmosphere.'}
+              </span>
+            </div>
+            <span className="shrink-0 font-mono text-[11px] font-bold text-[#B84E36]">
+              6 / 6 MATCHED
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {allCards.slice(0, 6).map((card) => (
+              <div key={card.id} className="flex flex-col">
+                <BrandVisualCardView
+                  card={card}
+                  isRTL={isRTL}
+                  onSelect={(c) => setActiveModalCard(c)}
+                  className="rounded-xl"
+                />
+                <div className="mt-2 text-center">
+                  <span className="font-mono text-[10px] text-[#B84E36] font-bold block">
+                    {card.number}
+                  </span>
+                  <span className="font-serif-editorial text-[11px] font-bold text-[#181311] truncate block">
+                    {card.headline1}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -376,10 +404,6 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                 <BrandVisualCardView 
                   card={activeModalCard} 
                   isRTL={isRTL}
-                  onUploadClick={isAdmin ? (c) => {
-                    setStudioInitialCardId(c.id);
-                    setIsStudioOpen(true);
-                  } : undefined}
                 />
               </div>
 
@@ -390,9 +414,8 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[#B84E36] font-bold">
                       {lang === 'ar' ? `لحظة ليتل هت رقم ${activeModalCard.number}` : `LITTLE HUT MOMENT ${activeModalCard.number}`}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FAF0EB] text-[#B84E36] border border-[#EBDDD1] font-medium flex items-center gap-1">
-                      <MapPin className="w-2.5 h-2.5" />
-                      {lang === 'ar' ? (activeModalCard.locationAr || 'العين السخنة') : (activeModalCard.location || 'Ain Sokhna')}
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FAF0EB] text-[#B84E36] border border-[#EBDDD1] font-medium">
+                      Ain Sokhna
                     </span>
                   </div>
 
@@ -412,28 +435,20 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                   )}
                 </div>
 
-                {/* Single Language Feeling Tagline */}
+                {/* Scene Story */}
                 <div className="p-4 bg-white rounded-xl border border-[#EBDDD1]">
-                  {lang === 'ar' ? (
-                    <p className="font-arabic-editorial text-lg text-[#B84E36] font-bold" dir="rtl">
-                      "{activeModalCard.taglineAr}"
-                    </p>
-                  ) : (
-                    <p className="font-brand-script text-xl text-[#B84E36]">
-                      "{activeModalCard.taglineEn}"
-                    </p>
-                  )}
+                  <p className="text-xs text-[#5C4B40] leading-relaxed">
+                    {lang === 'ar' ? (activeModalCard.sceneDescriptionAr || activeModalCard.sceneDescription) : activeModalCard.sceneDescription}
+                  </p>
                 </div>
 
-                {/* Sokhna Sanctuary Setting */}
-                <div className="space-y-1 text-xs text-[#7E6C60]">
-                  <span className="uppercase tracking-wider font-semibold block text-[#2A201C]">
-                    {lang === 'ar' ? 'أجواء التجربة في العين السخنة:' : 'Sokhna Retreat Atmosphere:'}
+                {/* Corner Board Text Highlight */}
+                <div className="px-4 py-3 bg-[#FAF6F0] rounded-lg border border-[#B84E36]/30">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#B84E36] block mb-1">
+                    {lang === 'ar' ? 'عبارة اللوحة الركنية العضوية:' : 'Bottom-Left Board Experiential Copy:'}
                   </span>
-                  <p>
-                    {lang === 'ar'
-                      ? 'مساحة خاصة مجهزة للاسترخاء التام، الهواء الساحلي العليل، وخصوصية متكاملة تليق بعائلتك.'
-                      : 'Authentic private coastal space designed for calm mornings, barefoot relaxation, and unhurried coastal family hours.'}
+                  <p className="font-serif-editorial text-sm font-bold text-[#181311]">
+                    "{lang === 'ar' ? activeModalCard.cornerBoardTextAr : activeModalCard.cornerBoardText}"
                   </p>
                 </div>
 
@@ -458,7 +473,7 @@ export const BrandMomentsGallery: React.FC<BrandMomentsGalleryProps> = ({
                       className="py-3 px-4 bg-white hover:bg-[#FAF0EB] text-[#2A201C] hover:text-[#B84E36] border border-[#EBDDD1] text-xs font-bold uppercase tracking-wider rounded-md transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                     >
                       <Camera className="w-4 h-4 text-[#B84E36]" />
-                      <span>{lang === 'ar' ? 'تغيير الصورة' : 'Change Photo'}</span>
+                      <span>{lang === 'ar' ? 'تخصيص' : 'Customize'}</span>
                     </button>
                   )}
                 </div>

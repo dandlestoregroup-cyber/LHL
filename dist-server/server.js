@@ -2209,6 +2209,9 @@ var automationLimiter = createFixedWindowRateLimiter(automationRateLimit, 6e4);
 var authLimiter = createFixedWindowRateLimiter(12, 6e4);
 var publicEnquiryLimiter = createFixedWindowRateLimiter(10, 6e4);
 app.use("/api", express.json({ limit: "64kb" }));
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 var clientKey = (req) => req.socket.remoteAddress || "unknown";
 var requireSession = (req) => {
   const session = readSession(req);

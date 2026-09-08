@@ -14,7 +14,7 @@ export const CanonicalMomentsGrid: React.FC<CanonicalMomentsGridProps> = ({
   lang = 'en'
 }) => {
   const { user } = useAuth();
-  const isAdmin = Boolean(user && user.role !== 'guest');
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.role === 'operator'));
   const { cards, customMap, hasAnyCustom } = useMomentsImagery();
   const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>(undefined);

@@ -5,6 +5,7 @@ import { UserCheck, CheckCircle2, Calendar, ShieldCheck, DollarSign, ArrowRight,
 import { BookingStage } from '../types';
 import { OperatorMetrics } from '../components/IntelligenceMetrics';
 import { MomentsUploadStudioModal } from '../components/MomentsUploadStudioModal';
+import { StayAssurancePanel } from '../components/StayAssurancePanel';
 
 interface OperatorViewProps {
   navigate: (path: string) => void;
@@ -298,6 +299,25 @@ export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
                         </button>
                       )}
 
+                      {req.bookingStage === 'confirmed' && (() => {
+                        const completionReady = req.stage === 'confirmed' && req.readinessCheck?.status === 'ready' && Boolean(req.proofStay?.preStay);
+                        return (
+                          <button
+                            disabled={!completionReady}
+                            onClick={() => executeNextEnquiryAction(req.id)}
+                            className={`px-4 py-2 text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors flex items-center gap-1.5 ${
+                              completionReady
+                                ? 'bg-[#0F5859] hover:bg-[#071324] cursor-pointer'
+                                : 'bg-gray-400 opacity-60 cursor-not-allowed'
+                            }`}
+                            title={!completionReady ? (lang === 'ar' ? 'يتطلب إتمام الإقامة فحص جاهزية وتوثيق ProofStay' : 'Completion requires passing readiness check and pre-stay ProofStay snapshot') : undefined}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{lang === 'ar' ? 'إغلاق الإقامة المكتملة' : '5. Complete Stay'}</span>
+                          </button>
+                        );
+                      })()}
+
                       <button
                         onClick={() => handleAction(req.id, 'decline', req.propertyId)}
                         className="px-3 py-2 bg-white text-gray-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider rounded-xs border border-[#E9DED1] transition-colors"
@@ -314,6 +334,11 @@ export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
               );
             })
           )}
+        </div>
+
+        {/* Stay Assurance Operating Panel */}
+        <div className="mt-12">
+          <StayAssurancePanel />
         </div>
       </div>
 

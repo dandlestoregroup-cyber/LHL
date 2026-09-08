@@ -8,14 +8,17 @@ import {
   Sparkles, 
   Link as LinkIcon, 
   Image as ImageIcon,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { 
   useMomentsImagery, 
   compressImageFile, 
   updateCardImage, 
   resetCardImage, 
-  resetAllMomentsImagery 
+  removeMomentImage,
+  resetAllMomentsImagery,
+  removeAllMomentsImagery
 } from '../utils/momentsStorage';
 
 interface MomentsUploadStudioModalProps {
@@ -76,14 +79,19 @@ export const MomentsUploadStudioModal: React.FC<MomentsUploadStudioModalProps> =
   };
 
   const handleResetCard = (cardId: string) => {
-    resetCardImage(cardId);
+    removeMomentImage(cardId);
     showToast(isRTL ? 'تم استعادة الصورة الأصلية' : 'Restored curated default image');
   };
 
+  const handleRemoveImage = (cardId: string) => {
+    removeMomentImage(cardId);
+    showToast(isRTL ? 'تم حذف الصورة المخصصة واستعادة الأصلية بنجاح' : 'Custom moment photo deleted. Default image restored.');
+  };
+
   const handleResetAll = () => {
-    if (window.confirm(isRTL ? 'هل تريد استعادة جميع الصور الأصلية للـ ٦ لحظات؟' : 'Reset all 6 moments to their curated default images?')) {
+    if (window.confirm(isRTL ? 'هل تريد حذف جميع الصور المخصصة واستعادة الصور الأصلية للـ ٦ لحظات؟' : 'Remove all custom uploaded photos and reset all 6 moments to their curated defaults?')) {
       resetAllMomentsImagery();
-      showToast(isRTL ? 'تم استعادة جميع الصور الافتراضية' : 'All moments restored to curated defaults');
+      showToast(isRTL ? 'تم حذف جميع الصور واستعادة الافتراضية' : 'All custom photos deleted. Curated defaults restored.');
     }
   };
 
@@ -145,11 +153,11 @@ export const MomentsUploadStudioModal: React.FC<MomentsUploadStudioModalProps> =
             {hasAnyCustom && (
               <button
                 onClick={handleResetAll}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#B84E36] hover:bg-[#FAF0EB] rounded-lg transition-colors border border-transparent hover:border-[#EBDDD1] cursor-pointer"
-                title={isRTL ? 'استعادة الافتراضيات' : 'Reset all to defaults'}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 cursor-pointer"
+                title={isRTL ? 'حذف جميع الصور المخصصة' : 'Remove all custom photos'}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>{isRTL ? 'استعادة الكل' : 'Reset All'}</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isRTL ? 'حذف كل الصور المخصصة' : 'Remove All Uploads'}</span>
               </button>
             )}
             <button
@@ -278,14 +286,24 @@ export const MomentsUploadStudioModal: React.FC<MomentsUploadStudioModalProps> =
                 </div>
 
                 {isCustomized && (
-                  <button
-                    onClick={() => handleResetCard(activeCard.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#7E6C60] hover:text-[#B84E36] hover:bg-[#FAF0EB] rounded-lg transition-colors border border-[#EBDDD1] cursor-pointer shrink-0"
-                    title={isRTL ? 'استعادة الصورة الافتراضية لهذه اللحظة' : 'Restore default photo for this moment'}
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{isRTL ? 'استعادة الافتراضي' : 'Reset'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleRemoveImage(activeCard.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200 cursor-pointer font-medium"
+                      title={isRTL ? 'حذف هذه الصورة واستعادة الافتراضية' : 'Delete this photo and restore curated default'}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{isRTL ? 'حذف الصورة' : 'Delete Photo'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleResetCard(activeCard.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#7E6C60] hover:text-[#B84E36] hover:bg-[#FAF0EB] rounded-lg transition-colors border border-[#EBDDD1] cursor-pointer"
+                      title={isRTL ? 'استعادة الصورة الافتراضية لهذه اللحظة' : 'Restore default photo for this moment'}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>{isRTL ? 'استعادة الافتراضي' : 'Reset'}</span>
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -311,6 +329,21 @@ export const MomentsUploadStudioModal: React.FC<MomentsUploadStudioModalProps> =
                       </div>
                     )}
                   </div>
+
+                  {/* Explicit delete or status bar under preview */}
+                  {isCustomized ? (
+                    <button
+                      onClick={() => handleRemoveImage(activeCard.id)}
+                      className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{isRTL ? 'حذف هذه الصورة المخصصة' : 'Remove Custom Moment Photo'}</span>
+                    </button>
+                  ) : (
+                    <div className="mt-2 text-center text-[10px] text-[#7E6C60] bg-[#FAF5EE] py-1.5 px-2 rounded-lg border border-[#EBDDD1]">
+                      {isRTL ? 'صورة معتمدة بحسب معايير العين السخنة' : 'Curated Ain Sokhna Standard'}
+                    </div>
+                  )}
                 </div>
 
                 {/* Upload Actions Column */}

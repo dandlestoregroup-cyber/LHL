@@ -3,16 +3,18 @@ import type { Language, OperatingMode, UserProfile, UserRole } from '../types';
 import { translations } from '../i18n/translations';
 
 const SEED_USERS: Record<UserRole, UserProfile> = {
-  guest: { id: 'g_sarah', role: 'guest', name: 'Sarah Mansour', email: 'sarah.m@example.com' },
-  owner: { id: 'o_farid', role: 'owner', name: 'Farid Hassan', email: 'farid@example.com' },
-  operator: { id: 'op_nadia', role: 'operator', name: 'Nadia', email: 'nadia@littlehut.com' },
-  bps: { id: 'bps_hassan', role: 'bps', name: 'Hassan', email: 'hassan@bps.local' },
-  scout: { id: 'scout_nour', role: 'scout', name: 'Nour El-Din', email: 'nour@scouts.local' }
+  guest: { id: 'g_sarah', role: 'guest', name: 'Sarah Mansour', nameAr: 'سارة منصور', email: 'sarah.m@example.com' },
+  owner: { id: 'o_farid', role: 'owner', name: 'Farid Hassan', nameAr: 'فريد حسن', email: 'farid@example.com' },
+  operator: { id: 'op_nadia', role: 'operator', name: 'Nadia', nameAr: 'نادية', email: 'nadia@littlehut.com' },
+  bps: { id: 'bps_hassan', role: 'bps', name: 'Hassan', nameAr: 'حسن', email: 'hassan@bps.local' },
+  scout: { id: 'scout_nour', role: 'scout', name: 'Nour El-Din', nameAr: 'نور الدين', email: 'nour@scouts.local' },
+  admin: { id: 'admin_master', role: 'admin', name: 'Tamer El-Ghoneimi (System Admin)', nameAr: 'تامر الغنيمي (مدير النظام)', email: 'admin@littlehut.com', organization: 'Little Hut HQ' }
 };
 import { useOperating } from './OperatingContext';
 
 export interface AuthContextType {
   user: UserProfile;
+  isAdmin: boolean;
   setUserRole: (role: UserRole) => void;
   setUser: (user: UserProfile) => void;
   lang: Language;
@@ -86,11 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (operatingContext?.auth?.partner) {
       const p = operatingContext.auth.partner;
       const mappedRole: UserRole =
+        p.platformAdmin ? 'admin' :
         p.role === 'owner' ? 'owner' :
         p.role === 'operator' ? 'operator' :
         p.role === 'scout' ? 'scout' :
-        p.role === 'assessor' ? 'bps' :
-        p.platformAdmin ? 'operator' : 'guest';
+        p.role === 'assessor' ? 'bps' : 'guest';
 
       return {
         id: p.id,
@@ -112,8 +114,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   }, [lang, isRTL]);
 
+  const activeUser = customUser || currentUser;
+  const isAdmin = activeUser.role === 'admin';
+
   const value = useMemo<AuthContextType>(() => ({
-    user: customUser || currentUser,
+    user: activeUser,
+    isAdmin,
     setUserRole,
     setUser: (u: UserProfile) => setCustomUser(u),
     lang,

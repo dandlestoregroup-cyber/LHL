@@ -15,6 +15,7 @@ import { JoiningView } from './views/JoiningView';
 import { AssessmentView } from './views/AssessmentView';
 import { PipelineView } from './views/PipelineView';
 import { PartnerAdminView } from './views/PartnerAdminView';
+import { AdminControlCenterView } from './views/AdminControlCenterView';
 import { LiveAccessView } from './views/LiveAccessView';
 import { AcceptInviteView } from './views/AcceptInviteView';
 import { CommunicationsView } from './views/CommunicationsView';
@@ -78,7 +79,7 @@ function AppContent() {
       return <PipelineView />;
     }
     if (currentPath === '/partners' || currentPath === '/admin') {
-      return <PartnerAdminView />;
+      return <AdminControlCenterView navigate={navigate} />;
     }
     if (currentPath === '/live-access') {
       return <LiveAccessView />;

@@ -59,6 +59,10 @@ const publicEnquiryLimiter = createFixedWindowRateLimiter(10, 60_000);
 
 app.use('/api', express.json({ limit: '64kb' }));
 
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
 const clientKey = (req: Request): string => req.socket.remoteAddress || 'unknown';
 
 const requireSession = (req: Request): LiveSession => {

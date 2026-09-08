@@ -1,112 +1,218 @@
 import React from 'react';
 import { BrandVisualCard } from '../data/brandIdentityCards';
-import { MapPin, ArrowUpRight, Camera } from 'lucide-react';
 
 interface BrandVisualCardViewProps {
   card: BrandVisualCard;
   isRTL?: boolean;
   onSelect?: (card: BrandVisualCard) => void;
-  onUploadClick?: (card: BrandVisualCard) => void;
   className?: string;
+  showOverlayUI?: boolean;
 }
 
+/**
+ * Botanical Flourish SVG (delicate terracotta leaf branch)
+ */
+export const BotanicalFlourish: React.FC<{ className?: string }> = ({ className = 'w-16 h-3 text-[#B84E36]' }) => (
+  <svg
+    viewBox="0 0 100 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M10 10 C 35 7, 65 13, 90 10"
+      stroke="currentColor"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+    />
+    {/* Delicate leaves */}
+    <path
+      d="M32 9 C 33 5, 37 4, 38 6 C 37 8, 34 9, 32 9 Z"
+      fill="currentColor"
+      opacity="0.85"
+    />
+    <path
+      d="M44 11 C 45 15, 49 16, 50 14 C 49 12, 46 11, 44 11 Z"
+      fill="currentColor"
+      opacity="0.85"
+    />
+    <path
+      d="M58 9 C 59 5, 63 4, 64 6 C 63 8, 60 9, 58 9 Z"
+      fill="currentColor"
+      opacity="0.85"
+    />
+    <path
+      d="M70 11 C 71 15, 75 16, 76 14 C 75 12, 72 11, 70 11 Z"
+      fill="currentColor"
+      opacity="0.85"
+    />
+    <circle cx="50" cy="10" r="1.5" fill="currentColor" />
+  </svg>
+);
+
+/**
+ * Botanical Sprig Line-Art SVG for Corner Plaque
+ */
+export const BotanicalSprig: React.FC<{ className?: string }> = ({ className = 'w-5 h-9 text-[#B84E36]' }) => (
+  <svg
+    viewBox="0 0 24 42"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M12 40 C 12 28, 11 16, 13 2"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 32 C 6 29, 5 22, 11 25"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 24 C 18 21, 19 14, 13 17"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 16 C 7 13, 6 7, 12 10"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+    />
+    <path
+      d="M13 8 C 17 6, 18 2, 13 4"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+/**
+ * Little Hut Moment Card (4:5 Aspect Ratio)
+ * Strictly matches the Fireside Night reference visual system:
+ * - LINE 1: Large dark editorial serif
+ * - LINE 2: Large terracotta handwritten/script phrase
+ * - LINE 3: Large dark editorial serif
+ * - Below: Thin terracotta botanical flourish
+ * - BOTTOM-LEFT: Organic warm-cream board with thin terracotta outline,
+ *   terracotta botanical sprig on left, short dark-serif experiential sentence,
+ *   and thin terracotta horizontal rule beneath.
+ * - ZERO logos, URLs, phone numbers, or promotional advertising chrome.
+ */
 export const BrandVisualCardView: React.FC<BrandVisualCardViewProps> = ({
   card,
   isRTL = false,
   onSelect,
-  onUploadClick,
-  className = ''
+  className = '',
+  showOverlayUI = true,
 }) => {
   return (
     <div
       onClick={() => onSelect && onSelect(card)}
-      className={`relative w-full max-w-[480px] mx-auto rounded-2xl overflow-hidden bg-white shadow-[0_10px_35px_rgba(42,32,28,0.1)] border border-[#EBDDD1] select-none group transition-all duration-300 ${
-        onSelect ? 'cursor-pointer hover:shadow-[0_20px_50px_rgba(184,78,54,0.18)] hover:-translate-y-1 hover:border-[#D9C4B5]' : ''
+      className={`group relative aspect-[4/5] w-full max-w-[420px] mx-auto rounded-2xl sm:rounded-[20px] overflow-hidden bg-[#F4EDE5] shadow-[0_12px_40px_rgba(24,19,17,0.14)] select-none transition-all duration-500 hover:shadow-[0_24px_54px_rgba(38,32,30,0.22)] hover:-translate-y-1 ${
+        onSelect ? 'cursor-pointer' : ''
       } ${className}`}
+      id={`moment-card-${card.number}`}
     >
-      {/* 1. Photography Container: 100% Clear, Sunlit & Vibrant (Zero Muddy Dark Overlays) */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F4EDE5]">
-        <img
-          src={card.image}
-          alt={card.headline1}
-          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-700 ease-out"
-          loading="lazy"
-        />
+      {/* 1. Underlying Cinematic Photography */}
+      <img
+        src={card.image}
+        alt={`${card.headline1} ${card.headlineScript} ${card.headline3}`}
+        className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-1000 ease-out"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+      />
 
-        {/* Top Badges: Crisp White Frosted with Dark Typography for Flawless Contrast */}
-        <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between pointer-events-none">
-          {/* Card Number Pill & Quick Upload Button */}
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <span className="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-md border border-[#EBDDD1] text-[#2A201C] font-mono text-xs font-bold tracking-wider shadow-sm">
-              {card.number}
-            </span>
-            {onUploadClick && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUploadClick(card);
-                }}
-                className="p-1 rounded-md bg-white/95 hover:bg-white text-[#7E6C60] hover:text-[#B84E36] border border-[#EBDDD1] shadow-sm transition-all cursor-pointer flex items-center gap-1 text-[10px] font-medium"
-                title={isRTL ? 'رفع صورة خاصة لهذه اللحظة' : 'Upload custom photo for this moment'}
+      {/* Subtle soft exposure wash on top for effortless typography legibility while keeping sunlight bright */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/10 to-black/25 pointer-events-none" />
+
+      {/* 2. Top-Center Editorial Typography Overlay */}
+      {showOverlayUI && (
+        <div className="absolute top-7 sm:top-8 inset-x-6 sm:inset-x-8 flex flex-col items-center text-center pointer-events-none z-10">
+          {isRTL ? (
+            /* Arabic Typography System */
+            <div dir="rtl" className="flex flex-col items-center">
+              <span className="font-arabic-editorial text-2xl sm:text-3xl md:text-[34px] font-bold text-[#181311] tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)] leading-tight">
+                {card.headlineAr || card.headline1}
+              </span>
+              <span className="font-brand-script text-3xl sm:text-4xl md:text-[44px] text-[#B84E36] leading-none my-1 drop-shadow-[0_1px_2px_rgba(255,255,255,0.7)]">
+                {card.headlineScriptAr || card.headlineScript}
+              </span>
+              <span className="font-arabic-editorial text-2xl sm:text-3xl md:text-[34px] font-bold text-[#181311] tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)] leading-tight">
+                {card.headline3Ar || card.headline3}
+              </span>
+            </div>
+          ) : (
+            /* English Typography System */
+            <div className="flex flex-col items-center">
+              <span className="font-serif-editorial text-[26px] sm:text-[30px] md:text-[34px] font-bold text-[#181311] tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)] leading-[1.08]">
+                {card.headline1}
+              </span>
+              <span className="font-brand-script text-[36px] sm:text-[42px] md:text-[48px] text-[#B84E36] leading-tight my-0.5 drop-shadow-[0_1px_2px_rgba(255,255,255,0.7)]">
+                {card.headlineScript}
+              </span>
+              <span className="font-serif-editorial text-[26px] sm:text-[30px] md:text-[34px] font-bold text-[#181311] tracking-tight drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)] leading-[1.08]">
+                {card.headline3}
+              </span>
+            </div>
+          )}
+
+          {/* Thin terracotta botanical flourish below line 3 */}
+          <div className="mt-2.5 sm:mt-3">
+            <BotanicalFlourish className="w-16 sm:w-20 h-3 sm:h-3.5 text-[#B84E36]" />
+          </div>
+        </div>
+      )}
+
+      {/* 3. Mandatory Bottom-Left Organic Warm-Cream Board */}
+      {showOverlayUI && (
+        <div
+          className={`absolute bottom-5 sm:bottom-6 z-10 pointer-events-auto ${
+            isRTL ? 'right-5 sm:right-6' : 'left-5 sm:left-6'
+          }`}
+        >
+          <div
+            className={`flex items-center gap-3 px-4 py-3 sm:px-4.5 sm:py-3.5 bg-[#FAF6F0]/95 backdrop-blur-md border border-[#B84E36]/50 shadow-[0_8px_24px_rgba(24,19,17,0.18)] ${
+              isRTL
+                ? 'rounded-2xl rounded-tl-[24px] text-right'
+                : 'rounded-2xl rounded-tr-[24px] text-left'
+            } transition-transform duration-300 group-hover:scale-[1.02]`}
+            style={{
+              clipPath: 'polygon(0% 0%, 94% 0%, 100% 12%, 100% 100%, 0% 100%)',
+            }}
+          >
+            {/* Left: Terracotta Botanical Sprig Line-Art */}
+            <div className="shrink-0 flex items-center justify-center">
+              <BotanicalSprig className="w-4 sm:w-5 h-8 sm:h-9 text-[#B84E36]" />
+            </div>
+
+            {/* Right: Experiential Short Dark-Serif Sentence + Terracotta Horizontal Rule */}
+            <div className="flex flex-col">
+              <p
+                className={`${
+                  isRTL ? 'font-arabic-editorial text-[13px] sm:text-sm' : 'font-serif-editorial text-xs sm:text-[13px]'
+                } font-bold text-[#181311] leading-snug whitespace-pre-line tracking-[-0.01em]`}
               >
-                <Camera className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isRTL ? 'تغيير الصورة' : 'Upload'}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Sokhna Tag */}
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md border border-[#EBDDD1] text-[#B84E36] text-[11px] font-bold tracking-wider uppercase shadow-sm pointer-events-auto">
-            <MapPin className="w-3 h-3 text-[#B84E36]" />
-            <span>{isRTL ? (card.locationAr || 'العين السخنة') : (card.location || 'Ain Sokhna')}</span>
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Editorial Plaque: High-Contrast Crisp Typography (Deep Espresso on Warm Porcelain) */}
-      <div className="p-5 sm:p-6 bg-[#FAF6F0] border-t border-[#EBDDD1]/80">
-        <div className="flex items-start justify-between gap-4">
-          <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
-            {/* Category / Setting Tag */}
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#B84E36] font-bold block mb-1.5">
-              {isRTL ? card.categoryAr : card.categoryEn}
-            </span>
-
-            {isRTL ? (
-              /* Arabic Typography */
-              <div dir="rtl">
-                <h3 className="font-arabic-editorial text-2xl font-bold text-[#2A201C] leading-snug">
-                  {card.headlineAr || card.taglineAr}
-                </h3>
-                <p className="font-arabic-editorial text-base text-[#5C4B40] font-medium mt-1">
-                  "{card.taglineAr}"
-                </p>
-              </div>
-            ) : (
-              /* English Typography */
-              <div>
-                <h3 className="font-serif-editorial text-xl sm:text-2xl font-bold text-[#2A201C] leading-tight">
-                  {card.headline1}{' '}
-                  <span className="font-brand-script text-2xl sm:text-3xl text-[#B84E36] font-normal italic inline-block mx-0.5">
-                    {card.headlineScript}
-                  </span>{' '}
-                  {card.headline3}
-                </h3>
-                <p className="font-brand-script text-xl text-[#5C4B40] font-medium mt-1.5">
-                  "{card.taglineEn}"
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Tactile Circular Explore Button */}
-          <div className="shrink-0 w-9 h-9 rounded-full bg-white border border-[#EBDDD1] text-[#2A201C] flex items-center justify-center group-hover:bg-[#B84E36] group-hover:text-white group-hover:border-[#B84E36] transition-all duration-300 shadow-xs mt-1">
-            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                {isRTL ? (card.cornerBoardTextAr || card.cornerBoardText) : card.cornerBoardText}
+              </p>
+              {/* Thin terracotta rule beneath */}
+              <div
+                className={`w-9 sm:w-11 h-[1.25px] bg-[#B84E36]/70 mt-1.5 ${
+                  isRTL ? 'self-end' : 'self-start'
+                }`}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
-

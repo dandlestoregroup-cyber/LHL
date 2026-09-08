@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
 import { qualifyGuestRequest, resolveBookingMode } from '../lib/lh-core';
+import { evaluateStayIntake } from '../lib/mastermind';
 import { CanonicalMomentsRecord, CanonicalMomentId, MomentState } from '../types';
 import { ArrowLeft, ArrowRight, ShieldCheck, Award, MapPin, Users, Calendar, Sparkles, Check, AlertCircle, Lock, Compass, Sun, Coffee, Eye } from 'lucide-react';
 
@@ -24,6 +25,21 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const mastermindResult = React.useMemo(() => {
+    if (!property) return null;
+    return evaluateStayIntake(
+      {
+        requestedMoment: momentFocus,
+        checkIn,
+        checkOut,
+        adults: partySize,
+        children: 0,
+        guestName: user?.name,
+      },
+      property
+    );
+  }, [property, momentFocus, checkIn, checkOut, partySize, user?.name]);
 
   if (!property) {
     return (
@@ -396,10 +412,44 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                         />
                       </div>
 
+                      {mastermindResult?.commercialSummary && (
+                        <div className="p-3 bg-[#FAF5EE] border border-[#EBDDD1] rounded-xs space-y-2 text-xs">
+                          <div className="flex items-center justify-between text-[#6D5A50]">
+                            <span>{lang === 'ar' ? 'الإقامة' : 'Accommodation'} ({mastermindResult.commercialSummary.nights} {lang === 'ar' ? 'ليالٍ' : 'nights'})</span>
+                            <span className="font-semibold text-[#2A201C]">{mastermindResult.commercialSummary.accommodationEgp.toLocaleString()} EGP</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[#6D5A50]">
+                            <span>{lang === 'ar' ? 'رسوم ضمان ليتل هت' : 'Little Hut Platform & Assurance'}</span>
+                            <span className="font-semibold text-[#2A201C]">{mastermindResult.commercialSummary.littleHutFeeEgp.toLocaleString()} EGP</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[#6D5A50]">
+                            <span>{lang === 'ar' ? 'تجهيز الضيافة والمغادرة' : 'Hospitality Staging & Turnover'}</span>
+                            <span className="font-semibold text-[#2A201C]">{mastermindResult.commercialSummary.cleaningFeeEgp.toLocaleString()} EGP</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[#6D5A50]">
+                            <span>{lang === 'ar' ? 'تأمين استردادي ضد التلفيات' : 'Refundable Security Deposit'}</span>
+                            <span className="font-semibold text-[#2A201C]">{mastermindResult.commercialSummary.refundableDepositEgp.toLocaleString()} EGP</span>
+                          </div>
+                          <div className="pt-2 border-t border-[#EBDDD1] flex items-center justify-between font-bold text-[#2A201C]">
+                            <span>{lang === 'ar' ? 'الإجمالي التقديري المعتمد' : 'Governed Estimated Total'}</span>
+                            <span className="text-sm text-[#B84E36]">{mastermindResult.commercialSummary.totalEgp.toLocaleString()} EGP</span>
+                          </div>
+
+                          <div className="pt-1 text-[10px] text-[#6D5A50] flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#B84E36] shrink-0" />
+                            <span>
+                              {lang === 'ar'
+                                ? 'يتم التدقيق عبر محرك Mastermind لضمان احترام حد المالك وخلو التقويم من أي تضارب.'
+                                : 'Mastermind reconciled: rate floor preserved, calendar isolated, and BPS gates checked.'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-3 bg-[#B74C2B] hover:bg-[#A33E20] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors shadow-xs"
+                        disabled={isSubmitting || mastermindResult?.decision === 'block'}
+                        className="w-full py-3 bg-[#B74C2B] hover:bg-[#A33E20] disabled:bg-stone-300 text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors shadow-xs"
                       >
                         {isSubmitting ? (lang === 'ar' ? 'جارٍ المعالجة...' : 'Submitting...') : t.property.submitRequest}
                       </button>
