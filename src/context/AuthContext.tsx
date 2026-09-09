@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { Language, OperatingMode, UserProfile, UserRole } from '../types';
 import { translations } from '../i18n/translations';
+import { useOperating } from './OperatingContext';
 
 const SEED_USERS: Record<UserRole, UserProfile> = {
   guest: { id: 'g_sarah', role: 'guest', name: 'Sarah Mansour', nameAr: 'سارة منصور', email: 'sarah.m@example.com' },
@@ -10,7 +11,6 @@ const SEED_USERS: Record<UserRole, UserProfile> = {
   scout: { id: 'scout_nour', role: 'scout', name: 'Nour El-Din', nameAr: 'نور الدين', email: 'nour@scouts.local' },
   admin: { id: 'admin_master', role: 'admin', name: 'Tamer El-Ghoneimi (System Admin)', nameAr: 'تامر الغنيمي (مدير النظام)', email: 'admin@littlehut.com', organization: 'Little Hut HQ' }
 };
-import { useOperating } from './OperatingContext';
 
 export interface AuthContextType {
   user: UserProfile;
@@ -34,12 +34,11 @@ export interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Try to sync with OperatingContext if present, or fallback safely
   let operatingContext: ReturnType<typeof useOperating> | null = null;
   try {
     operatingContext = useOperating();
   } catch {
-    // AuthProvider rendered outside OperatingProvider
+    // AuthProvider rendered outside OperatingProvider.
   }
 
   const [role, setRole] = useState<UserRole>(() => {
@@ -50,15 +49,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [localLang, setLocalLang] = useState<Language>(() => {
     return (window.localStorage.getItem('lhl:language') as Language) || 'en';
   });
+  const [customUser, setCustomUser] = useState<UserProfile | null>(null);
 
   const lang: Language = operatingContext ? operatingContext.lang : localLang;
   const isRTL = lang === 'ar';
   const t = translations[lang] || translations.en;
-
   const mode: OperatingMode = operatingContext ? operatingContext.mode : 'demo';
   const setMode = operatingContext ? operatingContext.setMode : () => {};
 
   const setUserRole = (newRole: UserRole) => {
+    if (mode !== 'demo') return;
     if (SEED_USERS[newRole]) {
       setRole(newRole);
       window.localStorage.setItem('lhl:user-role', newRole);
@@ -67,9 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setLang = (newLang: Language) => {
     if (operatingContext) {
-      if (operatingContext.lang !== newLang) {
-        operatingContext.toggleLanguage();
-      }
+      if (operatingContext.lang !== newLang) operatingContext.toggleLanguage();
     } else {
       setLocalLang(newLang);
       window.localStorage.setItem('lhl:language', newLang);
@@ -85,43 +83,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const currentUser = useMemo<UserProfile>(() => {
-    if (operatingContext?.auth?.partner) {
-      const p = operatingContext.auth.partner;
+    const partner = operatingContext?.auth?.partner;
+    if (partner) {
       const mappedRole: UserRole =
-        p.platformAdmin ? 'admin' :
-        p.role === 'owner' ? 'owner' :
-        p.role === 'operator' ? 'operator' :
-        p.role === 'scout' ? 'scout' :
-        p.role === 'assessor' ? 'bps' : 'guest';
+        partner.platformAdmin ? 'admin' :
+        partner.role === 'owner' ? 'owner' :
+        partner.role === 'operator' ? 'operator' :
+        partner.role === 'scout' ? 'scout' :
+        partner.role === 'assessor' ? 'bps' : 'guest';
 
       return {
-        id: p.id,
-        name: p.name,
-        nameAr: p.nameAr,
-        email: p.email || `${p.id}@littlehut.com`,
+        id: partner.id,
+        name: partner.name,
+        nameAr: partner.nameAr,
+        email: partner.email || `${partner.id}@littlehut.com`,
         role: mappedRole,
-        assignedPropertyIds: p.assignedPropertyIds,
-        organization: p.organisation || p.serviceArea,
+        assignedPropertyIds: partner.assignedPropertyIds,
+        organization: partner.organisation || partner.serviceArea,
       };
     }
-    return SEED_USERS[role] || SEED_USERS.guest;
-  }, [operatingContext?.auth?.partner, role]);
 
-  const [customUser, setCustomUser] = useState<UserProfile | null>(null);
+    // Live never trusts seeded/localStorage personas. An unauthenticated Live user is always a guest.
+    if (mode === 'live') return SEED_USERS.guest;
+    return SEED_USERS[role] || SEED_USERS.guest;
+  }, [operatingContext?.auth?.partner, mode, role]);
+
+  useEffect(() => {
+    if (mode === 'live') setCustomUser(null);
+  }, [mode]);
 
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   }, [lang, isRTL]);
 
-  const activeUser = customUser || currentUser;
-  const isAdmin = activeUser.role === 'admin';
+  const activeUser = mode === 'demo' ? (customUser || currentUser) : currentUser;
+  const isAdmin = mode === 'live'
+    ? Boolean(operatingContext?.auth?.partner?.platformAdmin)
+    : activeUser.role === 'admin';
 
   const value = useMemo<AuthContextType>(() => ({
     user: activeUser,
     isAdmin,
     setUserRole,
-    setUser: (u: UserProfile) => setCustomUser(u),
+    setUser: (u: UserProfile) => {
+      if (mode === 'demo') setCustomUser(u);
+    },
     lang,
     setLang,
     toggleLang,
@@ -134,15 +141,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn: operatingContext ? operatingContext.signIn : async () => {},
     signUp: operatingContext ? operatingContext.signUp : async () => {},
     signOut: operatingContext ? operatingContext.signOut : async () => {},
-  }), [customUser, currentUser, lang, isRTL, t, mode, operatingContext]);
+  }), [activeUser, isAdmin, lang, isRTL, t, mode, operatingContext]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
