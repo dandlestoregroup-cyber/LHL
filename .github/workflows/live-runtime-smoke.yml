@@ -19,9 +19,11 @@ jobs:
     env:
       LHL_APP_URL: ${{ secrets.LHL_APP_URL }}
     steps:
-      - name: Report unconfigured runtime
+      - name: Require configured Live runtime
         if: env.LHL_APP_URL == ''
-        run: echo 'Live runtime smoke is inert until the LHL_APP_URL repository secret points to the deployed current LHL service.'
+        run: |
+          echo '::error::Live runtime is NOT QUALIFIED: LHL_APP_URL is missing. Configure it to the canonical deployed LHL HTTPS service.'
+          exit 1
 
       - name: Verify Express shell and Live persistence
         if: env.LHL_APP_URL != ''
