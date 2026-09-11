@@ -20,9 +20,11 @@ jobs:
       LHL_APP_URL: ${{ secrets.LHL_APP_URL }}
       LHL_OUTBOX_SECRET: ${{ secrets.LHL_OUTBOX_SECRET }}
     steps:
-      - name: Report unconfigured scheduler
+      - name: Require configured Live outbox
         if: env.LHL_APP_URL == '' || env.LHL_OUTBOX_SECRET == ''
-        run: echo 'Live outbox drain is inert until LHL_APP_URL and LHL_OUTBOX_SECRET repository secrets are configured.'
+        run: |
+          echo '::error::Live outbox is NOT QUALIFIED: LHL_APP_URL and LHL_OUTBOX_SECRET must both be configured.'
+          exit 1
 
       - name: Drain committed Live events
         if: env.LHL_APP_URL != '' && env.LHL_OUTBOX_SECRET != ''
