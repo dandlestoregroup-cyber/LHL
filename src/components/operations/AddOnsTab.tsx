@@ -1,44 +1,26 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Layers,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  RefreshCw,
-  Sliders,
-  ShieldCheck,
   Building2,
+  CheckCircle2,
+  CircleDashed,
+  LockKeyhole,
   Plug,
-  ExternalLink,
-  ChevronRight,
-  TrendingUp,
-  Volume2,
-  Key,
-  CreditCard,
-  UserCheck,
-  ShieldAlert,
-  Home,
-  Check,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
 } from 'lucide-react';
-import type {
-  PropertyAddOnConfiguration,
-  AddOnCapability,
-  OtaPmsProvider,
-  DynamicPricingProvider,
-  SmartLockProvider,
-  IdVerificationProvider,
-  DamageProtectionProvider,
-  PropertySensorProvider,
-  PaymentsProvider,
-  HousekeepingProvider,
-} from '../../types';
+import type { PropertyAddOnConfiguration } from '../../types';
 import {
-  DynamicPricingAdapter,
-  PropertySensorAdapter,
-  SmartLockAdapter,
-  IdVerificationAdapter,
-  DamageProtectionAdapter,
-} from '../../lib/adapters';
+  ADDON_CATALOG,
+  NATIVE_CORE_CAPABILITIES,
+  applyProviderSelection,
+  getExternalConnectionState,
+  getSafeRuntimeConfiguration,
+  hasVerifiedExternalConnection,
+  isExternalProvider,
+  isOperationalExternalAdapter,
+  type PropertyAddOnKey,
+} from '../../lib/addon-policy';
 
 interface AddOnsTabProps {
   property?: any;
@@ -50,6 +32,50 @@ interface AddOnsTabProps {
   nightlyFloorEgp?: number;
 }
 
+const PROVIDER_LABELS: Record<string, string> = {
+  native_little_hut: 'No external provider',
+  guesty: 'Guesty',
+  hostaway: 'Hostaway',
+  pricelabs: 'PriceLabs',
+  beyond: 'Beyond',
+  operto: 'Operto',
+  nuki: 'Nuki',
+  igloohome: 'Igloohome',
+  chekin: 'Chekin',
+  truvi: 'Truvi',
+  minut: 'Minut',
+  paytabs: 'PayTabs',
+  paymob: 'Paymob',
+  turno: 'Turno',
+  doinn: 'Doinn',
+};
+
+const STATE_STYLES = {
+  native_only: 'bg-stone-100 text-stone-700 border-stone-200',
+  configured_unverified: 'bg-amber-50 text-amber-800 border-amber-200',
+  verified_disabled: 'bg-sky-50 text-sky-800 border-sky-200',
+  active: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  error: 'bg-red-50 text-red-800 border-red-200',
+};
+
+function stateLabel(state: ReturnType<typeof getExternalConnectionState>, lang: 'en' | 'ar') {
+  const en = {
+    native_only: 'Native only',
+    configured_unverified: 'Connection required',
+    verified_disabled: 'Verified · Off',
+    active: 'Active',
+    error: 'Connection error',
+  };
+  const ar = {
+    native_only: 'ليتل هت فقط',
+    configured_unverified: 'يتطلب ربطاً موثقاً',
+    verified_disabled: 'موثق · متوقف',
+    active: 'نشط',
+    error: 'خطأ في الربط',
+  };
+  return (lang === 'ar' ? ar : en)[state];
+}
+
 export const AddOnsTab: React.FC<AddOnsTabProps> = ({
   property,
   propertyId,
@@ -57,635 +83,305 @@ export const AddOnsTab: React.FC<AddOnsTabProps> = ({
   lang,
   config,
   onUpdateConfig,
-  nightlyFloorEgp,
 }) => {
-  const propId = propertyId || property?.id || 'property-azure-haven';
-  const propName = propertyName || (lang === 'ar' ? property?.nameAr : property?.name) || 'Azure Haven';
-  const effectiveFloor = nightlyFloorEgp || property?.nightlyFloorEgp || 6500;
+  const resolvedPropertyId = propertyId || property?.id || config.propertyId;
+  const resolvedPropertyName =
+    propertyName || (lang === 'ar' ? property?.nameAr : property?.name) || resolvedPropertyId;
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const [syncingCapability, setSyncingCapability] = useState<string | null>(null);
-  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const safeConfig = useMemo(() => getSafeRuntimeConfiguration(config), [config]);
 
-  // Live adapter test readouts
-  const sensorTelemetry = PropertySensorAdapter.getTelemetry(config);
-  const pricingResult = DynamicPricingAdapter.getRateRecommendation(
-    config,
-    new Date().toISOString(),
-    effectiveFloor,
-    18000
-  );
-  const smartLockResult = SmartLockAdapter.generateAccessPin(config, '+20 100 248 9110');
-  const damageResult = DamageProtectionAdapter.getProtection(config, 5000);
-
-  const handleToggleNative = (capabilityKey: keyof Omit<PropertyAddOnConfiguration, 'propertyId'>) => {
-    const current = config[capabilityKey] as any;
-    const isNowNative = !current.isNative;
-
-    const updated: PropertyAddOnConfiguration = {
-      ...config,
-      [capabilityKey]: {
-        ...current,
-        isNative: isNowNative,
-        enabled: !isNowNative,
-        syncStatus: 'synced',
-        lastSyncedAt: 'Just now',
-      },
+  const counts = useMemo(() => {
+    const settings = ADDON_CATALOG.map((item) => config[item.key] as any);
+    return {
+      configured: settings.filter((setting) => isExternalProvider(setting)).length,
+      active: settings.filter((setting) => isOperationalExternalAdapter(setting)).length,
     };
+  }, [config]);
 
-    onUpdateConfig(updated);
-    setSyncFeedback(
-      lang === 'ar'
-        ? `تم تحديث خاصية ${capabilityKey} إلى ${isNowNative ? 'ليتل هت الأصلية' : 'المحول الخارجي'}`
-        : `Switched ${capabilityKey} to ${isNowNative ? 'Native Little Hut' : 'External Adapter'}`
-    );
-    setTimeout(() => setSyncFeedback(null), 3500);
+  const showFeedback = (message: string) => {
+    setFeedback(message);
+    window.setTimeout(() => setFeedback(null), 3500);
   };
 
-  const handleProviderSelect = (
-    capabilityKey: keyof Omit<PropertyAddOnConfiguration, 'propertyId'>,
-    provider: string
-  ) => {
-    const current = config[capabilityKey] as any;
-    const isNative = provider === 'native_little_hut';
-
-    const updated: PropertyAddOnConfiguration = {
+  const updateSetting = (key: PropertyAddOnKey, nextSetting: any) => {
+    onUpdateConfig({
       ...config,
-      [capabilityKey]: {
-        ...current,
-        provider,
-        isNative,
-        enabled: !isNative,
-        syncStatus: 'synced',
-        lastSyncedAt: 'Just now',
-      },
-    };
-
-    onUpdateConfig(updated);
-    setSyncFeedback(
-      lang === 'ar'
-        ? `تم ربط المحول: ${provider}`
-        : `Adapter connected: ${provider}`
-    );
-    setTimeout(() => setSyncFeedback(null), 3500);
+      propertyId: resolvedPropertyId,
+      [key]: nextSetting,
+    });
   };
 
-  const handleSyncPing = (capName: string) => {
-    setSyncingCapability(capName);
-    setTimeout(() => {
-      setSyncingCapability(null);
-      setSyncFeedback(
+  const handleProviderSelect = (key: PropertyAddOnKey, provider: string) => {
+    const current = config[key] as any;
+    const next = applyProviderSelection(current, provider);
+    updateSetting(key, next);
+
+    if (provider === 'native_little_hut') {
+      showFeedback(
         lang === 'ar'
-          ? `تم اختبار التزامن بنجاح مع محول ${capName}`
-          : `Sync test successful with ${capName} adapter`
+          ? 'تم فصل المزود الخارجي. وظائف ليتل هت الأصلية مستمرة دون تغيير.'
+          : 'External provider removed. Native Little Hut workflow continues unchanged.'
       );
-      setTimeout(() => setSyncFeedback(null), 3000);
-    }, 600);
+      return;
+    }
+
+    showFeedback(
+      lang === 'ar'
+        ? `تم اختيار ${PROVIDER_LABELS[provider] || provider}. لن يصبح نشطاً قبل توثيق الربط من الخادم.`
+        : `${PROVIDER_LABELS[provider] || provider} configured. It will not activate until the server-side connection is verified.`
+    );
   };
 
-  // Count active add-ons
-  const activeExternalAddonsCount = [
-    !config.otaPms.isNative && config.otaPms.enabled,
-    !config.dynamicPricing.isNative && config.dynamicPricing.enabled,
-    !config.smartLocks.isNative && config.smartLocks.enabled,
-    !config.idVerification.isNative && config.idVerification.enabled,
-    !config.damageProtection.isNative && config.damageProtection.enabled,
-    !config.propertySensors.isNative && config.propertySensors.enabled,
-    !config.payments.isNative && config.payments.enabled,
-    !config.housekeeping.isNative && config.housekeeping.enabled,
-  ].filter(Boolean).length;
+  const handleEnabledChange = (key: PropertyAddOnKey, enabled: boolean) => {
+    const current = config[key] as any;
+    if (enabled && !hasVerifiedExternalConnection(current)) {
+      showFeedback(
+        lang === 'ar'
+          ? 'لا يمكن تفعيل الإضافة قبل توثيق الربط الحقيقي من الخادم.'
+          : 'This add-on cannot be activated until a real server-side connection is verified.'
+      );
+      return;
+    }
+
+    updateSetting(key, { ...current, enabled });
+    showFeedback(
+      lang === 'ar'
+        ? enabled
+          ? 'تم تفعيل الإضافة لهذا العقار فقط.'
+          : 'تم إيقاف الإضافة لهذا العقار. وظائف ليتل هت الأصلية مستمرة.'
+        : enabled
+          ? 'Add-on enabled for this property only.'
+          : 'Add-on disabled for this property. Native Little Hut remains active.'
+    );
+  };
 
   return (
     <div className="space-y-8">
-      {/* Architecture Philosophy Banner */}
-      <div className="bg-gradient-to-r from-[#2A201C] to-[#3D2E28] text-white p-6 rounded-xs shadow-sm border border-[#523F37] relative overflow-hidden">
-        <div className="max-w-3xl space-y-3 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xs bg-[#B84E36] text-white text-[10px] font-bold uppercase tracking-wider">
-            <Plug className="w-3 h-3" />
-            <span>{lang === 'ar' ? 'معمارية ليتل هت الأصلية مع المحولات' : 'Little Hut Adapter Architecture'}</span>
+      <section className="relative overflow-hidden rounded-xs border border-[#523F37] bg-[#2A201C] p-6 text-white shadow-sm">
+        <div className="relative z-10 max-w-4xl space-y-4">
+          <div className="inline-flex items-center gap-1.5 rounded-xs bg-[#B84E36] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>{lang === 'ar' ? 'ليتل هت أولاً' : 'Little Hut First'}</span>
           </div>
-          <h2 className="font-serif-editorial text-2xl md:text-3xl font-bold">
-            {lang === 'ar'
-              ? 'العمل الأصلي أولاً — والمحولات اختيارية لكل عقار'
-              : 'Native Little Hut Workflow First — Configurable Per Property'}
-          </h2>
-          <p className="text-xs md:text-sm text-[#DECBB9] leading-relaxed">
-            {lang === 'ar'
-              ? 'كل خاصية تعمل أصلياً داخل ليتل هت مع كامل الأمان. تتصل الإضافات الخارجية عبر محولات معيارية ويمكن تفعيلها أو إيقافها لكل عقار على حدة. يمكن لمالك استخدام برايس لابس ومينوت، بينما يعمل مالك آخر بالكامل على منظومة ليتل هت الأصلية.'
-              : 'Every capability operates natively inside Little Hut with zero external dependencies. External add-ons connect through modular adapters and are toggled per property. One owner can run PriceLabs + Minut while another operates 100% on Native Little Hut.'}
-          </p>
+          <div>
+            <h2 className="font-serif-editorial text-2xl font-bold md:text-3xl">
+              {lang === 'ar'
+                ? 'المنتج الأصلي محفوظ — والإضافات اختيارية لكل عقار'
+                : 'Native Product Preserved — Add-ons Are Optional Per Property'}
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#DECBB9]">
+              {lang === 'ar'
+                ? 'الحجز واللحظات والأتمتة والتجهيز والأدلة وماسترمايند ورحلة الضيف والتسعير والموافقات والسجل تظل داخل ليتل هت. الأدوات الخارجية تضيف قدرة محددة فقط ولا تستبدل أي جزء من المنظومة.'
+                : 'Booking, Moments, automation, turnovers, evidence, Mastermind, guest journey, pricing policy, approvals and audit stay inside Little Hut. External tools supply a narrow capability only; they never replace the product.'}
+            </p>
+          </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-[#E8D7C7]">
-            <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-[#DECBB9]" />
-              <span className="font-bold">{propertyName}:</span>
-              <span className="px-2 py-0.5 rounded-xs bg-white/10 text-white font-mono">
-                {activeExternalAddonsCount === 0
-                  ? lang === 'ar' ? 'ليتل هت أصلية ١٠٠٪' : '100% Native Little Hut'
-                  : `${activeExternalAddonsCount} ${lang === 'ar' ? 'محولات نشطة' : 'External Adapters Active'}`}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] opacity-90">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>{lang === 'ar' ? 'حد المالك الأدنى محمي دوماً' : 'Owner Rate Floor & Moments Always Guarded'}</span>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-xs bg-white/10 px-2.5 py-1.5">
+              <Building2 className="h-3.5 w-3.5" />
+              <strong>{resolvedPropertyName}</strong>
+            </span>
+            <span className="rounded-xs bg-white/10 px-2.5 py-1.5">
+              {lang === 'ar' ? `${counts.configured} إضافات مهيأة` : `${counts.configured} configured add-ons`}
+            </span>
+            <span className="rounded-xs bg-emerald-500/20 px-2.5 py-1.5 text-emerald-100">
+              {lang === 'ar' ? `${counts.active} إضافات نشطة وموثقة` : `${counts.active} verified active add-ons`}
+            </span>
           </div>
         </div>
+        <Sparkles className="pointer-events-none absolute -bottom-8 -right-8 h-36 w-36 opacity-[0.06]" />
+      </section>
 
-        <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none text-white font-serif-editorial text-9xl">
-          ⚡
-        </div>
-      </div>
-
-      {/* Sync Feedback Toast */}
-      {syncFeedback && (
-        <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{syncFeedback}</span>
-          </div>
-          <span className="text-[10px] text-emerald-600 uppercase font-mono">Synced</span>
+      {feedback && (
+        <div className="flex items-start gap-2 rounded-xs border border-[#E9DED1] bg-[#FFF9F3] p-3 text-xs font-medium text-[#5C493F]">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#0F5859]" />
+          <span>{feedback}</span>
         </div>
       )}
 
-      {/* Live Adapter Telemetry Preview Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Dynamic Pricing Adapter Telemetry */}
-        <div className="p-4 bg-white border border-[#E9DED1] rounded-xs shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E6C60] flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-[#B84E36]" />
-              <span>{lang === 'ar' ? 'محول التسعير' : 'Pricing Adapter'}</span>
-            </span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-xs font-bold ${
-              config.dynamicPricing.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-            }`}>
-              {config.dynamicPricing.isNative ? 'Native LH' : config.dynamicPricing.provider.toUpperCase()}
-            </span>
-          </div>
-          <div className="text-xl font-bold font-serif-editorial text-[#2A201C]">
-            {pricingResult.recommendedRateEgp.toLocaleString()} EGP
-          </div>
-          <div className="text-[11px] text-[#7E6C60] line-clamp-2">
-            {lang === 'ar' ? pricingResult.surgeReasonAr : pricingResult.surgeReason}
-          </div>
-          <div className="text-[10px] font-bold text-emerald-800 flex items-center gap-1 pt-1 border-t border-[#FAF5EE]">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>{lang === 'ar' ? `الحد الأدنى محمي: ${nightlyFloorEgp.toLocaleString()} ج.م` : `Floor Guarded: ${nightlyFloorEgp.toLocaleString()} EGP`}</span>
-          </div>
-        </div>
-
-        {/* Sensor Adapter Telemetry */}
-        <div className="p-4 bg-white border border-[#E9DED1] rounded-xs shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E6C60] flex items-center gap-1">
-              <Volume2 className="w-3.5 h-3.5 text-[#0F5859]" />
-              <span>{lang === 'ar' ? 'حساس الهدوء' : 'Sensor Adapter'}</span>
-            </span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-xs font-bold ${
-              config.propertySensors.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-            }`}>
-              {config.propertySensors.isNative ? 'Native Pledge' : 'MINUT M3'}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold font-serif-editorial text-[#2A201C]">
-              {sensorTelemetry.currentDecibels} dB
-            </span>
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-xs">
-              {lang === 'ar' ? 'هادئ ومحمي' : 'Quiet Reset'}
-            </span>
-          </div>
-          <div className="text-[11px] text-[#7E6C60]">
-            {sensorTelemetry.temperatureC}°C · {sensorTelemetry.humidityPercent}% {lang === 'ar' ? 'رطوبة' : 'humidity'}
-          </div>
-          <div className="text-[10px] text-[#7E6C60] pt-1 border-t border-[#FAF5EE] truncate">
-            {sensorTelemetry.lastReadingTime}
-          </div>
-        </div>
-
-        {/* Smart Lock Adapter Telemetry */}
-        <div className="p-4 bg-white border border-[#E9DED1] rounded-xs shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E6C60] flex items-center gap-1">
-              <Key className="w-3.5 h-3.5 text-[#B84E36]" />
-              <span>{lang === 'ar' ? 'الأقفال الذكية' : 'Lock Adapter'}</span>
-            </span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-xs font-bold ${
-              config.smartLocks.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-            }`}>
-              {config.smartLocks.isNative ? 'Native PIN' : config.smartLocks.provider.toUpperCase()}
-            </span>
-          </div>
-          <div className="text-xl font-bold font-serif-editorial text-[#2A201C] font-mono">
-            {smartLockResult.generatedCode}#
-          </div>
-          <div className="text-[11px] text-[#7E6C60]">
-            {smartLockResult.deviceBattery}% {lang === 'ar' ? 'شحن البطارية' : 'battery'} · {lang === 'ar' ? 'مقفل تلقائياً' : 'Auto-locked'}
-          </div>
-          <div className="text-[10px] text-emerald-800 flex items-center gap-1 pt-1 border-t border-[#FAF5EE]">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-            <span>{lang === 'ar' ? 'جاهز لوصول الضيف' : 'Ready for Guest Check-in'}</span>
-          </div>
-        </div>
-
-        {/* Damage Protection Telemetry */}
-        <div className="p-4 bg-white border border-[#E9DED1] rounded-xs shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E6C60] flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-700" />
-              <span>{lang === 'ar' ? 'حماية الأضرار' : 'Damage Protection'}</span>
-            </span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-xs font-bold ${
-              config.damageProtection.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-            }`}>
-              {config.damageProtection.isNative ? 'Native Escrow' : 'TRUVI POLICY'}
-            </span>
-          </div>
-          <div className="text-xl font-bold font-serif-editorial text-[#2A201C]">
-            {damageResult.protectedAmountEgp.toLocaleString()} EGP
-          </div>
-          <div className="text-[11px] text-[#7E6C60]">
-            {damageResult.coverageType === 'refundable_escrow_deposit'
-              ? (lang === 'ar' ? 'تأمين مسترد مودع بالأمانات' : 'Refundable Escrow Hold')
-              : (lang === 'ar' ? 'بوليصة تأمين بدون خصم' : '$5k Zero-Deductible Waiver')}
-          </div>
-          <div className="text-[10px] font-mono text-stone-500 pt-1 border-t border-[#FAF5EE] truncate">
-            {damageResult.policyOrReceiptId}
-          </div>
-        </div>
-      </div>
-
-      {/* Capabilities & Adapter Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif-editorial text-xl font-bold text-[#2A201C]">
-            {lang === 'ar' ? 'جدول المحولات والإضافات القابلة للتخصيص' : 'Configurable Add-ons & Adapter Registry'}
+      <section className="space-y-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B84E36]">
+            {lang === 'ar' ? 'الأساس الأصلي' : 'Native Core'}
+          </p>
+          <h3 className="mt-1 font-serif-editorial text-xl font-bold text-[#2A201C]">
+            {lang === 'ar' ? 'دائماً داخل ليتل هت' : 'Always Little Hut'}
           </h3>
-          <span className="text-xs text-[#7E6C60]">
-            {lang === 'ar' ? 'تبديل فوري بين العمل الأصلي والمحول' : 'Instant toggle between Native and Add-on'}
-          </span>
+          <p className="mt-1 text-xs text-[#7E6C60]">
+            {lang === 'ar'
+              ? 'هذه الوظائف ليست إضافات ولا يمكن لمزود خارجي استبدالها.'
+              : 'These capabilities are not add-ons and cannot be replaced by an external provider.'}
+          </p>
         </div>
 
-        <div className="bg-white border border-[#E9DED1] rounded-xs overflow-hidden shadow-xs divide-y divide-[#E9DED1]">
-          {/* 1. OTA / PMS Sync */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <Home className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'مزامنة القنوات ونظام إدارة الضيافة (OTA / PMS)' : 'OTA / PMS Channel Sync'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.otaPms.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.otaPms.isNative ? (lang === 'ar' ? 'أصلي: ليتل هت' : 'Native Little Hut') : config.otaPms.provider.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'ليتل هت تعمل أصلياً كنظام إدارة حجز مستقل، أو تتزامن مع قنوات الحجز عبر محولات Guesty أو Hostaway.'
-                  : 'Native Little Hut booking spine handles reservations directly, or syncs two-way via Guesty or Hostaway adapters.'}
-              </p>
-              {config.otaPms.externalAccountLabel && (
-                <div className="text-[11px] font-mono text-[#0F5859]">
-                  {config.otaPms.externalAccountLabel}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {NATIVE_CORE_CAPABILITIES.map((capability) => (
+            <div key={capability.key} className="rounded-xs border border-[#E9DED1] bg-white p-4 shadow-2xs">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-full bg-emerald-50 p-1.5 text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" />
                 </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.otaPms.provider}
-                onChange={(e) => handleProviderSelect('otaPms', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية' : 'Native Little Hut'}</option>
-                <option value="guesty">Guesty PMS Adapter</option>
-                <option value="hostaway">Hostaway Adapter</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('OTA/PMS')}
-                disabled={syncingCapability === 'OTA/PMS'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'OTA/PMS' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص التزامن' : 'Test Sync'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Dynamic Pricing Data */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'بيانات التسعير الديناميكي' : 'Dynamic Pricing Data'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.dynamicPricing.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.dynamicPricing.isNative ? (lang === 'ar' ? 'أصلي: خوارزمية ليتل هت' : 'Native Little Hut') : config.dynamicPricing.provider.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'محول PriceLabs أو Beyond لجلب قراءات السوق ومعدلات إشغال المنطقة، مع فرض حد المالك الأدنى حمايةً للإيراد.'
-                  : 'Feeds live market occupancy data via PriceLabs or Beyond while strictly enforcing the owner rate floor.'}
-              </p>
-              {config.dynamicPricing.externalAccountLabel && (
-                <div className="text-[11px] font-mono text-[#0F5859]">
-                  {config.dynamicPricing.externalAccountLabel}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-sm font-bold text-[#2A201C]">
+                      {lang === 'ar' ? capability.labelAr : capability.label}
+                    </h4>
+                    <span className="rounded-xs bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-800">
+                      {lang === 'ar' ? 'أصلي' : 'Native'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#7E6C60]">
+                    {lang === 'ar' ? capability.descriptionAr : capability.description}
+                  </p>
                 </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.dynamicPricing.provider}
-                onChange={(e) => handleProviderSelect('dynamicPricing', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية' : 'Native Little Hut'}</option>
-                <option value="pricelabs">PriceLabs Adapter</option>
-                <option value="beyond">Beyond Pricing Adapter</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('Pricing')}
-                disabled={syncingCapability === 'Pricing'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'Pricing' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'تحديث الأسعار' : 'Refresh Rates'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 3. Smart Locks */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'الأقفال الذكية والدخول الرقمي' : 'Smart Locks & Keyless Access'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.smartLocks.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.smartLocks.isNative ? (lang === 'ar' ? 'أصلي: خزنة رموز ليتل هت' : 'Native Keypad Vault') : config.smartLocks.provider.toUpperCase()}
-                </span>
               </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'توليد رموز PIN زمنية تلقائية للضيوف والمنظفين مباشرة، أو التزامن السحابي عبر محولات Operto و Nuki و Igloohome.'
-                  : 'Generates time-windowed PINs natively, or syncs through Operto, Nuki, or Igloohome cloud bridges.'}
-              </p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.smartLocks.provider}
-                onChange={(e) => handleProviderSelect('smartLocks', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية' : 'Native Keypad Vault'}</option>
-                <option value="operto">Operto Smart Stay</option>
-                <option value="nuki">Nuki Smart Lock Adapter</option>
-                <option value="igloohome">Igloohome Bridge</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('SmartLock')}
-                disabled={syncingCapability === 'SmartLock'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'SmartLock' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص القفل' : 'Ping Lock'}</span>
-              </button>
-            </div>
+      <section className="space-y-4">
+        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#0F5859]">
+              {lang === 'ar' ? 'إضافات قابلة للتهيئة' : 'Configurable Add-ons'}
+            </p>
+            <h3 className="mt-1 font-serif-editorial text-xl font-bold text-[#2A201C]">
+              {lang === 'ar' ? 'قدرات خارجية عند الحاجة' : 'External Capability, Only When Useful'}
+            </h3>
           </div>
-
-          {/* 4. ID Verification */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'التحقق من الهوية والأمن' : 'ID Verification'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.idVerification.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.idVerification.isNative ? (lang === 'ar' ? 'أصلي: تدقيق المشغل' : 'Native Concierge Check') : config.idVerification.provider.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'رفع بطاقة الرقم القومي أو جواز السفر ومراجعتها عبر المشغل، أو التحقق الحيوي التلقائي مع Chekin أو Truvi.'
-                  : 'Native encrypted document upload and operator verification, or automated biometric OCR via Chekin or Truvi.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.idVerification.provider}
-                onChange={(e) => handleProviderSelect('idVerification', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية' : 'Native Concierge Check'}</option>
-                <option value="chekin">Chekin Guest ID Adapter</option>
-                <option value="truvi">Truvi Biometric Verification</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('ID')}
-                disabled={syncingCapability === 'ID'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'ID' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص السجل' : 'Verify ID Gate'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 5. Damage Protection */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'حماية الأضرار والتأمين' : 'Damage Protection'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.damageProtection.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.damageProtection.isNative ? (lang === 'ar' ? 'أصلي: تأمين الأمانات المسترد' : 'Native Escrow Hold') : 'TRUVI POLICY'}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'حجز تأمين مسترد بقيمة ٥٠٠٠ ج.م مع توثيق الصور قبل وبعد، أو استبداله ببوليصة تأمين Truvi بدون نسبة تحمل.'
-                  : 'Native 5,000 EGP refundable escrow hold with photo evidence diff, or Truvi $5,000 zero-deductible policy.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.damageProtection.provider}
-                onChange={(e) => handleProviderSelect('damageProtection', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية (أمانات ٥٠٠٠ ج.م)' : 'Native Escrow (5,000 EGP)'}</option>
-                <option value="truvi">Truvi Zero-Deductible Policy</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('Damage')}
-                disabled={syncingCapability === 'Damage'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'Damage' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص التغطية' : 'Inspect Policy'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 6. Property Sensors */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'حساسات العقار ومراقبة الضوضاء' : 'Property Sensors & Noise Monitoring'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.propertySensors.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.propertySensors.isNative ? (lang === 'ar' ? 'أصلي: عهد الهدوء' : 'Native Noise Pledge') : 'MINUT SENSOR'}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'مستشعرات Minut ترصد مستوى الديسيبل (٤١ ديسيبل حالياً) والدخان والحرارة بدون انتهاك الخصوصية، أو ميثاق الهدوء الأصلي.'
-                  : 'Minut privacy-safe sound decibel, cigarette smoke, and freeze sensor, or native guest pledge and patrol log.'}
-              </p>
-              {config.propertySensors.externalAccountLabel && (
-                <div className="text-[11px] font-mono text-[#0F5859]">
-                  {config.propertySensors.externalAccountLabel}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.propertySensors.provider}
-                onChange={(e) => handleProviderSelect('propertySensors', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية (ميثاق الهدوء)' : 'Native Noise Pledge'}</option>
-                <option value="minut">Minut Smart Sensor Adapter</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('Sensor')}
-                disabled={syncingCapability === 'Sensor'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'Sensor' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'قراءة الحساس' : 'Read Sensor'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 7. Payments */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'بوابات الدفع الإلكتروني' : 'Payment Gateways'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.payments.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.payments.isNative ? (lang === 'ar' ? 'أصلي: تحويل بنكي / إنستاباي' : 'Native Bank / InstaPay') : config.payments.provider.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'بوابات PayTabs أو Paymob للبطاقات البنكية وميزة، أو الحوالات البنكية المباشرة عبر إنستاباي والبنك التجاري الدولي.'
-                  : 'Egyptian 3D-Secure cards and Meeza via PayTabs or Paymob, or native direct InstaPay/CIB transfer.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.payments.provider}
-                onChange={(e) => handleProviderSelect('payments', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية (إنستاباي / بنكي)' : 'Native Bank / InstaPay'}</option>
-                <option value="paytabs">PayTabs Egypt Gateway</option>
-                <option value="paymob">Paymob Gateway</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('Payment')}
-                disabled={syncingCapability === 'Payment'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'Payment' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص البوابة' : 'Verify Gateway'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 8. External Housekeeping Workforce */}
-          <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#B84E36]" />
-                <span className="font-bold text-sm text-[#2A201C]">
-                  {lang === 'ar' ? 'فريق النظافة والتجهيز الميداني' : 'Housekeeping Workforce'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xs ${
-                  config.housekeeping.isNative ? 'bg-stone-100 text-stone-700' : 'bg-emerald-50 text-emerald-800'
-                }`}>
-                  {config.housekeeping.isNative ? (lang === 'ar' ? 'أصلي: طاقم ليتل هت المعتمد' : 'Native Certified Crew') : config.housekeeping.provider.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-[#7E6C60]">
-                {lang === 'ar'
-                  ? 'طاقم ضيافة ليتل هت الداخلي المدرب على معايير اللحظات، أو الربط مع سوق عمالة Turno أو Doinn حيثما توفر محلياً.'
-                  : 'In-house Little Hut hospitality team enforcing 8-point photo checklist, or Turno / Doinn marketplace where locally viable.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <select
-                value={config.housekeeping.provider}
-                onChange={(e) => handleProviderSelect('housekeeping', e.target.value)}
-                className="text-xs font-bold text-[#2A201C] bg-[#FAF5EE] border border-[#E9DED1] p-2 rounded-xs focus:outline-none cursor-pointer"
-              >
-                <option value="native_little_hut">{lang === 'ar' ? 'ليتل هت الأصلية (طاقم معتمد)' : 'Native Little Hut Crew'}</option>
-                <option value="turno">Turno Marketplace</option>
-                <option value="doinn">Doinn Turnover Platform</option>
-              </select>
-
-              <button
-                onClick={() => handleSyncPing('Housekeeping')}
-                disabled={syncingCapability === 'Housekeeping'}
-                className="px-3 py-2 bg-white border border-[#E9DED1] hover:bg-[#FAF5EE] text-xs font-bold text-[#2A201C] rounded-xs cursor-pointer flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${syncingCapability === 'Housekeeping' ? 'animate-spin' : ''}`} />
-                <span>{lang === 'ar' ? 'فحص الفريق' : 'Verify Crew'}</span>
-              </button>
-            </div>
+          <div className="inline-flex items-center gap-2 rounded-xs border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900">
+            <TriangleAlert className="h-4 w-4 shrink-0" />
+            <span>
+              {lang === 'ar'
+                ? 'اختيار مزود لا يعني أنه متصل أو نشط.'
+                : 'Selecting a provider never means it is connected or active.'}
+            </span>
           </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {ADDON_CATALOG.map((definition) => {
+            const rawSetting = config[definition.key] as any;
+            const safeSetting = safeConfig[definition.key] as any;
+            const connectionState = getExternalConnectionState(rawSetting);
+            const verified = hasVerifiedExternalConnection(rawSetting);
+            const externalSelected = isExternalProvider(rawSetting);
+            const operational = isOperationalExternalAdapter(rawSetting);
+
+            return (
+              <article key={definition.key} className="rounded-xs border border-[#E9DED1] bg-white p-5 shadow-2xs">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Plug className="h-4 w-4 text-[#0F5859]" />
+                      <h4 className="font-serif-editorial text-lg font-bold text-[#2A201C]">
+                        {lang === 'ar' ? definition.labelAr : definition.label}
+                      </h4>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-[#7E6C60]">
+                      {lang === 'ar' ? definition.descriptionAr : definition.description}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-xs border px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${STATE_STYLES[connectionState]}`}>
+                    {stateLabel(connectionState, lang)}
+                  </span>
+                </div>
+
+                <div className="mt-4 rounded-xs border border-[#F0E6DC] bg-[#FCF8F4] p-3">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#B84E36]" />
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[#5C493F]">
+                        {lang === 'ar' ? 'الأساس الذي يبقى داخل ليتل هت' : 'Little Hut backbone that stays native'}
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-[#7E6C60]">
+                        {lang === 'ar' ? definition.nativeBackboneAr : definition.nativeBackbone}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                  <label className="block">
+                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#7E6C60]">
+                      {lang === 'ar' ? 'المزود الخارجي' : 'External provider'}
+                    </span>
+                    <select
+                      value={rawSetting.provider}
+                      onChange={(event) => handleProviderSelect(definition.key, event.target.value)}
+                      className="w-full rounded-xs border border-[#DCCDBF] bg-white px-3 py-2 text-xs font-semibold text-[#2A201C] outline-none focus:border-[#0F5859]"
+                    >
+                      <option value="native_little_hut">
+                        {lang === 'ar' ? 'بدون مزود خارجي' : 'No external provider'}
+                      </option>
+                      {definition.providers.map((provider) => (
+                        <option key={provider} value={provider}>
+                          {PROVIDER_LABELS[provider] || provider}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className={`flex min-w-[150px] items-center justify-between gap-3 rounded-xs border px-3 py-2 ${verified ? 'border-[#DCCDBF] bg-white' : 'border-stone-200 bg-stone-50'}`}>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[#5C493F]">
+                      {lang === 'ar' ? 'تفعيل' : 'Enabled'}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={operational}
+                      disabled={!verified}
+                      onChange={(event) => handleEnabledChange(definition.key, event.target.checked)}
+                      className="h-4 w-4 accent-[#0F5859] disabled:cursor-not-allowed"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-3 flex items-start gap-2 text-[10px] leading-relaxed">
+                  {!externalSelected ? (
+                    <>
+                      <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />
+                      <span className="text-emerald-800">
+                        {lang === 'ar'
+                          ? 'لا يوجد اعتماد خارجي. منظومة ليتل هت الأصلية مستمرة بالكامل.'
+                          : 'No external dependency. Native Little Hut continues in full.'}
+                      </span>
+                    </>
+                  ) : !verified ? (
+                    <>
+                      <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700" />
+                      <span className="text-amber-800">
+                        {lang === 'ar'
+                          ? `${PROVIDER_LABELS[rawSetting.provider] || rawSetting.provider} مهيأ فقط. يحتاج اتصالاً موثقاً من الخادم قبل استخدام أي بيانات أو تنفيذ.`
+                          : `${PROVIDER_LABELS[rawSetting.provider] || rawSetting.provider} is configured only. A verified server-side connection is required before any data or action can be trusted.`}
+                      </span>
+                    </>
+                  ) : operational ? (
+                    <>
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />
+                      <span className="text-emerald-800">
+                        {lang === 'ar'
+                          ? `اتصال موثق ونشط لهذا العقار. آخر مزامنة: ${safeSetting.lastSyncedAt || '—'}`
+                          : `Verified and active for this property. Last sync: ${safeSetting.lastSyncedAt || '—'}`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-700" />
+                      <span className="text-sky-800">
+                        {lang === 'ar'
+                          ? 'الاتصال موثق لكنه متوقف لهذا العقار.'
+                          : 'Connection verified, but this add-on is disabled for the property.'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 };
