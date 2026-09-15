@@ -1,22 +1,17 @@
 /**
- * Little Hut Configurable Add-ons & Adapter Architecture
+ * Little Hut configurable add-on adapters.
  *
- * Core Principle: Native Little Hut workflow first.
- * Every add-on capability connects through a standardized adapter contract.
- * Add-ons are completely optional and configurable at the property level.
- * One owner can use PriceLabs + Minut while another runs 100% on Native Little Hut.
+ * Little Hut owns the product workflow and operational truth. External vendors
+ * are optional capability suppliers. No adapter may claim a provider is live,
+ * verified or successful unless a server-side connection has been verified and
+ * the relevant provider data is present in the property configuration.
  */
 
-import type {
-  PropertyAddOnConfiguration,
-  AddOnCapability,
-  DamageIncident,
-  MaintenanceTask,
-} from '../../types';
-
-// ==========================================
-// 1. Adapter Interfaces
-// ==========================================
+import type { PropertyAddOnConfiguration } from '../../types';
+import {
+  getSafeRuntimeConfiguration,
+  isOperationalExternalAdapter,
+} from '../addon-policy';
 
 export interface PricingResult {
   recommendedRateEgp: number;
@@ -25,13 +20,15 @@ export interface PricingResult {
   source: 'native_little_hut' | 'pricelabs' | 'beyond';
   surgeReason: string;
   surgeReasonAr: string;
-  demandIndex: number; // 0 - 100
+  demandIndex: number;
+  externalDataUsed: boolean;
 }
 
 export interface SensorTelemetry {
   provider: 'native_little_hut' | 'minut';
+  available: boolean;
   currentDecibels: number;
-  noiseStatus: 'quiet' | 'moderate' | 'elevated' | 'curfew_breach';
+  noiseStatus: 'quiet' | 'moderate' | 'elevated' | 'curfew_breach' | 'unavailable';
   temperatureC: number;
   humidityPercent: number;
   smokeDetected: boolean;
@@ -42,10 +39,12 @@ export interface SensorTelemetry {
 
 export interface SmartLockResult {
   provider: 'native_little_hut' | 'operto' | 'nuki' | 'igloohome';
+  available: boolean;
   generatedCode: string;
   deviceBattery: number;
   meshOnline: boolean;
-  doorState: 'locked' | 'unlocked';
+  doorState: 'locked' | 'unlocked' | 'unknown';
+  statusMessage: string;
 }
 
 export interface IdVerificationResult {
@@ -55,19 +54,47 @@ export interface IdVerificationResult {
   biometricMatchConfidence?: number;
   documentValidated: string;
   timestamp: string;
+  requiresHumanReview: boolean;
 }
 
 export interface DamageProtectionResult {
   provider: 'native_little_hut' | 'truvi';
-  coverageType: 'refundable_escrow_deposit' | 'truvi_zero_deductible_waiver';
+  coverageType: 'refundable_deposit_workflow' | 'truvi_protection' | 'none';
   protectedAmountEgp: number;
-  status: 'active' | 'claim_pending' | 'resolved';
+  status: 'active' | 'claim_pending' | 'resolved' | 'not_connected';
   policyOrReceiptId: string;
+  externallyUnderwritten: boolean;
 }
 
-// ==========================================
-// 2. Pricing Adapter Implementation
-// ==========================================
+function clampRate(value: number, floorEgp: number, ceilingEgp: number): number {
+  return Math.min(Math.max(Math.round(value), floorEgp), ceilingEgp);
+}
+
+function nativeRateRecommendation(
+  dateStr: string,
+  floorEgp: number,
+  ceilingEgp: number
+): PricingResult {
+  const dayOfWeek = new Date(dateStr).getDay();
+  const isWeekend = dayOfWeek === 4 || dayOfWeek === 5;
+  const multiplier = isWeekend ? 1.35 : 1;
+
+  return {
+    recommendedRateEgp: clampRate(floorEgp * multiplier, floorEgp, ceilingEgp),
+    guardedFloorEgp: floorEgp,
+    guardedCeilingEgp: ceilingEgp,
+    source: 'native_little_hut',
+    surgeReason: isWeekend
+      ? 'Little Hut weekend policy recommendation; owner floor remains protected.'
+      : 'Little Hut baseline recommendation; owner floor remains protected.',
+    surgeReasonAr: isWeekend
+      ? 'توصية ليتل هت لعطلة نهاية الأسبوع مع حماية الحد الأدنى للمالك.'
+      : 'توصية ليتل هت الأساسية مع حماية الحد الأدنى للمالك.',
+    demandIndex: isWeekend ? 70 : 45,
+    externalDataUsed: false,
+  };
+}
+
 export class DynamicPricingAdapter {
   static getRateRecommendation(
     config: PropertyAddOnConfiguration,
@@ -75,207 +102,211 @@ export class DynamicPricingAdapter {
     floorEgp: number,
     ceilingEgp: number = 18000
   ): PricingResult {
-    const dayOfWeek = new Date(dateStr).getDay();
-    const isWeekend = dayOfWeek === 4 || dayOfWeek === 5; // Egypt weekend: Thursday/Friday
+    const safeConfig = getSafeRuntimeConfiguration(config);
+    const setting = safeConfig.dynamicPricing;
 
-    if (!config.dynamicPricing.enabled || config.dynamicPricing.isNative) {
-      // NATIVE LITTLE HUT ENGINE
-      // Pure Little Hut rule-based demand model
-      const multiplier = isWeekend ? 1.35 : 1.0;
-      const rawRate = Math.round(floorEgp * multiplier);
-      const clampedRate = Math.min(Math.max(rawRate, floorEgp), ceilingEgp);
-
-      return {
-        recommendedRateEgp: clampedRate,
-        guardedFloorEgp: floorEgp,
-        guardedCeilingEgp: ceilingEgp,
-        source: 'native_little_hut',
-        surgeReason: isWeekend
-          ? 'Native Weekend Surge (Thu-Fri Red Sea prime getaway)'
-          : 'Native Baseline Rate',
-        surgeReasonAr: isWeekend
-          ? 'زيادة عطلة نهاية الأسبوع الأصلية (خميس وجمعة)'
-          : 'السعر الأساسي المعتمد',
-        demandIndex: isWeekend ? 82 : 45,
-      };
+    if (!isOperationalExternalAdapter(setting)) {
+      return nativeRateRecommendation(dateStr, floorEgp, ceilingEgp);
     }
 
-    // EXTERNAL ADD-ON (PriceLabs / Beyond)
-    if (config.dynamicPricing.provider === 'pricelabs') {
-      // PriceLabs comp-set algorithmic scraping: 94% AZHA occupancy detection
-      const marketSurge = isWeekend ? 1.48 : 1.12;
-      const priceLabsRaw = Math.round(floorEgp * marketSurge);
-      const clampedRate = Math.min(Math.max(priceLabsRaw, floorEgp), ceilingEgp);
+    const externalRate = Number(setting.telemetryData?.recommendedRateEgp);
+    const demandIndex = Number(setting.telemetryData?.demandIndex);
 
-      return {
-        recommendedRateEgp: clampedRate,
-        guardedFloorEgp: floorEgp,
-        guardedCeilingEgp: ceilingEgp,
-        source: 'pricelabs',
-        surgeReason:
-          'PriceLabs Live Comp-Set Index: AZHA Ain Sokhna 94% regional occupancy surge',
-        surgeReasonAr:
-          'مؤشر برايس لابس الحي: إشغال أزهى العين السخنة 94% مع طلب مرتفع',
-        demandIndex: isWeekend ? 94 : 68,
-      };
+    if (!Number.isFinite(externalRate) || externalRate <= 0) {
+      return nativeRateRecommendation(dateStr, floorEgp, ceilingEgp);
     }
-
-    // Beyond Pricing
-    const beyondRaw = Math.round(floorEgp * (isWeekend ? 1.42 : 1.08));
-    const clampedRate = Math.min(Math.max(beyondRaw, floorEgp), ceilingEgp);
 
     return {
-      recommendedRateEgp: clampedRate,
+      recommendedRateEgp: clampRate(externalRate, floorEgp, ceilingEgp),
       guardedFloorEgp: floorEgp,
       guardedCeilingEgp: ceilingEgp,
-      source: 'beyond',
-      surgeReason: 'Beyond Pricing dynamic pace algorithm applied',
-      surgeReasonAr: 'خوارزمية بيوند لتسريع الحجوزات',
-      demandIndex: isWeekend ? 88 : 55,
+      source: setting.provider,
+      surgeReason:
+        String(setting.telemetryData?.reason || `${setting.provider} verified pricing signal`) +
+        ' · Little Hut owner floor/ceiling applied',
+      surgeReasonAr:
+        String(setting.telemetryData?.reasonAr || `إشارة تسعير موثقة من ${setting.provider}`) +
+        ' · تم تطبيق حدود المالك داخل ليتل هت',
+      demandIndex: Number.isFinite(demandIndex) ? Math.max(0, Math.min(100, demandIndex)) : 50,
+      externalDataUsed: true,
     };
   }
 }
 
-// ==========================================
-// 3. Sensor Adapter Implementation
-// ==========================================
 export class PropertySensorAdapter {
   static getTelemetry(config: PropertyAddOnConfiguration): SensorTelemetry {
+    const safeConfig = getSafeRuntimeConfiguration(config);
+    const setting = safeConfig.propertySensors;
     const hour = new Date().getHours();
-    const isQuietHours = hour >= 22 || hour < 8;
+    const quietHoursActive = hour >= 22 || hour < 8;
 
-    if (!config.propertySensors.enabled || config.propertySensors.isNative) {
-      // NATIVE LITTLE HUT: Community pledge & Security patrol logs
+    if (!isOperationalExternalAdapter(setting)) {
       return {
         provider: 'native_little_hut',
-        currentDecibels: 38,
-        noiseStatus: 'quiet',
-        temperatureC: 23,
-        humidityPercent: 42,
+        available: false,
+        currentDecibels: 0,
+        noiseStatus: 'unavailable',
+        temperatureC: 0,
+        humidityPercent: 0,
         smokeDetected: false,
         tamperAlert: false,
-        quietHoursActive: isQuietHours,
-        lastReadingTime: 'AZHA Gate & Concierge log: All quiet',
+        quietHoursActive,
+        lastReadingTime: 'No verified sensor connected. Little Hut quiet-hours workflow remains active.',
       };
     }
 
-    // MINUT SENSOR ADD-ON
-    // Live decibel, cigarette smoke, and environment telemetry
-    const currentDb = config.propertySensors.telemetryData?.currentDecibels || (isQuietHours ? 41 : 52);
-    const noiseStatus =
-      currentDb > 70 ? 'curfew_breach' : currentDb > 55 ? 'elevated' : 'quiet';
+    const currentDecibels = Number(setting.telemetryData?.currentDecibels);
+    const temperatureC = Number(setting.telemetryData?.tempC ?? setting.telemetryData?.temperatureC);
+    const humidityPercent = Number(setting.telemetryData?.humidity ?? setting.telemetryData?.humidityPercent);
+    const hasReading = Number.isFinite(currentDecibels) && currentDecibels >= 0;
+
+    if (!hasReading) {
+      return {
+        provider: 'minut',
+        available: false,
+        currentDecibels: 0,
+        noiseStatus: 'unavailable',
+        temperatureC: 0,
+        humidityPercent: 0,
+        smokeDetected: false,
+        tamperAlert: false,
+        quietHoursActive,
+        lastReadingTime: 'Verified Minut connection; no current telemetry received.',
+      };
+    }
+
+    const noiseStatus: SensorTelemetry['noiseStatus'] =
+      currentDecibels > 70
+        ? 'curfew_breach'
+        : currentDecibels > 55
+          ? 'elevated'
+          : currentDecibels > 48
+            ? 'moderate'
+            : 'quiet';
 
     return {
       provider: 'minut',
-      currentDecibels: currentDb,
+      available: true,
+      currentDecibels,
       noiseStatus,
-      temperatureC: 22.4,
-      humidityPercent: 44,
-      smokeDetected: false,
-      tamperAlert: false,
-      quietHoursActive: isQuietHours,
-      lastReadingTime: 'Minut Hub M3 Online (WiFi RSSI: -54 dBm)',
+      temperatureC: Number.isFinite(temperatureC) ? temperatureC : 0,
+      humidityPercent: Number.isFinite(humidityPercent) ? humidityPercent : 0,
+      smokeDetected: setting.telemetryData?.smokeDetected === true,
+      tamperAlert: setting.telemetryData?.tamperAlert === true,
+      quietHoursActive,
+      lastReadingTime: String(setting.telemetryData?.lastReadingTime || setting.lastSyncedAt || 'Verified connection'),
     };
   }
 }
 
-// ==========================================
-// 4. Smart Lock Adapter Implementation
-// ==========================================
 export class SmartLockAdapter {
   static generateAccessPin(
     config: PropertyAddOnConfiguration,
-    guestPhone: string
+    _guestPhone: string
   ): SmartLockResult {
-    // Generate deterministic 6-digit pin from timestamp / phone
-    const suffix = guestPhone.replace(/\D/g, '').slice(-4) || '7890';
-    const pin = `24${suffix.padStart(4, '0')}`;
+    const safeConfig = getSafeRuntimeConfiguration(config);
+    const setting = safeConfig.smartLocks;
 
-    if (!config.smartLocks.enabled || config.smartLocks.isNative) {
+    if (!isOperationalExternalAdapter(setting)) {
       return {
         provider: 'native_little_hut',
-        generatedCode: pin,
-        deviceBattery: 92,
-        meshOnline: true,
-        doorState: 'locked',
+        available: false,
+        generatedCode: '',
+        deviceBattery: 0,
+        meshOnline: false,
+        doorState: 'unknown',
+        statusMessage:
+          'Little Hut controls the access lifecycle, but no verified smart-lock hardware bridge is active.',
       };
     }
 
+    const code = String(setting.telemetryData?.generatedCode || setting.telemetryData?.activeCode || '');
+    const battery = Number(setting.telemetryData?.deviceBattery ?? setting.telemetryData?.batteryLevel);
+    const doorState = setting.telemetryData?.doorState;
+
     return {
-      provider: config.smartLocks.provider,
-      generatedCode: pin,
-      deviceBattery: 88,
-      meshOnline: true,
-      doorState: 'locked',
+      provider: setting.provider,
+      available: Boolean(code),
+      generatedCode: code,
+      deviceBattery: Number.isFinite(battery) ? battery : 0,
+      meshOnline: setting.telemetryData?.meshOnline === true || setting.telemetryData?.online === true,
+      doorState: doorState === 'locked' || doorState === 'unlocked' ? doorState : 'unknown',
+      statusMessage: code
+        ? 'Credential supplied by verified smart-lock provider.'
+        : 'Verified smart-lock connection; no active credential returned.',
     };
   }
 }
 
-// ==========================================
-// 5. ID Verification Adapter Implementation
-// ==========================================
 export class IdVerificationAdapter {
   static verify(
     config: PropertyAddOnConfiguration,
-    guestName: string,
+    _guestName: string,
     idDocType: string
   ): IdVerificationResult {
-    if (!config.idVerification.enabled || config.idVerification.isNative) {
+    const safeConfig = getSafeRuntimeConfiguration(config);
+    const setting = safeConfig.idVerification;
+    const timestamp = new Date().toISOString();
+
+    if (!isOperationalExternalAdapter(setting)) {
       return {
         provider: 'native_little_hut',
-        verified: true,
-        verificationMethod: 'Little Hut Operator Passport Verification',
-        documentValidated: `${idDocType}: Verified by Little Hut concierge`,
-        timestamp: new Date().toISOString(),
+        verified: false,
+        verificationMethod: 'Little Hut operator review',
+        documentValidated: `${idDocType}: awaiting operator verification`,
+        timestamp,
+        requiresHumanReview: true,
       };
     }
 
-    if (config.idVerification.provider === 'truvi') {
-      return {
-        provider: 'truvi',
-        verified: true,
-        verificationMethod: 'Truvi Automated Biometric & Passport OCR Match',
-        biometricMatchConfidence: 99.4,
-        documentValidated: `${idDocType} validated against international database`,
-        timestamp: new Date().toISOString(),
-      };
-    }
+    const verified = setting.telemetryData?.verificationPassed === true;
+    const confidence = Number(setting.telemetryData?.biometricMatchConfidence);
 
     return {
-      provider: 'chekin',
-      verified: true,
-      verificationMethod: 'Chekin Legal Guest Registration & Police Sync',
-      biometricMatchConfidence: 98.1,
-      documentValidated: `${idDocType} recorded into official guest registry`,
-      timestamp: new Date().toISOString(),
+      provider: setting.provider,
+      verified,
+      verificationMethod: `${setting.provider} verified connector`,
+      biometricMatchConfidence: Number.isFinite(confidence) ? confidence : undefined,
+      documentValidated: verified
+        ? String(setting.telemetryData?.documentResult || `${idDocType}: provider verified`)
+        : `${idDocType}: provider result requires review`,
+      timestamp: String(setting.telemetryData?.verifiedAt || timestamp),
+      requiresHumanReview: !verified,
     };
   }
 }
 
-// ==========================================
-// 6. Damage Protection Adapter Implementation
-// ==========================================
 export class DamageProtectionAdapter {
   static getProtection(
     config: PropertyAddOnConfiguration,
     depositHeldEgp: number = 5000
   ): DamageProtectionResult {
-    if (!config.damageProtection.enabled || config.damageProtection.isNative) {
+    const safeConfig = getSafeRuntimeConfiguration(config);
+    const setting = safeConfig.damageProtection;
+
+    if (!isOperationalExternalAdapter(setting)) {
       return {
         provider: 'native_little_hut',
-        coverageType: 'refundable_escrow_deposit',
-        protectedAmountEgp: depositHeldEgp,
-        status: 'active',
-        policyOrReceiptId: `ESCROW-LH-${Date.now().toString().slice(-6)}`,
+        coverageType: depositHeldEgp > 0 ? 'refundable_deposit_workflow' : 'none',
+        protectedAmountEgp: Math.max(0, depositHeldEgp),
+        status: depositHeldEgp > 0 ? 'active' : 'not_connected',
+        policyOrReceiptId: '',
+        externallyUnderwritten: false,
       };
     }
 
+    const protectedAmountEgp = Number(setting.telemetryData?.protectedAmountEgp);
+    const externalPolicyId = String(setting.telemetryData?.policyId || '');
+    const externalStatus = String(setting.telemetryData?.policyStatus || '');
+    const active = externalStatus === 'active' && Boolean(externalPolicyId);
+
     return {
       provider: 'truvi',
-      coverageType: 'truvi_zero_deductible_waiver',
-      protectedAmountEgp: 250000, // EGP equivalent of $5,000 USD zero-deductible policy
-      status: 'active',
-      policyOrReceiptId: `TRUVI-POLICY-${Date.now().toString().slice(-6)}`,
+      coverageType: active ? 'truvi_protection' : 'none',
+      protectedAmountEgp: Number.isFinite(protectedAmountEgp) ? protectedAmountEgp : 0,
+      status: active ? 'active' : 'not_connected',
+      policyOrReceiptId: externalPolicyId,
+      externallyUnderwritten: active,
     };
   }
 }
