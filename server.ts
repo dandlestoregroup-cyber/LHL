@@ -46,6 +46,8 @@ import {
   setSession,
   type LiveSession,
 } from './src/server/session-auth';
+import { evaluateStayIntake } from './src/lib/mastermind';
+import type { Property, Assessment, OwnerDecision } from './src/types';
 
 const app = express();
 const port = 3000;
@@ -313,6 +315,38 @@ app.post('/api/live/properties/:id/inventory-baseline', async (req, res) => {
   try {
     const property = await recordInventoryBaseline(requireSession(req), req.params.id, req.body || {});
     return res.json({ property, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
+app.post('/api/mastermind/evaluate', async (req: Request, res: Response) => {
+  try {
+    const { intent, property, propertyId } = req.body || {};
+    if (!intent) return res.status(400).json({ error: 'intent_required' });
+
+    let targetProperty: Property | undefined = property;
+    let assessment: Assessment | undefined = undefined;
+    let ownerDecision: OwnerDecision | undefined = undefined;
+
+    const session = readSession(req);
+    if (!targetProperty && propertyId) {
+      const dataset = await loadLiveDataset(session);
+      targetProperty = dataset.properties.find((p) => p.id === propertyId);
+    }
+
+    if (!targetProperty) {
+      return res.status(404).json({ error: 'property_not_found' });
+    }
+
+    if (session) {
+      const dataset = await loadLiveDataset(session);
+      assessment = dataset.assessments.find((a) => a.propertyId === targetProperty?.id);
+      ownerDecision = dataset.ownerDecisions.find((d) => d.propertyId === targetProperty?.id);
+    }
+
+    const evaluation = evaluateStayIntake(intent, targetProperty, assessment, ownerDecision);
+    return res.json({ evaluation });
   } catch (error) {
     return sendError(res, error);
   }

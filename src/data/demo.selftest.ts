@@ -15,7 +15,7 @@ assert(['partners', 'properties', 'assessments', 'ownerDecisions', 'enquiries'].
 assert(SUPPLY_STAGES.every((stage: string) => DEMO_DATASET.properties.some((property) => property.supplyStage === stage)), 'mature Demo covers every supply stage');
 assert(BOOKING_SPINE.every((stage: string) => DEMO_DATASET.enquiries.some((enquiry) => enquiry.stage === stage)), 'mature Demo covers every booking-spine stage');
 assert(['owner', 'scout', 'operator', 'assessor', 'community_authority'].every((role) => DEMO_DATASET.partners.some((partner) => partner.role === role)), 'mature Demo covers every Partner authority');
-assert(MOMENT_KEYS.every((moment: string) => DEMO_DATASET.properties.some((property) => property.provenMoments.some((item) => item.key === moment))), 'mature Demo uses all six exact Moments');
+assert(MOMENT_KEYS.every((moment: string) => DEMO_DATASET.properties.some((property) => property.provenMoments.some((item) => item.key === moment))), 'mature Demo uses all canonical Moments');
 
 const ids = new Set(DEMO_DATASET.partners.map((partner) => partner.id));
 assert(DEMO_DATASET.properties.every((property) => ids.has(property.scoutPartnerId)), 'every Demo property has a valid Scout relation');

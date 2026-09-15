@@ -19,6 +19,8 @@ import { AdminControlCenterView } from './views/AdminControlCenterView';
 import { LiveAccessView } from './views/LiveAccessView';
 import { AcceptInviteView } from './views/AcceptInviteView';
 import { CommunicationsView } from './views/CommunicationsView';
+import { GuestBookView } from './views/GuestBookView';
+import { OperationsLayerView } from './views/OperationsLayerView';
 
 function AppContent() {
   const { lang, t, isRTL, user } = useAuth();
@@ -52,9 +54,17 @@ function AppContent() {
       const slug = parts[2] || 'slow-morning';
       return <MomentView slug={slug} navigate={navigate} />;
     }
+    if (currentPath.startsWith('/guestbook')) {
+      const parts = currentPath.split('/');
+      const slug = parts[2] || undefined;
+      return <GuestBookView initialPropertySlug={slug} navigate={navigate} />;
+    }
     if (currentPath.startsWith('/homes')) {
       const parts = currentPath.split('/');
       const slug = parts[2] || 'seaward-library';
+      if (parts[3] === 'guestbook') {
+        return <GuestBookView initialPropertySlug={slug} navigate={navigate} />;
+      }
       return <PropertyView slug={slug} navigate={navigate} />;
     }
     if (currentPath === '/owner') {
@@ -86,6 +96,11 @@ function AppContent() {
     }
     if (currentPath === '/communications' || currentPath === '/inbox' || currentPath === '/comm') {
       return <CommunicationsView navigate={navigate} />;
+    }
+    if (currentPath.startsWith('/operations') || currentPath === '/ops') {
+      const parts = currentPath.split('/');
+      const tab = parts[2] as any;
+      return <OperationsLayerView navigate={navigate} initialTab={tab || 'automation'} />;
     }
     if (currentPath.startsWith('/invite') || currentPath.startsWith('/accept-invite')) {
       return <AcceptInviteView />;
@@ -155,6 +170,12 @@ function AppContent() {
               <li>
                 <button onClick={() => navigate('/operator')} className="hover:text-[#B84E36] transition-colors cursor-pointer">
                   {t.nav.operatorView}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/operations')} className="hover:text-[#B84E36] transition-colors cursor-pointer flex items-center gap-1 text-[#DECBB9]">
+                  <span>⚡</span>
+                  <span>{lang === 'ar' ? 'طبقة التشغيل الذكي' : 'Operations Layer'}</span>
                 </button>
               </li>
               <li>

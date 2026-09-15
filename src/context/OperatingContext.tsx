@@ -27,6 +27,10 @@ interface NewEnquiryInput {
   adults: number;
   children: number;
   requestedMoment: MomentKey;
+  notes?: string;
+  mastermindDecisionVersion?: string;
+  mastermindDecision?: 'recommend' | 'require_human_review' | 'block';
+  quotedEstimateEgp?: number;
 }
 
 interface BootstrapScoutInput {
@@ -156,6 +160,12 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
       createdAt: now,
       updatedAt: now,
       ...input,
+      mastermindAudit: input.mastermindDecisionVersion ? {
+        decisionVersion: input.mastermindDecisionVersion,
+        decision: input.mastermindDecision || 'recommend',
+        evaluatedAt: now,
+        quotedEstimateEgp: input.quotedEstimateEgp,
+      } : undefined,
       stage: 'received',
       source: 'direct',
       communityApproval: {

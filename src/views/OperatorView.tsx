@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
-import { UserCheck, CheckCircle2, Calendar, ShieldCheck, DollarSign, ArrowRight, AlertCircle, Clock, Lock, Key, Filter, Layers, AlertTriangle, Camera } from 'lucide-react';
+import { UserCheck, CheckCircle2, Calendar, ShieldCheck, DollarSign, ArrowRight, AlertCircle, Clock, Lock, Key, Filter, Layers, AlertTriangle, Camera, Sparkles, Sliders } from 'lucide-react';
 import { BookingStage } from '../types';
 import { OperatorMetrics } from '../components/IntelligenceMetrics';
 import { MomentsUploadStudioModal } from '../components/MomentsUploadStudioModal';
@@ -110,6 +110,56 @@ export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
           <OperatorMetrics />
         </div>
 
+        {/* Little Hut Operations Layer Extension Launchpad */}
+        <div className="my-6 bg-gradient-to-r from-[#FAF0EB] via-[#FAF5EE] to-[#FAF0EB] border border-[#B84E36]/30 p-5 rounded-sm shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-[#B84E36] text-white rounded-xs">
+                <Sliders className="w-4 h-4" />
+              </span>
+              <span className="font-serif-editorial text-lg text-[#2A201C] font-bold">
+                {lang === 'ar' ? 'طبقة التشغيل الذكي — Little Hut Operations' : 'Little Hut Operations Layer — Live Autopilot'}
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#B84E36]/15 text-[#B84E36] rounded-xs">
+                {lang === 'ar' ? 'ميدان أزور هافن' : 'Azure Haven Proving Ground'}
+              </span>
+            </div>
+            <p className="text-xs text-[#7E6C60] max-w-3xl">
+              {lang === 'ar'
+                ? 'أتمتة مراسلات الضيوف، جدولة النظافة بالصور الموثقة، مساعد Mastermind الذكي، مزامنة الأقفال، والتسعير المحمي بهامش المالك.'
+                : 'Automated guest messaging, turnover dispatch with photo proof, AI Co-Host approvals inside Mastermind, smart locks, and guarded dynamic pricing.'}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              onClick={() => navigate('/operations')}
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-[#B84E36] hover:bg-[#973A24] text-white text-xs font-bold rounded-xs cursor-pointer transition-colors shadow-xs"
+            >
+              <span>{lang === 'ar' ? 'فتح لوحة التشغيل الكاملة' : 'Open Operations Cockpit'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => navigate('/operations/turnovers')}
+              className="px-3 py-2 bg-white hover:bg-stone-50 text-xs font-bold text-[#2A201C] border border-[#E9DED1] rounded-xs cursor-pointer transition-colors"
+            >
+              {lang === 'ar' ? 'صور التجهيز' : 'Photo Proofs'}
+            </button>
+            <button
+              onClick={() => navigate('/operations/cohost')}
+              className="px-3 py-2 bg-white hover:bg-stone-50 text-xs font-bold text-[#2A201C] border border-[#E9DED1] rounded-xs cursor-pointer transition-colors"
+            >
+              {lang === 'ar' ? 'توصيات المساعد' : 'Co-Host'}
+            </button>
+            <button
+              onClick={() => navigate('/operations/access')}
+              className="px-3 py-2 bg-white hover:bg-stone-50 text-xs font-bold text-[#2A201C] border border-[#E9DED1] rounded-xs cursor-pointer transition-colors"
+            >
+              {lang === 'ar' ? 'الأقفال' : 'Smart Lock'}
+            </button>
+          </div>
+        </div>
+
         {/* Feedback Alert */}
         {feedbackMessage && (
           <div className="my-6 p-4 bg-white border-l-4 border-[#0F5859] rounded-xs shadow-xs text-xs font-semibold text-[#0D2340] flex items-center gap-2">
@@ -202,8 +252,19 @@ export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
                           {req.guestName}
                         </span>
                         <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded-xs bg-[#0F5859] text-white">
-                          STAGE: {req.bookingStage || req.status}
+                          STAGE: {req.bookingStage || req.status || req.stage}
                         </span>
+                        {req.mastermindAudit && (
+                          <span className={`px-2 py-0.5 text-[10px] font-mono uppercase font-bold rounded-xs border ${
+                            req.mastermindAudit.decision === 'recommend'
+                              ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                              : req.mastermindAudit.decision === 'require_human_review'
+                              ? 'bg-amber-50 text-amber-900 border-amber-300'
+                              : 'bg-rose-50 text-rose-900 border-rose-300'
+                          }`}>
+                            MASTERMIND: {req.mastermindAudit.decision === 'recommend' ? 'QUALIFIED' : req.mastermindAudit.decision.toUpperCase()}
+                          </span>
+                        )}
                         {(req.rateFloorProtected || req.isRateFloorProtected) && (
                           <span className="px-2 py-0.5 text-[10px] font-mono uppercase rounded-xs bg-amber-100 text-amber-900 border border-amber-300">
                             RATE FLOOR LOCKED (${rateFloor}/NIGHT)
@@ -217,11 +278,15 @@ export const OperatorView: React.FC<OperatorViewProps> = ({ navigate }) => {
 
                     <div className="text-right text-xs font-mono text-[#6D7480]">
                       <div>{lang === 'ar' ? 'التركيز:' : 'Focus:'} <span className="font-semibold text-[#0D2340]">{req.momentRequested || req.momentFocus}</span></div>
-                      {req.quotedAmount && (
+                      {req.quotedAmount ? (
                         <div className="text-[#B74C2B] font-bold text-sm mt-0.5">
                           ${req.quotedAmount} {lang === 'ar' ? 'مجموع العرض' : 'Quoted Total'}
                         </div>
-                      )}
+                      ) : req.mastermindAudit?.quotedEstimateEgp ? (
+                        <div className="text-[#B84E36] font-bold text-xs mt-0.5">
+                          {req.mastermindAudit.quotedEstimateEgp.toLocaleString()} EGP {lang === 'ar' ? '(تقدير الحوكمة)' : '(Governed Est.)'}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 

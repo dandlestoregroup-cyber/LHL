@@ -2198,6 +2198,833 @@ async function acceptPartnerInvite(token, password) {
   }
 }
 
+// src/data/canonicalMomentsRegistry.ts
+var CANONICAL_FLAGSHIP_MOMENTS = [
+  {
+    id: "slow_morning",
+    legacyKey: "slow_morning",
+    sequence: "01",
+    title: "Slow Morning",
+    titleAr: "\u0635\u0628\u0627\u062D \u0647\u0627\u062F\u0626",
+    hook: "Slow mornings. No rush. Just us.",
+    hookAr: "\u0635\u0628\u0627\u062D \u0647\u0627\u062F\u0626. \u0628\u0644\u0627 \u0639\u062C\u0644\u0629. \u0646\u062D\u0646 \u0641\u0642\u0637.",
+    guestPromise: "Awaken gently into morning stillness with soft dawn light and serene ocean acoustic calm.",
+    guestPromiseAr: "\u0627\u0633\u062A\u064A\u0642\u0638 \u0628\u0644\u0637\u0641 \u0641\u064A \u0633\u0643\u064A\u0646\u0629 \u0627\u0644\u0635\u0628\u0627\u062D \u0645\u0639 \u0636\u0648\u0621 \u0627\u0644\u0641\u062C\u0631 \u0627\u0644\u0646\u0627\u0639\u0645 \u0648\u0647\u062F\u0648\u0621 \u0635\u0648\u062A\u064A \u0628\u062D\u0631\u064A \u062A\u0627\u0645.",
+    editorialDescription: "A serene coastal breakfast terrace framed by early morning Red Sea light. Fresh coffee, warm pastries, fresh fruit, natural linen, and the sea gently stirring.",
+    editorialDescriptionAr: "\u062A\u0631\u0627\u0633 \u0625\u0641\u0637\u0627\u0631 \u0633\u0627\u062D\u0644\u064A \u0647\u0627\u062F\u0626 \u0641\u064A \u0636\u0648\u0621 \u0627\u0644\u0635\u0628\u0627\u062D \u0627\u0644\u0628\u0627\u0643\u0631 \u0644\u0644\u0628\u062D\u0631 \u0627\u0644\u0623\u062D\u0645\u0631. \u0642\u0647\u0648\u0629 \u0637\u0627\u0632\u062C\u0629\u060C \u0645\u062E\u0628\u0648\u0632\u0627\u062A \u062F\u0627\u0641\u0626\u0629\u060C \u0641\u0627\u0643\u0647\u0629\u060C \u0643\u062A\u0627\u0646 \u0637\u0628\u064A\u0639\u064A\u060C \u0648\u0628\u062D\u0631 \u064A\u0633\u062A\u064A\u0642\u0638 \u0628\u0644\u0637\u0641.",
+    image: "/moments/01-slow-morning.jpg",
+    imageAlt: "Quiet coastal breakfast terrace at early dawn in Ain Sokhna",
+    imageAltAr: "\u062A\u0631\u0627\u0633 \u0625\u0641\u0637\u0627\u0631 \u0633\u0627\u062D\u0644\u064A \u0647\u0627\u062F\u0626 \u0641\u064A \u0641\u062C\u0631 \u0627\u0644\u0639\u064A\u0646 \u0627\u0644\u0633\u062E\u0646\u0629",
+    imagePosition: "center 45%",
+    evidenceCriteria: [
+      {
+        title: "Dawn Light Orientation",
+        titleAr: "\u062A\u0648\u062C\u064A\u0647 \u0636\u0648\u0621 \u0627\u0644\u0641\u062C\u0631",
+        description: "Terrace or master suite captures gentle morning illumination without harsh glare or heat trap.",
+        descriptionAr: "\u0627\u0644\u062A\u0631\u0627\u0633 \u0623\u0648 \u0627\u0644\u062C\u0646\u0627\u062D \u0627\u0644\u0631\u0626\u064A\u0633\u064A \u064A\u0633\u062A\u0642\u0628\u0644 \u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0635\u0628\u0627\u062D \u0627\u0644\u0646\u0627\u0639\u0645\u0629 \u062F\u0648\u0646 \u0648\u0647\u062C \u062D\u0627\u062F \u0623\u0648 \u0627\u062D\u062A\u0628\u0627\u0633 \u062D\u0631\u0627\u0631\u064A.",
+        protocol: {
+          protocolId: "BPS-PROT-LIGHT-01",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Solar orientation audit & on-site dawn lux logging (06:30 - 08:30)",
+          instrumentMethodAr: "\u062A\u062F\u0642\u064A\u0642 \u0627\u0644\u062A\u0648\u062C\u064A\u0647 \u0627\u0644\u0634\u0645\u0633\u064A \u0648\u062A\u0633\u062C\u064A\u0644 \u0634\u062F\u0629 \u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0645\u0648\u0642\u0639\u064A\u0629 \u0628\u0627\u0644\u0641\u062C\u0631 (\u0660\u0666:\u0663\u0660 - \u0660\u0668:\u0663\u0660)",
+          measuredParameter: "Morning lux level & ambient temperature rise",
+          measuredParameterAr: "\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0635\u0628\u0627\u062D\u064A\u0629 \u0648\u0645\u0639\u062F\u0644 \u0627\u0631\u062A\u0641\u0627\u0639 \u0627\u0644\u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0645\u062D\u064A\u0637\u0629",
+          targetThreshold: "Soft dawn luminance < 1,500 lux at primary seating",
+          toleranceMargin: "\xB115%",
+          provenanceRequirement: "Assessor timestamped on-site light meter reading with solar compass photo",
+          provenanceRequirementAr: "\u0642\u0631\u0627\u0621\u0629 \u0645\u0648\u062B\u0642\u0629 \u0628\u0639\u062F\u0627\u062F \u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0645\u064A\u062F\u0627\u0646\u064A \u0645\u0639 \u0635\u0648\u0631\u0629 \u0628\u0648\u0635\u0644\u0629 \u0634\u0645\u0633\u064A\u0629 \u0645\u0624\u0631\u062E\u0629"
+        }
+      },
+      {
+        title: "Acoustic Stillness",
+        titleAr: "\u0627\u0644\u0633\u0643\u064A\u0646\u0629 \u0627\u0644\u0635\u0648\u062A\u064A\u0629",
+        description: "Measured acoustic calm without mechanical air conditioning hum or construction rumble.",
+        descriptionAr: "\u0647\u062F\u0648\u0621 \u0635\u0648\u062A\u064A \u0645\u0642\u0627\u0633 \u0628\u0644\u0627 \u0637\u0646\u064A\u0646 \u062A\u0643\u064A\u064A\u0641 \u0645\u064A\u0643\u0627\u0646\u064A\u0643\u064A \u0623\u0648 \u0636\u0648\u0636\u0627\u0621 \u0625\u0646\u0634\u0627\u0621\u0627\u062A \u0645\u062C\u0627\u0648\u0631\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-SOUND-01",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Calibrated sound-level meter (Class 2 dBA) 15-minute ambient measurement",
+          instrumentMethodAr: "\u0645\u0642\u064A\u0627\u0633 \u0645\u0633\u062A\u0648\u0649 \u0635\u0648\u062A \u0645\u0639\u0627\u064A\u0631 \u0641\u0626\u0629 \u0662 \u0644\u0645\u062F\u0629 \u0661\u0665 \u062F\u0642\u064A\u0642\u0629 \u0628\u0627\u0644\u062E\u0627\u0631\u062C",
+          measuredParameter: "Ambient LAeq (sound pressure level)",
+          measuredParameterAr: "\u0645\u0633\u062A\u0648\u0649 \u0636\u063A\u0637 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u0645\u062D\u064A\u0637",
+          targetThreshold: "LAeq < 42 dBA during morning window",
+          toleranceMargin: "\xB13 dBA",
+          provenanceRequirement: "Sound recording log with GPS stamp & assessor sign-off",
+          provenanceRequirementAr: "\u0633\u062C\u0644 \u0635\u0648\u062A\u064A \u0645\u062E\u062A\u0648\u0645 \u0628\u0627\u0644\u0625\u062D\u062F\u0627\u062B\u064A\u0627\u062A \u0627\u0644\u062C\u063A\u0631\u0627\u0641\u064A\u0629 \u0648\u062A\u0648\u0642\u064A\u0639 \u0627\u0644\u0645\u0642\u064A\u0645 \u0627\u0644\u0645\u0639\u062A\u0645\u062F"
+        }
+      }
+    ],
+    disqualifiers: [
+      "West-facing only with zero morning exterior seating",
+      "Continuous chiller or external pump noise > 48 dBA",
+      "Direct visual line to heavy shared resort walkways"
+    ],
+    disqualifiersAr: [
+      "\u0627\u0644\u0648\u0627\u062C\u0647\u0629 \u063A\u0631\u0628\u064A\u0629 \u0628\u0627\u0644\u0643\u0627\u0645\u0644 \u0628\u0644\u0627 \u062C\u0644\u0633\u0629 \u062E\u0627\u0631\u062C\u064A\u0629 \u0635\u0628\u0627\u062D\u064A\u0629",
+      "\u0635\u0648\u062A \u0645\u0636\u062E\u0627\u062A \u0623\u0648 \u0645\u0628\u0631\u062F\u0627\u062A \u0645\u0633\u062A\u0645\u0631 \u064A\u062A\u062C\u0627\u0648\u0632 \u0664\u0668 \u062F\u064A\u0633\u064A\u0628\u0644",
+      "\u0625\u0637\u0644\u0627\u0644\u0629 \u0645\u0628\u0627\u0634\u0631\u0629 \u0645\u0643\u0634\u0648\u0641\u0629 \u0639\u0644\u0649 \u0645\u0645\u0631\u0627\u062A \u0627\u0644\u0645\u0646\u062A\u062C\u0639 \u0627\u0644\u0645\u0634\u062A\u0631\u0643\u0629"
+    ],
+    photographyDirectives: [
+      "Shoot exclusively between 06:15 and 08:15 local solar time",
+      "Warm natural light entering from side angle",
+      "Include physical breakfast items (coffee, linen, local ceramics)",
+      "No artificial flash or HDR glowing artifacts"
+    ],
+    minimumResidenceQualifications: [
+      "Dedicated exterior terrace with sheltered breakfast table",
+      "Specialty coffee preparation setup in home",
+      "Direct unobstructed coastal breeze channel"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u062A\u0631\u0627\u0633 \u062E\u0627\u0631\u062C\u064A \u0645\u062E\u0635\u0635 \u0628\u0645\u0627\u0626\u062F\u0629 \u0625\u0641\u0637\u0627\u0631 \u0645\u0638\u0644\u0644\u0629",
+      "\u062A\u062C\u0647\u064A\u0632\u0627\u062A \u0625\u0639\u062F\u0627\u062F \u0642\u0647\u0648\u0629 \u0645\u062A\u062E\u0635\u0635\u0629 \u062F\u0627\u062E\u0644 \u0627\u0644\u0645\u0633\u0643\u0646",
+      "\u0645\u0633\u0627\u0631 \u062A\u0647\u0648\u064A\u0629 \u0628\u062D\u0631\u064A \u0637\u0628\u064A\u0639\u064A \u063A\u064A\u0631 \u0645\u062D\u062C\u0648\u0628"
+    ]
+  },
+  {
+    id: "late_breakfast",
+    legacyKey: "long_table",
+    sequence: "02",
+    title: "Late Breakfast",
+    titleAr: "\u0625\u0641\u0637\u0627\u0631 \u0645\u062A\u0623\u062E\u0631",
+    hook: "Late breakfast. Zero agenda. All good.",
+    hookAr: "\u0625\u0641\u0637\u0627\u0631 \u0645\u062A\u0623\u062E\u0631. \u0628\u0644\u0627 \u062C\u062F\u0648\u0644. \u0643\u0644 \u0634\u064A\u0621 \u0639\u0644\u0649 \u0645\u0627 \u064A\u0631\u0627\u0645.",
+    guestPromise: "An unhurried mid-morning feast with complete privacy, shaded comfort, and seamless tableware for the entire travel party.",
+    guestPromiseAr: "\u0648\u0644\u064A\u0645\u0629 \u0636\u062D\u0649 \u0645\u062A\u0623\u0646\u064A\u0629 \u0628\u062E\u0635\u0648\u0635\u064A\u0629 \u0643\u0627\u0645\u0644\u0629 \u0648\u0638\u0644 \u0645\u0631\u064A\u062D \u0648\u0623\u062F\u0648\u0627\u062A \u0645\u0627\u0626\u062F\u0629 \u0645\u062A\u0643\u0627\u0645\u0644\u0629 \u0644\u0643\u0644 \u0623\u0641\u0631\u0627\u062F \u0627\u0644\u0639\u0627\u0626\u0644\u0629.",
+    editorialDescription: "A long sunlit coastal dining table beneath pergolas or high-ceilinged stone terraces. Fresh local citrus, honey, warm breads, ceramic platters, and room for everyone to linger.",
+    editorialDescriptionAr: "\u0645\u0627\u0626\u062F\u0629 \u0637\u0639\u0627\u0645 \u0633\u0627\u062D\u0644\u064A\u0629 \u0637\u0648\u064A\u0644\u0629 \u062A\u062D\u062A \u0645\u0638\u0644\u0627\u062A \u062E\u0634\u0628\u064A\u0629 \u0623\u0648 \u0623\u0633\u0642\u0641 \u062D\u062C\u0631\u064A\u0629 \u0639\u0627\u0644\u064A\u0629. \u062D\u0645\u0636\u064A\u0627\u062A \u0645\u062D\u0644\u064A\u0629 \u0637\u0627\u0632\u062C\u0629\u060C \u0639\u0633\u0644\u060C \u062E\u0628\u0632 \u0633\u0627\u062E\u0646\u060C \u0623\u0637\u0628\u0627\u0642 \u062E\u0632\u0641\u064A\u0629\u060C \u0648\u0645\u0633\u0627\u062D\u0629 \u062A\u0643\u0641\u064A \u0627\u0644\u062C\u0645\u064A\u0639 \u0644\u0644\u0628\u0642\u0627\u0621.",
+    image: "/moments/01-slow-morning.jpg",
+    imageAlt: "Generous late breakfast table spread on a shaded coastal veranda",
+    imageAltAr: "\u0645\u0627\u0626\u062F\u0629 \u0625\u0641\u0637\u0627\u0631 \u0645\u062A\u0623\u062E\u0631 \u0633\u062E\u064A\u0629 \u0639\u0644\u0649 \u0634\u0631\u0641\u0629 \u0633\u0627\u062D\u0644\u064A\u0629 \u0645\u0638\u0644\u0644\u0629",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Dining Scale & Seating Capacity",
+        titleAr: "\u0633\u0639\u0629 \u0648\u0645\u0642\u064A\u0627\u0633 \u0645\u0627\u0626\u062F\u0629 \u0627\u0644\u0637\u0639\u0627\u0645",
+        description: "Single continuous dining surface accommodating the maximum guest count with elbow room.",
+        descriptionAr: "\u0633\u0637\u062D \u0637\u0639\u0627\u0645 \u0648\u0627\u062D\u062F \u0645\u062A\u0635\u0644 \u064A\u062A\u0633\u0639 \u0644\u062C\u0645\u064A\u0639 \u0627\u0644\u0636\u064A\u0648\u0641 \u0628\u0631\u0627\u062D\u0629 \u0643\u0627\u0645\u0644\u0629 \u062F\u0648\u0646 \u062A\u0644\u0627\u0635\u0642.",
+        protocol: {
+          protocolId: "BPS-PROT-SCALE-02",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Physical laser measurement of table dimensions and clearance corridors",
+          instrumentMethodAr: "\u0642\u064A\u0627\u0633 \u0644\u064A\u0632\u0631\u064A \u0645\u0627\u062F\u064A \u0644\u0623\u0628\u0639\u0627\u062F \u0627\u0644\u0645\u0627\u0626\u062F\u0629 \u0648\u0645\u0645\u0631\u0627\u062A \u0627\u0644\u062D\u0631\u0643\u0629 \u0627\u0644\u0645\u062D\u064A\u0637\u0629",
+          measuredParameter: "Width per seat & perimeter walk space",
+          measuredParameterAr: "\u0639\u0631\u0636 \u0627\u0644\u0645\u0642\u0639\u062F \u0627\u0644\u0648\u0627\u062D\u062F \u0648\u0645\u0633\u0627\u0641\u0629 \u0627\u0644\u0645\u0645\u0631 \u0627\u0644\u0645\u062D\u064A\u0637",
+          targetThreshold: "Minimum 65cm table width per guest + 90cm circulation clear",
+          toleranceMargin: "\xB12cm",
+          provenanceRequirement: "Dimensional floorplan sketch with Assessor verification photo",
+          provenanceRequirementAr: "\u0645\u062E\u0637\u0637 \u0623\u0628\u0639\u0627\u062F \u0643\u0631\u0648\u0643\u064A \u0628\u0635\u0648\u0631\u0629 \u0641\u0648\u062A\u0648\u063A\u0631\u0627\u0641\u064A\u0629 \u0645\u0646 \u0627\u0644\u0645\u0642\u064A\u0645 \u0627\u0644\u0645\u0639\u062A\u0645\u062F"
+        }
+      },
+      {
+        title: "Thermal Shade Protection",
+        titleAr: "\u0627\u0644\u062D\u0645\u0627\u064A\u0629 \u0627\u0644\u062D\u0631\u0627\u0631\u064A\u0629 \u0648\u0627\u0644\u0638\u0644",
+        description: "Continuous midday overhead shade (10:30 - 13:00) during mid-morning dining.",
+        descriptionAr: "\u0638\u0644 \u0639\u0644\u0648\u064A \u0645\u0633\u062A\u0645\u0631 \u0645\u0646 \u0627\u0644\u0639\u0627\u0634\u0631\u0629 \u0648\u0627\u0644\u0646\u0635\u0641 \u0635\u0628\u0627\u062D\u0627\u064B \u062D\u062A\u0649 \u0627\u0644\u0648\u0627\u062D\u062F\u0629 \u0638\u0647\u0631\u0627\u064B \u0644\u062D\u0645\u0627\u064A\u0629 \u0645\u0631\u064A\u062D\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-THERM-02",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Shade shadow path calculation & infrared surface thermometer check",
+          instrumentMethodAr: "\u062D\u0633\u0627\u0628 \u0645\u0633\u0627\u0631 \u0627\u0644\u0638\u0644 \u0648\u0642\u064A\u0627\u0633 \u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0623\u0633\u0637\u062D \u0628\u0645\u064A\u0632\u0627\u0646 \u0627\u0644\u0623\u0634\u0639\u0629 \u062A\u062D\u062A \u0627\u0644\u062D\u0645\u0631\u0627\u0621",
+          measuredParameter: "Surface temperature under shade vs unshaded baseline",
+          measuredParameterAr: "\u062F\u0631\u062C\u0629 \u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0633\u0637\u062D \u0627\u0644\u0645\u0638\u0644\u0644 \u0645\u0642\u0627\u0631\u0646\u0629 \u0628\u0627\u0644\u0645\u062D\u064A\u0637 \u0627\u0644\u0645\u0634\u0645\u0633",
+          targetThreshold: "Delta > -6\xB0C beneath pergola at 11:30 solar time",
+          toleranceMargin: "\xB11\xB0C",
+          provenanceRequirement: "IR surface temperature thermal photo record",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u062D\u0631\u0627\u0631\u064A\u0629 \u0645\u0648\u062B\u0642\u0629 \u0644\u062F\u0631\u062C\u0629 \u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0623\u0633\u0637\u062D \u062A\u062D\u062A \u0627\u0644\u0638\u0644"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Table size smaller than advertised residence guest capacity",
+      "Direct blazing sun across dining surface after 10:00 AM",
+      "Absence of full matching tableware and serving platters"
+    ],
+    disqualifiersAr: [
+      "\u062D\u062C\u0645 \u0627\u0644\u0645\u0627\u0626\u062F\u0629 \u0623\u0642\u0644 \u0645\u0646 \u0633\u0639\u0629 \u0627\u0644\u0636\u064A\u0648\u0641 \u0627\u0644\u0645\u0639\u0644\u0646\u0629 \u0644\u0644\u0645\u0646\u0632\u0644",
+      "\u0634\u0645\u0633 \u062D\u0627\u0631\u0642\u0629 \u0645\u0628\u0627\u0634\u0631\u0629 \u0639\u0644\u0649 \u0627\u0644\u0645\u0627\u0626\u062F\u0629 \u0628\u0639\u062F \u0627\u0644\u0639\u0627\u0634\u0631\u0629 \u0635\u0628\u0627\u062D\u0627\u064B",
+      "\u063A\u064A\u0627\u0628 \u0623\u0637\u0642\u0645 \u0627\u0644\u0645\u0627\u0626\u062F\u0629 \u0627\u0644\u0645\u062A\u0637\u0627\u0628\u0642\u0629 \u0648\u0623\u0637\u0628\u0627\u0642 \u0627\u0644\u062A\u0642\u062F\u064A\u0645 \u0627\u0644\u0643\u0627\u0645\u0644\u0629"
+    ],
+    photographyDirectives: [
+      "Photograph dining table set with bountiful family breakfast",
+      "Capture interplay of pergola slatted shadows on linen",
+      "Show wide contextual angle of surrounding sea/garden view"
+    ],
+    minimumResidenceQualifications: [
+      "Continuous solid wood or stone dining table for max guests",
+      "Complete set of ceramic service platters & glassware",
+      "Direct kitchen-to-terrace serving path without stairs"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0645\u0627\u0626\u062F\u0629 \u062E\u0634\u0628\u064A\u0629 \u0623\u0648 \u062D\u062C\u0631\u064A\u0629 \u0645\u062A\u0635\u0644\u0629 \u062A\u0633\u0639 \u0643\u0627\u0645\u0644 \u0633\u0639\u0629 \u0627\u0644\u0636\u064A\u0648\u0641",
+      "\u0637\u0642\u0645 \u0623\u0648\u0627\u0646\u064A \u062A\u0642\u062F\u064A\u0645 \u062E\u0632\u0641\u064A\u0629 \u0648\u0643\u0624\u0648\u0633 \u0645\u062A\u0643\u0627\u0645\u0644\u0629",
+      "\u0645\u0633\u0627\u0631 \u062E\u062F\u0645\u0629 \u0645\u0628\u0627\u0634\u0631 \u0645\u0646 \u0627\u0644\u0645\u0637\u0628\u062E \u0644\u0644\u062A\u0631\u0627\u0633 \u0628\u0644\u0627 \u0633\u0644\u0627\u0644\u0645 \u0635\u0639\u0628\u0629"
+    ]
+  },
+  {
+    id: "barefoot_afternoon",
+    legacyKey: "afternoon_drift",
+    sequence: "03",
+    title: "Barefoot Afternoon",
+    titleAr: "\u0638\u0647\u064A\u0631\u0629 \u062D\u0627\u0641\u064A\u0629 \u0627\u0644\u0642\u062F\u0645\u064A\u0646",
+    hook: "Poolside afternoons. Barefoot comfort. Stay longer.",
+    hookAr: "\u0638\u0647\u064A\u0631\u0629 \u0627\u0644\u0645\u0633\u0628\u062D. \u0631\u0627\u062D\u0629 \u062D\u0627\u0641\u064A\u0629. \u0627\u0628\u0642 \u0623\u0637\u0648\u0644.",
+    guestPromise: "Seamless outdoor daybed relaxation by clear water with sun-warmed natural stone and total privacy.",
+    guestPromiseAr: "\u0627\u0633\u062A\u0631\u062E\u0627\u0621 \u0645\u0631\u064A\u062D \u0639\u0644\u0649 \u0623\u0633\u0631\u0629 \u0646\u0647\u0627\u0631\u064A\u0629 \u0628\u062C\u0627\u0646\u0628 \u0645\u064A\u0627\u0647 \u0646\u0642\u064A\u0629 \u0645\u0639 \u062D\u062C\u0631 \u0637\u0628\u064A\u0639\u064A \u062F\u0627\u0641\u0626 \u0648\u062E\u0635\u0648\u0635\u064A\u0629 \u062A\u0627\u0645\u0629.",
+    editorialDescription: "A quiet afternoon poolside sanctuary. Cushioned teak daybeds, shade pergolas, cold drinks, straw sunhat, and easy barefoot access between cool water and sun.",
+    editorialDescriptionAr: "\u0645\u0644\u0627\u0630 \u0646\u0647\u0627\u0631\u064A \u0647\u0627\u062F\u0626 \u0628\u062C\u0627\u0646\u0628 \u0627\u0644\u0645\u0633\u0628\u062D. \u0623\u0633\u0631\u0629 \u0646\u0647\u0627\u0631\u064A\u0629 \u0645\u0631\u064A\u062D\u0629\u060C \u0645\u0638\u0644\u0627\u062A \u062E\u0634\u0628\u064A\u0629\u060C \u0645\u0634\u0631\u0648\u0628\u0627\u062A \u0628\u0627\u0631\u062F\u0629\u060C \u0648\u0642\u0628\u0639\u0629 \u0642\u0634\u060C \u0645\u0639 \u062D\u0631\u0643\u0629 \u062D\u0627\u0641\u064A\u0629 \u0633\u0647\u0644\u0629 \u0628\u064A\u0646 \u0627\u0644\u0645\u0627\u0621 \u0648\u0627\u0644\u0638\u0644.",
+    image: "/moments/02-barefoot-afternoon.jpg",
+    imageAlt: "Cushioned poolside daybed and calm turquoise pool water in warm afternoon light",
+    imageAltAr: "\u0633\u0631\u064A\u0631 \u0646\u0647\u0627\u0631\u064A \u0628\u062C\u0627\u0646\u0628 \u0627\u0644\u0645\u0633\u0628\u062D \u0648\u0645\u064A\u0627\u0647 \u0641\u064A\u0631\u0648\u0632\u064A\u0629 \u0647\u0627\u062F\u0626\u0629 \u0641\u064A \u0636\u0648\u0621 \u0627\u0644\u0639\u0635\u0631",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Slip-Safe & Low-Heat Flooring",
+        titleAr: "\u0623\u0631\u0636\u064A\u0629 \u0622\u0645\u0646\u0629 \u0636\u062F \u0627\u0644\u0627\u0646\u0632\u0644\u0627\u0642 \u0648\u0627\u0644\u062D\u0631\u0627\u0631\u0629",
+        description: "Pool deck surface remains comfortable for bare feet without scorching heat buildup.",
+        descriptionAr: "\u0623\u0631\u0636\u064A\u0629 \u0645\u062D\u064A\u0637 \u0627\u0644\u0645\u0633\u0628\u062D \u0645\u0631\u064A\u062D\u0629 \u0644\u0644\u0623\u0642\u062F\u0627\u0645 \u0627\u0644\u062D\u0627\u0641\u064A\u0629 \u062F\u0648\u0646 \u0633\u062E\u0648\u0646\u0629 \u0644\u0627\u0647\u0628\u0629 \u0623\u0648 \u0627\u0646\u0632\u0644\u0627\u0642.",
+        protocol: {
+          protocolId: "BPS-PROT-STONE-03",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Deck material thermal audit & slip-resistance coefficient test",
+          instrumentMethodAr: "\u062A\u062F\u0642\u064A\u0642 \u062D\u0631\u0627\u0631\u064A \u0644\u0645\u0648\u0627\u062F \u0627\u0644\u0623\u0631\u0636\u064A\u0629 \u0648\u0627\u062E\u062A\u0628\u0627\u0631 \u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0627\u0646\u0632\u0644\u0627\u0642",
+          measuredParameter: "Surface temp at 14:00 & wet pendulum slip rating",
+          measuredParameterAr: "\u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0633\u0637\u062D \u0628\u0627\u0644\u0633\u0627\u0639\u0629 \u0627\u0644\u062B\u0627\u0646\u064A\u0629 \u0638\u0647\u0631\u0627\u064B \u0648\u062A\u0635\u0646\u064A\u0641 \u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0627\u0646\u0632\u0644\u0627\u0642 \u0627\u0644\u0631\u0637\u0628",
+          targetThreshold: "Surface temp < 44\xB0C; Pendulum Test Value (PTV) > 36 wet",
+          toleranceMargin: "\xB12 PTV",
+          provenanceRequirement: "Assessor walk test certificate & material specification review",
+          provenanceRequirementAr: "\u0634\u0647\u0627\u062F\u0629 \u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0633\u064A\u0631 \u0627\u0644\u0645\u064A\u062F\u0627\u0646\u064A \u0648\u0645\u0631\u0627\u062C\u0639\u0629 \u0645\u0648\u0627\u0635\u0641\u0627\u062A \u062E\u0627\u0645\u0629 \u0627\u0644\u0623\u0631\u0636\u064A\u0627\u062A"
+        }
+      },
+      {
+        title: "Acoustic Privacy Horizon",
+        titleAr: "\u0623\u0641\u0642 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629 \u0627\u0644\u0628\u0635\u0631\u064A\u0629 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0629",
+        description: "No overlooking windows or public boardwalks directly staring at the daybed zone.",
+        descriptionAr: "\u0639\u062F\u0645 \u0648\u062C\u0648\u062F \u0646\u0648\u0627\u0641\u0630 \u0645\u0637\u0644\u0629 \u0645\u0628\u0627\u0634\u0631\u0629 \u0623\u0648 \u0645\u0645\u0631\u0627\u062A \u0639\u0627\u0645\u0629 \u062A\u0643\u0634\u0641 \u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0623\u0633\u0631\u0629 \u0627\u0644\u0646\u0647\u0627\u0631\u064A\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-SIGHT-03",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Sightline perimeter photo mapping & privacy cone verification",
+          instrumentMethodAr: "\u0631\u0633\u0645 \u062E\u0637\u0648\u0637 \u0627\u0644\u0631\u0624\u064A\u0629 \u0627\u0644\u0645\u062D\u064A\u0637\u064A\u0629 \u0648\u0627\u0644\u062A\u062D\u0642\u0642 \u0645\u0646 \u0645\u062E\u0631\u0648\u0637 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629",
+          measuredParameter: "Visible vantage points from neighboring properties",
+          measuredParameterAr: "\u0627\u0644\u0646\u0642\u0627\u0637 \u0627\u0644\u0645\u0643\u0634\u0648\u0641\u0629 \u0645\u0646 \u0627\u0644\u0639\u0642\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u062C\u0627\u0648\u0631\u0629",
+          targetThreshold: "Zero direct line-of-sight overlooking the primary daybed",
+          toleranceMargin: "Strict 0 vantage points",
+          provenanceRequirement: "360\xB0 sightline audit photos from daybed elevation",
+          provenanceRequirementAr: "\u0633\u062C\u0644 \u0635\u0648\u0631 \u0628\u0627\u0646\u0648\u0631\u0627\u0645\u064A \u0663\u0666\u0660 \u062F\u0631\u062C\u0629 \u0645\u0646 \u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0633\u0631\u064A\u0631 \u0627\u0644\u0646\u0647\u0627\u0631\u064A"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Tile surfaces exceeding 52\xB0C in summer afternoons",
+      "Overlooked by high-rise neighboring balconies",
+      "Green/turbid pool water or missing safety grab rails"
+    ],
+    disqualifiersAr: [
+      "\u0628\u0644\u0627\u0637 \u0623\u0631\u0636\u064A\u0627\u062A \u062A\u062A\u062C\u0627\u0648\u0632 \u062D\u0631\u0627\u0631\u062A\u0647 \u0665\u0662 \u0645\u0626\u0648\u064A\u0629 \u0641\u064A \u0627\u0644\u0635\u064A\u0641",
+      "\u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0645\u0633\u0628\u062D \u0645\u0643\u0634\u0648\u0641\u0629 \u0645\u0646 \u0634\u0631\u0641\u0627\u062A \u0645\u0628\u0627\u0646\u064D \u0645\u062C\u0627\u0648\u0631\u0629 \u0645\u0631\u062A\u0641\u0639\u0629",
+      "\u0645\u064A\u0627\u0647 \u0645\u0633\u0628\u062D \u063A\u064A\u0631 \u0646\u0642\u064A\u0629 \u0623\u0648 \u063A\u064A\u0627\u0628 \u0645\u0642\u0627\u0628\u0636 \u0627\u0644\u0623\u0645\u0627\u0646 \u0627\u0644\u0623\u0633\u0627\u0633\u064A\u0629"
+    ],
+    photographyDirectives: [
+      "Focus on sensory textures: washed linen, warm wood, crystal pool ripples",
+      "Shoot in warm angled light of 15:30 - 17:00",
+      "Capture peaceful empty atmosphere with subtle signs of human ease"
+    ],
+    minimumResidenceQualifications: [
+      "Private swimming pool or direct plunge pool on terrace",
+      "At least 2 deep-cushioned premium loungers with weather-resistant fabric",
+      "Fresh pool towels provided in dedicated basket by water"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0645\u0633\u0628\u062D \u062E\u0627\u0635 \u0623\u0648 \u062D\u0648\u0636 \u063A\u0637\u0633 \u0645\u0628\u0627\u0634\u0631 \u0628\u0627\u0644\u062A\u0631\u0627\u0633",
+      "\u0633\u0631\u064A\u0631\u0627\u0646 \u0646\u0647\u0627\u0631\u064A\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644 \u0628\u0648\u0633\u0627\u0626\u062F \u0648\u062B\u064A\u0631\u0647 \u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0644\u0639\u0648\u0627\u0645\u0644 \u0627\u0644\u062C\u0648\u064A\u0629",
+      "\u0645\u0646\u0627\u0634\u0641 \u0645\u0633\u0628\u062D \u0642\u0637\u0646\u064A\u0629 \u0641\u0627\u062E\u0631\u0629 \u0641\u064A \u0633\u0644\u0629 \u0645\u062E\u0635\u0635\u0629 \u0628\u062C\u0627\u0646\u0628 \u0627\u0644\u0645\u0627\u0621"
+    ]
+  },
+  {
+    id: "family_play",
+    legacyKey: "long_table",
+    sequence: "04",
+    title: "Family Play",
+    titleAr: "\u0645\u0631\u062D \u0639\u0627\u0626\u0644\u064A",
+    hook: "Little moments. Big memories.",
+    hookAr: "\u0644\u062D\u0638\u0627\u062A \u0635\u063A\u064A\u0631\u0629. \u0630\u0643\u0631\u064A\u0627\u062A \u0643\u0628\u064A\u0631\u0629.",
+    guestPromise: "Child-safe, worry-free coastal play with zero hazardous drops, shallow water zones, and generous grassy or terrace space.",
+    guestPromiseAr: "\u0628\u064A\u0626\u0629 \u0644\u0639\u0628 \u0633\u0627\u062D\u0644\u064A\u0629 \u0622\u0645\u0646\u0629 \u0644\u0644\u0623\u0637\u0641\u0627\u0644 \u0628\u0644\u0627 \u0642\u0644\u0642\u060C \u0645\u0639 \u062D\u0648\u0627\u0641 \u0645\u0633\u0628\u062D \u0645\u062D\u0645\u064A\u0629 \u0648\u0645\u0646\u0627\u0637\u0642 \u0645\u064A\u0627\u0647 \u0636\u062D\u0644\u0629 \u0648\u0645\u0633\u0627\u062D\u0629 \u0631\u062D\u0628\u0629.",
+    editorialDescription: "A sunlit coastal lawn and gentle shallow pool ledge designed for multigenerational laughter, splash games, beach buckets, and easy parental sightlines.",
+    editorialDescriptionAr: "\u0645\u0633\u0637\u062D \u0623\u062E\u0636\u0631 \u0633\u0627\u062D\u0644\u064A \u0645\u0634\u0645\u0633 \u0648\u0645\u0646\u0637\u0642\u0629 \u0645\u0633\u0628\u062D \u0636\u062D\u0644\u0629 \u0645\u062E\u0635\u0635\u0629 \u0644\u0636\u062D\u0643\u0627\u062A \u0627\u0644\u0639\u0627\u0626\u0644\u0629 \u0648\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0645\u0627\u0621 \u0645\u0639 \u0631\u0624\u064A\u0629 \u0648\u0627\u0636\u062D\u0629 \u0648\u0645\u0637\u0645\u0626\u0646\u0629 \u0644\u0644\u0623\u0647\u0644.",
+    image: "/moments/05-sunset-swim.jpg",
+    imageAlt: "Safe shallow pool ledge and coastal garden lawn for family play",
+    imageAltAr: "\u0645\u0633\u0628\u062D \u0628\u0628\u0631\u0648\u0632 \u0645\u0627\u0626\u064A \u0636\u062D\u0644 \u0648\u062D\u062F\u064A\u0642\u0629 \u0633\u0627\u062D\u0644\u064A\u0629 \u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0639\u0627\u0626\u0644\u0629",
+    imagePosition: "center 60%",
+    evidenceCriteria: [
+      {
+        title: "Child Safety Perimeter & Edge Defense",
+        titleAr: "\u0645\u062D\u064A\u0637 \u062D\u0645\u0627\u064A\u0629 \u0627\u0644\u0623\u0637\u0641\u0627\u0644 \u0648\u0627\u0644\u062D\u0648\u0627\u0641 \u0627\u0644\u0622\u0645\u0646\u0629",
+        description: "No sharp unprotected drops, exposed glass corners, or unfenced sheer drops > 60cm.",
+        descriptionAr: "\u062E\u0644\u0648 \u0627\u0644\u0645\u0643\u0627\u0646 \u0645\u0646 \u0623\u064A \u062D\u0648\u0627\u0641 \u062D\u0627\u062F\u0629 \u063A\u064A\u0631 \u0645\u062D\u0645\u064A\u0629 \u0623\u0648 \u0632\u062C\u0627\u062C \u0645\u0643\u0634\u0648\u0641 \u0623\u0648 \u0627\u0646\u062D\u062F\u0627\u0631\u0627\u062A > \u0666\u0660 \u0633\u0645.",
+        protocol: {
+          protocolId: "BPS-PROT-SAFETY-04",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "BPS Shield checklist inspection for child impact hazards & barriers",
+          instrumentMethodAr: "\u0641\u062D\u0635 \u0642\u0627\u0626\u0645\u0629 \u062F\u0631\u0639 \u0627\u0644\u0623\u0645\u0627\u0646 BPS \u0644\u0645\u062E\u0627\u0637\u0631 \u0627\u0635\u0637\u062F\u0627\u0645 \u0648\u0633\u0642\u0648\u0637 \u0627\u0644\u0623\u0637\u0641\u0627\u0644",
+          measuredParameter: "Balustrade height & vertical bar spacing",
+          measuredParameterAr: "\u0627\u0631\u062A\u0641\u0627\u0639 \u0627\u0644\u062D\u0648\u0627\u062C\u0632 \u0648\u0627\u0644\u0645\u0633\u0627\u0641\u0627\u062A \u0628\u064A\u0646 \u0627\u0644\u0642\u0636\u0628\u0627\u0646 \u0627\u0644\u0631\u0623\u0633\u064A\u0629",
+          targetThreshold: "Balustrade > 105cm height; bar spacing < 10cm",
+          toleranceMargin: "Zero tolerance on child barrier compliance",
+          provenanceRequirement: "Laser distance measure photo & physical force inspection log",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u0642\u064A\u0627\u0633 \u0644\u064A\u0632\u0631\u064A \u0648\u0633\u062C\u0644 \u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0636\u063A\u0637 \u0627\u0644\u0645\u064A\u0643\u0627\u0646\u064A\u0643\u064A \u0644\u0644\u062D\u0648\u0627\u062C\u0632"
+        }
+      },
+      {
+        title: "Unobstructed Parental Sightlines",
+        titleAr: "\u062E\u0637\u0648\u0637 \u0631\u0624\u064A\u0629 \u0627\u0644\u0648\u0627\u0644\u062F\u064A\u0646 \u0627\u0644\u0645\u0628\u0627\u0634\u0631\u0629",
+        description: "Parents can see both water and play lawn from primary outdoor lounge or dining.",
+        descriptionAr: "\u0625\u0645\u0643\u0627\u0646\u064A\u0629 \u0645\u0631\u0627\u0642\u0628\u0629 \u0627\u0644\u0645\u0633\u0628\u062D \u0648\u0645\u0633\u0637\u062D \u0627\u0644\u0644\u0639\u0628 \u0645\u0628\u0627\u0634\u0631\u0629 \u0645\u0646 \u0645\u0646\u0637\u0642\u0629 \u062C\u0644\u0648\u0633 \u0627\u0644\u0648\u0627\u0644\u062F\u064A\u0646.",
+        protocol: {
+          protocolId: "BPS-PROT-SIGHT-04",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Direct visual cone assessment from primary seating area",
+          instrumentMethodAr: "\u062A\u0642\u064A\u064A\u0645 \u0645\u062E\u0631\u0648\u0637 \u0627\u0644\u0631\u0624\u064A\u0629 \u0627\u0644\u0645\u0628\u0627\u0634\u0631 \u0645\u0646 \u0627\u0644\u062C\u0644\u0633\u0629 \u0627\u0644\u0623\u0633\u0627\u0633\u064A\u0629",
+          measuredParameter: "Percentage of play area visible without standing up",
+          measuredParameterAr: "\u0646\u0633\u0628\u0629 \u0645\u0633\u0627\u062D\u0629 \u0627\u0644\u0644\u0639\u0628 \u0627\u0644\u0645\u0631\u0626\u064A\u0629 \u0628\u0648\u0636\u0648\u062D \u062F\u0648\u0646 \u0627\u0644\u062D\u0627\u062C\u0629 \u0644\u0644\u0648\u0642\u0648\u0641",
+          targetThreshold: "100% of shallow water & play lawn visible from terrace seating",
+          toleranceMargin: "Strict 100%",
+          provenanceRequirement: "Eye-level seated panorama from dining terrace toward pool",
+          provenanceRequirementAr: "\u0628\u0627\u0646\u0648\u0631\u0627\u0645\u0627 \u0645\u0646 \u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0639\u064A\u0646 \u0623\u062B\u0646\u0627\u0621 \u0627\u0644\u062C\u0644\u0648\u0633 \u0628\u0627\u062A\u062C\u0627\u0647 \u0627\u0644\u0645\u0633\u0628\u062D"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Unfenced sudden deep water dropoffs without shallow wading ledge",
+      "Blind spots hiding children from terrace seating",
+      "Loose electrical wiring or broken pool suction covers"
+    ],
+    disqualifiersAr: [
+      "\u0645\u0633\u0628\u062D \u0639\u0645\u064A\u0642 \u0645\u0641\u0627\u062C\u0626 \u0628\u0644\u0627 \u062A\u062F\u0631\u062C \u0623\u0648 \u0631\u0635\u064A\u0641 \u0645\u0627\u0626\u064A \u0636\u062D\u0644",
+      "\u0632\u0648\u0627\u064A\u0627 \u0645\u062D\u062C\u0648\u0628\u0629 \u062A\u0639\u064A\u0642 \u0631\u0624\u064A\u0629 \u0627\u0644\u0623\u0637\u0641\u0627\u0644 \u0645\u0646 \u0627\u0644\u062C\u0644\u0633\u0629 \u0627\u0644\u0631\u0626\u064A\u0633\u064A\u0629",
+      "\u0623\u0633\u0644\u0627\u0643 \u0643\u0647\u0631\u0628\u0627\u0626\u064A\u0629 \u0645\u0643\u0634\u0648\u0641\u0629 \u0623\u0648 \u0623\u063A\u0637\u064A\u0629 \u0634\u0641\u0637 \u0645\u0633\u0628\u062D \u0645\u062A\u062E\u0644\u062E\u0644\u0629"
+    ],
+    photographyDirectives: [
+      "Include visual cues of gentle play: beach ball, wooden games, splash ripples",
+      "Warm sunlight reflecting on calm shallow water",
+      "Emphasize security, spaciousness, and relaxed parental comfort"
+    ],
+    minimumResidenceQualifications: [
+      "Shallow pool ledge (< 40cm water depth) or level garden lawn",
+      "All glass sliding doors fitted with safety visual markings",
+      "First aid kit fully stocked and inspected"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0631\u0635\u064A\u0641 \u0645\u0627\u0626\u064A \u0636\u062D\u0644 (< \u0664\u0660 \u0633\u0645) \u0623\u0648 \u062D\u062F\u064A\u0642\u0629 \u0645\u0633\u062A\u0648\u064A\u0629 \u0622\u0645\u0646\u0629",
+      "\u0623\u0628\u0648\u0627\u0628 \u0632\u062C\u0627\u062C\u064A\u0629 \u0645\u0632\u0648\u062F\u0629 \u0628\u0639\u0644\u0627\u0645\u0627\u062A \u062A\u062D\u0630\u064A\u0631\u064A\u0629 \u0628\u0635\u0631\u064A\u0629 \u0648\u0627\u0636\u062D\u0629",
+      "\u062D\u0642\u064A\u0628\u0629 \u0625\u0633\u0639\u0627\u0641\u0627\u062A \u0623\u0648\u0644\u064A\u0629 \u0645\u0643\u062A\u0645\u0644\u0629 \u0648\u0645\u0641\u062D\u0648\u0635\u0629 \u062F\u0648\u0631\u064A\u0627\u064B"
+    ]
+  },
+  {
+    id: "the_long_sit",
+    legacyKey: "long_table",
+    sequence: "05",
+    title: "The Long Sit",
+    titleAr: "\u0627\u0644\u062C\u0644\u0633\u0629 \u0627\u0644\u0637\u0648\u064A\u0644\u0629",
+    hook: "After sunset, the best part begins.",
+    hookAr: "\u0628\u0639\u062F \u0627\u0644\u063A\u0631\u0648\u0628\u060C \u062A\u0628\u062F\u0623 \u0627\u0644\u0642\u0639\u062F\u0629 \u0627\u0644\u0623\u062D\u0644\u0649.",
+    guestPromise: "Deep comfortable sunset and evening seating where conversation lingers effortlessly for hours under warm amber light.",
+    guestPromiseAr: "\u062C\u0644\u0633\u0629 \u0645\u0633\u0627\u0626\u064A\u0629 \u0648\u062B\u064A\u0631\u0647 \u0641\u064A \u0627\u0644\u063A\u0631\u0648\u0628 \u062D\u064A\u062B \u064A\u0633\u062A\u0645\u0631 \u0627\u0644\u062D\u062F\u064A\u062B \u0627\u0644\u0639\u0630\u0628 \u0644\u0633\u0627\u0639\u0627\u062A \u062F\u0648\u0646 \u0623\u064A \u0634\u0639\u0648\u0631 \u0628\u0627\u0644\u0648\u0642\u062A.",
+    editorialDescription: "A sheltered outdoor terrace or courtyard as twilight settles over the Red Sea. Candlelight, low amber lanterns, deep cushioned sofas, light coastal breeze, and warm conversation that stretches deep into the night.",
+    editorialDescriptionAr: "\u062A\u0631\u0627\u0633 \u062E\u0627\u0631\u062C\u064A \u0623\u0648 \u0641\u0646\u0627\u0621 \u0645\u062D\u0645\u064A \u0645\u0639 \u062D\u0644\u0648\u0644 \u0627\u0644\u063A\u0633\u0642 \u0639\u0644\u0649 \u0627\u0644\u0628\u062D\u0631 \u0627\u0644\u0623\u062D\u0645\u0631. \u0636\u0648\u0621 \u0634\u0645\u0648\u0639\u060C \u0641\u0648\u0627\u0646\u064A\u0633 \u0643\u0647\u0631\u0645\u0627\u0646\u064A\u0629\u060C \u0623\u0631\u0627\u0626\u0643 \u0648\u062B\u064A\u0631\u0647\u060C \u0646\u0633\u064A\u0645 \u0639\u0644\u064A\u0644\u060C \u0648\u062D\u062F\u064A\u062B \u062F\u0627\u0641\u0626 \u064A\u0645\u062A\u062F \u0644\u0639\u0645\u0642 \u0627\u0644\u0644\u064A\u0644.",
+    image: "/moments/03-golden-dinner.jpg",
+    imageAlt: "Candlelit coastal evening lounge with sunset glow over the Red Sea",
+    imageAltAr: "\u0645\u062C\u0644\u0633 \u0633\u0627\u062D\u0644\u064A \u0645\u0633\u0627\u0626\u064A \u0645\u0636\u0627\u0621 \u0628\u0627\u0644\u0634\u0645\u0648\u0639 \u0645\u0639 \u0634\u0641\u0642 \u0627\u0644\u063A\u0631\u0648\u0628 \u0639\u0644\u0649 \u0627\u0644\u0628\u062D\u0631 \u0627\u0644\u0623\u062D\u0645\u0631",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Seating Ergonomics for Prolonged Comfort",
+        titleAr: "\u0631\u0627\u062D\u0629 \u0627\u0644\u0645\u0642\u0627\u0639\u062F \u0627\u0644\u0645\u0635\u0645\u0645\u0629 \u0644\u0644\u062C\u0644\u0648\u0633 \u0627\u0644\u0637\u0648\u064A\u0644",
+        description: "Deep high-resilience outdoor foam cushions with back and arm support.",
+        descriptionAr: "\u0648\u0633\u0627\u0626\u062F \u062E\u0627\u0631\u062C\u064A\u0629 \u0648\u062B\u064A\u0631\u0647 \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0645\u0631\u0648\u0646\u0629 \u0645\u0639 \u062F\u0639\u0645 \u0643\u0627\u0645\u0644 \u0644\u0644\u0638\u0647\u0631 \u0648\u0627\u0644\u0630\u0631\u0627\u0639\u064A\u0646.",
+        protocol: {
+          protocolId: "BPS-PROT-ERGO-05",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Physical cushion depth and foam density inspection (IFD testing)",
+          instrumentMethodAr: "\u0641\u062D\u0635 \u0645\u0627\u062F\u064A \u0644\u0639\u0645\u0642 \u0627\u0644\u0645\u0642\u0627\u0639\u062F \u0648\u0643\u062B\u0627\u0641\u0629 \u0627\u0644\u062D\u0634\u0648\u0629 \u0627\u0644\u0625\u0633\u0641\u0646\u062C\u064A\u0629",
+          measuredParameter: "Seat depth & cushion thickness",
+          measuredParameterAr: "\u0639\u0645\u0642 \u0627\u0644\u0645\u0642\u0639\u062F \u0648\u0633\u0645\u0627\u0643\u0629 \u0627\u0644\u0648\u0633\u0627\u062F\u0629 \u0627\u0644\u0625\u0633\u0641\u0646\u062C\u064A\u0629",
+          targetThreshold: "Minimum 70cm seating depth; > 12cm high-density foam",
+          toleranceMargin: "\xB11cm",
+          provenanceRequirement: "Assessor seating test verification & cushion measurement photo",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u062A\u0648\u062B\u064A\u0642 \u0642\u064A\u0627\u0633 \u0623\u0628\u0639\u0627\u062F \u0648\u0633\u0645\u0627\u0643\u0629 \u0648\u0633\u0627\u0626\u062F \u0627\u0644\u0645\u062C\u0644\u0633"
+        }
+      },
+      {
+        title: "Amber Atmospheric Lighting",
+        titleAr: "\u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0643\u0647\u0631\u0645\u0627\u0646\u064A\u0629 \u0627\u0644\u062F\u0627\u0641\u0626\u0629",
+        description: "Warm, glare-free, dimmable or candlelit environment without harsh white floodlights.",
+        descriptionAr: "\u0623\u062C\u0648\u0627\u0621 \u062F\u0627\u0641\u0626\u0629 \u062E\u0627\u0644\u064A\u0629 \u0645\u0646 \u0627\u0644\u0648\u0647\u062C \u0628\u0644\u0627 \u0643\u0634\u0627\u0641\u0627\u062A \u0628\u064A\u0636\u0627\u0621 \u062D\u0627\u062F\u0629 \u0648\u0645\u0632\u0639\u062C\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-COLOR-05",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Color temperature spectrometer check of primary evening fixtures",
+          instrumentMethodAr: "\u0641\u062D\u0635 \u0645\u0637\u064A\u0627\u0641 \u062F\u0631\u062C\u0629 \u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0644\u0648\u0646 \u0644\u0648\u062D\u062F\u0627\u062A \u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0627\u0644\u0645\u0633\u0627\u0626\u064A\u0629",
+          measuredParameter: "Correlated Color Temperature (CCT)",
+          measuredParameterAr: "\u062F\u0631\u062C\u0629 \u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0644\u0648\u0646 \u0644\u0644\u0636\u0648\u0621 (CCT)",
+          targetThreshold: "CCT between 2,200K and 2,700K (warm amber)",
+          toleranceMargin: "\xB1150K",
+          provenanceRequirement: "Color temperature meter readout capture at table level",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u0642\u0631\u0627\u0621\u0629 \u062C\u0647\u0627\u0632 \u0642\u064A\u0627\u0633 \u0643\u0644\u0641\u0646 \u0627\u0644\u0636\u0648\u0621 \u0639\u0646\u062F \u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0645\u062C\u0644\u0633"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Harsh white fluorescent or commercial security floodlights > 3,500K",
+      "Uncomfortable stiff metal or plastic seating lacking deep cushions",
+      "Aggressive wind corridor without glass or bamboo windbreak shielding"
+    ],
+    disqualifiersAr: [
+      "\u0643\u0634\u0627\u0641\u0627\u062A \u0628\u064A\u0636\u0627\u0621 \u062D\u0627\u062F\u0629 \u0623\u0648 \u0625\u0636\u0627\u0621\u0629 \u062A\u062C\u0627\u0631\u064A\u0629 \u0645\u0632\u0639\u062C\u0629 > \u0663\u0665\u0660\u0660 \u0643\u0644\u0641\u0646",
+      "\u0645\u0642\u0627\u0639\u062F \u0645\u0639\u062F\u0646\u064A\u0629 \u0623\u0648 \u0628\u0644\u0627\u0633\u062A\u064A\u0643\u064A\u0629 \u0642\u0627\u0633\u064A\u0629 \u062A\u0641\u062A\u0642\u0631 \u0644\u0644\u0648\u0633\u0627\u0626\u062F \u0627\u0644\u0645\u0631\u064A\u062D\u0629",
+      "\u0645\u062C\u0631\u0649 \u0631\u064A\u0627\u062D \u0639\u0627\u062A\u064D \u0628\u0644\u0627 \u0645\u0635\u062F\u0627\u062A \u0632\u062C\u0627\u062C\u064A\u0629 \u0623\u0648 \u062D\u0648\u0627\u062C\u0632 \u0646\u0628\u0627\u062A\u064A\u0629 \u0648\u0627\u0642\u064A\u0629"
+    ],
+    photographyDirectives: [
+      "Shoot during the blue hour twilight (approx. 25 minutes after sunset)",
+      "Balance ambient twilight sky with warm interior/lantern glow",
+      "Feature authentic textures: throw blankets, ceramic cups, lanterns"
+    ],
+    minimumResidenceQualifications: [
+      "Low conversational lounge seating group accommodating party size",
+      "Dedicated windbreak protection preserving ambient candles",
+      "Multiple independent warm mood light circuits or lantern sets"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0645\u062C\u0645\u0648\u0639\u0629 \u0645\u0642\u0627\u0639\u062F \u0645\u062D\u0627\u062F\u062B\u0629 \u0645\u0646\u062E\u0641\u0636\u0629 \u0648\u0645\u0631\u064A\u062D\u0629 \u062A\u062A\u0633\u0639 \u0644\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
+      "\u062D\u0645\u0627\u064A\u0629 \u062C\u062F\u0627\u0631\u064A\u0629 \u0623\u0648 \u0632\u062C\u0627\u062C\u064A\u0629 \u0645\u0646 \u0627\u0644\u0631\u064A\u0627\u062D \u062A\u062D\u0641\u0638 \u0644\u0647\u0628 \u0627\u0644\u0634\u0645\u0648\u0639",
+      "\u062F\u0648\u0627\u0626\u0631 \u0625\u0636\u0627\u0621\u0629 \u062F\u0627\u0641\u0626\u0629 \u0645\u062A\u0639\u062F\u062F\u0629 \u0623\u0648 \u0641\u0648\u0627\u0646\u064A\u0633 \u0632\u064A\u062A\u064A\u0629 \u0648\u0643\u0647\u0631\u0628\u0627\u0626\u064A\u0629 \u0645\u0633\u062A\u0642\u0644\u0629"
+    ]
+  },
+  {
+    id: "under_stars",
+    legacyKey: "fire_conversation",
+    sequence: "06",
+    title: "Under Stars",
+    titleAr: "\u062A\u062D\u062A \u0627\u0644\u0646\u062C\u0648\u0645",
+    hook: "Some nights come with stars and silence.",
+    hookAr: "\u0644\u064A\u0627\u0644\u064D \u062A\u0623\u062A\u064A \u0628\u0627\u0644\u0646\u062C\u0648\u0645 \u0648\u0627\u0644\u0633\u0643\u064A\u0646\u0629.",
+    guestPromise: "Night sky clarity, fireside warmth, and profound coastal silence with zero light pollution intrusion.",
+    guestPromiseAr: "\u0648\u0636\u0648\u062D \u0633\u0645\u0627\u0621 \u0627\u0644\u0644\u064A\u0644\u060C \u062F\u0641\u0621 \u0634\u0639\u0644\u0629 \u0627\u0644\u0646\u0627\u0631\u060C \u0648\u0633\u0643\u064A\u0646\u0629 \u0633\u0627\u062D\u0644\u064A\u0629 \u0639\u0645\u064A\u0642\u0629 \u062E\u0627\u0644\u064A\u0629 \u0645\u0646 \u0627\u0644\u062A\u0644\u0648\u062B \u0627\u0644\u0636\u0648\u0626\u064A.",
+    editorialDescription: "An outdoor sunken hearth or rooftop celestial daybed beneath an open desert-sea sky. Crackling firewood or clean gas flame, cashmere throws, herbal tea, and thousands of stars.",
+    editorialDescriptionAr: "\u0645\u0648\u0642\u062F \u0646\u0627\u0631 \u062E\u0627\u0631\u062C\u064A \u0623\u0648 \u062C\u0644\u0633\u0629 \u0633\u0645\u0627\u0648\u064A\u0629 \u0639\u0644\u0648\u064A\u0629 \u062A\u062D\u062A \u0633\u0645\u0627\u0621 \u0627\u0644\u0628\u062D\u0631 \u0648\u0627\u0644\u0635\u062D\u0631\u0627\u0621 \u0627\u0644\u0645\u0641\u062A\u0648\u062D\u0629. \u062F\u0641\u0621 \u0627\u0644\u0646\u0627\u0631\u060C \u0623\u063A\u0637\u064A\u0629 \u0635\u0648\u0641\u064A\u0629 \u0646\u0627\u0639\u0645\u0629\u060C \u0634\u0627\u064A \u0623\u0639\u0634\u0627\u0628\u060C \u0648\u0622\u0644\u0627\u0641 \u0627\u0644\u0646\u062C\u0648\u0645 \u0627\u0644\u0645\u062A\u0644\u0623\u0644\u0626\u0629.",
+    image: "/moments/06-fireside-night.jpg",
+    imageAlt: "Outdoor fireside lounge under a starlit night sky in Ain Sokhna",
+    imageAltAr: "\u062C\u0644\u0633\u0629 \u0646\u0627\u0631 \u062E\u0627\u0631\u062C\u064A\u0629 \u062A\u062D\u062A \u0633\u0645\u0627\u0621 \u0645\u0631\u0635\u0639\u0629 \u0628\u0627\u0644\u0646\u062C\u0648\u0645 \u0641\u064A \u0627\u0644\u0639\u064A\u0646 \u0627\u0644\u0633\u062E\u0646\u0629",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Dark Sky Visibility & Low Light Trespass",
+        titleAr: "\u0648\u0636\u0648\u062D \u0627\u0644\u0633\u0645\u0627\u0621 \u0627\u0644\u0645\u0638\u0644\u0645\u0629 \u0648\u0627\u0646\u0639\u062F\u0627\u0645 \u0627\u0644\u062A\u0644\u0648\u062B \u0627\u0644\u0636\u0648\u0626\u064A",
+        description: "Ability to observe constellations without direct commercial glare.",
+        descriptionAr: "\u0625\u0645\u0643\u0627\u0646\u064A\u0629 \u0631\u0635\u062F \u0627\u0644\u0646\u062C\u0648\u0645 \u0648\u0627\u0644\u0623\u0628\u0631\u0627\u062C \u0627\u0644\u0633\u0645\u0627\u0648\u064A\u0629 \u0628\u0648\u0636\u0648\u062D \u062F\u0648\u0646 \u062A\u0634\u062A\u062A \u0636\u0648\u0626\u064A \u062A\u062C\u0627\u0631\u064A.",
+        protocol: {
+          protocolId: "BPS-PROT-SKY-06",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Sky Quality Meter (SQM-L) zenith night luminance reading",
+          instrumentMethodAr: "\u0642\u0631\u0627\u0621\u0629 \u062C\u0647\u0627\u0632 \u0642\u064A\u0627\u0633 \u062C\u0648\u062F\u0629 \u0627\u0644\u0633\u0645\u0627\u0621 (SQM-L) \u0644\u064A\u0644\u0627\u064B",
+          measuredParameter: "Magnitudes per square arcsecond (mpsas)",
+          measuredParameterAr: "\u0627\u0644\u0642\u062F\u0631 \u0627\u0644\u0638\u0627\u0647\u0631\u064A \u0644\u0643\u0644 \u062B\u0627\u0646\u064A\u0629 \u0642\u0648\u0633\u064A\u0629 \u0645\u0631\u0628\u0639\u0629",
+          targetThreshold: "SQM > 19.5 mpsas on moonless evening window",
+          toleranceMargin: "\xB10.2 mpsas",
+          provenanceRequirement: "Timestamped SQM meter display photo and zenith constellation photo",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u0639\u062F\u0627\u062F \u0642\u064A\u0627\u0633 \u0638\u0644\u0645\u0629 \u0627\u0644\u0633\u0645\u0627\u0621 \u0648\u0635\u0648\u0631\u0629 \u0645\u0648\u062B\u0642\u0629 \u0644\u0646\u062C\u0648\u0645 \u0627\u0644\u0633\u0645\u0627\u0621"
+        }
+      },
+      {
+        title: "Safe Fire Source & Wind Containment",
+        titleAr: "\u0645\u0635\u062F\u0631 \u0646\u0627\u0631 \u0622\u0645\u0646 \u0648\u0645\u062D\u0645\u064A \u0645\u0646 \u0627\u0644\u0631\u064A\u0627\u062D",
+        description: "Certified sunken pit or gas hearth with non-combustible perimeter and spark arrestor.",
+        descriptionAr: "\u0645\u0648\u0642\u062F \u063A\u0627\u0637\u0633 \u0623\u0648 \u0645\u0648\u0642\u062F \u063A\u0627\u0632 \u0645\u0639\u062A\u0645\u062F \u0628\u0623\u0631\u0636\u064A\u0629 \u063A\u064A\u0631 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0627\u0634\u062A\u0639\u0627\u0644 \u0648\u062D\u0627\u062C\u0632 \u0634\u0631\u0631.",
+        protocol: {
+          protocolId: "BPS-PROT-FIRE-06",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "BPS Shield fire inspection: 1.5m clearance, fire blanket, extinguisher present",
+          instrumentMethodAr: "\u0641\u062D\u0635 \u062F\u0631\u0639 \u0627\u0644\u0623\u0645\u0627\u0646 \u0644\u0644\u0645\u0648\u0642\u062F: \u0645\u0633\u0627\u0641\u0629 \u0623\u0645\u0627\u0646 \u0661.\u0665 \u0645 \u0648\u0645\u0637\u0641\u0623\u0629 \u0648\u0628\u0637\u0627\u0646\u064A\u0629 \u062D\u0631\u064A\u0642",
+          measuredParameter: "Combustible clearance radius & spark barrier fit",
+          measuredParameterAr: "\u0646\u0635\u0641 \u0642\u0637\u0631 \u0627\u0644\u0623\u0645\u0627\u0646 \u0645\u0646 \u0627\u0644\u0645\u0648\u0627\u062F \u0627\u0644\u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0627\u0634\u062A\u0639\u0627\u0644",
+          targetThreshold: "Minimum 150cm perimeter clearance to any fabric or dry vegetation",
+          toleranceMargin: "Strict minimum 150cm",
+          provenanceRequirement: "Clearance tape measure photo & fire equipment checklist log",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u0642\u064A\u0627\u0633 \u0634\u0631\u064A\u0637 \u0627\u0644\u0623\u0645\u0627\u0646 \u0648\u0633\u062C\u0644 \u062A\u0648\u0641\u0631 \u0645\u0639\u062F\u0627\u062A \u0627\u0644\u0625\u0637\u0641\u0627\u0621 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Direct sodium streetlight beam hitting the night terrace",
+      "Uncertified makeshift fire pit on combustible deck",
+      "Missing fire extinguisher within 8 meters of fire pit"
+    ],
+    disqualifiersAr: [
+      "\u0634\u0639\u0627\u0639 \u0643\u0634\u0627\u0641 \u0634\u0648\u0627\u0631\u0639 \u0645\u0628\u0627\u0634\u0631 \u064A\u0633\u0644\u0637 \u0639\u0644\u0649 \u0627\u0644\u062C\u0644\u0633\u0629 \u0627\u0644\u0644\u064A\u0644\u064A\u0629",
+      "\u0645\u0648\u0642\u062F \u0646\u0627\u0631 \u0639\u0634\u0648\u0627\u0626\u064A \u063A\u064A\u0631 \u0622\u0645\u0646 \u0639\u0644\u0649 \u0623\u0631\u0636\u064A\u0629 \u062E\u0634\u0628\u064A\u0629 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0627\u0634\u062A\u0639\u0627\u0644",
+      "\u063A\u064A\u0627\u0628 \u0645\u0637\u0641\u0623\u0629 \u062D\u0631\u064A\u0642 \u0635\u0627\u0644\u062D\u0629 \u0639\u0644\u0649 \u0645\u0633\u0627\u0641\u0629 \u0623\u0642\u0644 \u0645\u0646 \u0668 \u0623\u0645\u062A\u0627\u0631 \u0645\u0646 \u0627\u0644\u0645\u0648\u0642\u062F"
+    ],
+    photographyDirectives: [
+      "Long-exposure capture of stars while preserving natural flame warmth",
+      "No artificial strobes; illuminate only with fire and soft candles",
+      "Frame the silhouette of coastal architecture against the celestial sky"
+    ],
+    minimumResidenceQualifications: [
+      "Certified fire pit (wood or LPG) with spark screen",
+      "Dedicated rooftop or secluded desert-facing patio",
+      "Heavy warm throws/blankets provided for evening chill"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0645\u0648\u0642\u062F \u0646\u0627\u0631 \u0645\u0639\u062A\u0645\u062F (\u062D\u0637\u0628 \u0623\u0648 \u063A\u0627\u0632) \u0645\u0639 \u0648\u0627\u0642\u064D \u0645\u0646 \u0627\u0644\u0634\u0631\u0631",
+      "\u062A\u0631\u0627\u0633 \u0639\u0644\u0648\u064A \u0623\u0648 \u0641\u0646\u0627\u0621 \u0647\u0627\u062F\u0626 \u0645\u0641\u062A\u0648\u062D \u0628\u0627\u062A\u062C\u0627\u0647 \u0627\u0644\u0628\u062D\u0631 \u0623\u0648 \u0627\u0644\u0635\u062D\u0631\u0627\u0621",
+      "\u0623\u063A\u0637\u064A\u0629 \u0635\u0648\u0641\u064A\u0629 \u062F\u0627\u0641\u0626\u0629 \u0645\u062E\u0635\u0635\u0629 \u0644\u0623\u0645\u0633\u064A\u0627\u062A \u0627\u0644\u0634\u062A\u0627\u0621 \u0648\u0627\u0644\u0646\u0633\u064A\u0645 \u0627\u0644\u0628\u0627\u0631\u062F"
+    ]
+  }
+];
+function resolveCanonicalMoment(keyOrSlug) {
+  const normalized = keyOrSlug.toLowerCase().replace(/[-\s]/g, "_");
+  const exact = CANONICAL_FLAGSHIP_MOMENTS.find((m) => m.id === normalized || m.legacyKey === normalized);
+  if (exact) return exact;
+  if (normalized.includes("morning") || normalized.includes("dawn")) return CANONICAL_FLAGSHIP_MOMENTS[0];
+  if (normalized.includes("breakfast") || normalized.includes("table")) return CANONICAL_FLAGSHIP_MOMENTS[1];
+  if (normalized.includes("barefoot") || normalized.includes("afternoon") || normalized.includes("swim")) return CANONICAL_FLAGSHIP_MOMENTS[2];
+  if (normalized.includes("play") || normalized.includes("family")) return CANONICAL_FLAGSHIP_MOMENTS[3];
+  if (normalized.includes("sit") || normalized.includes("dinner") || normalized.includes("hearth")) return CANONICAL_FLAGSHIP_MOMENTS[4];
+  if (normalized.includes("star") || normalized.includes("night") || normalized.includes("fire")) return CANONICAL_FLAGSHIP_MOMENTS[5];
+  return CANONICAL_FLAGSHIP_MOMENTS[0];
+}
+
+// src/lib/mastermind.ts
+function evaluateStayIntake(intent, property2, assessment2, ownerDecision, existingEnquiries = []) {
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString();
+  const decisionVersion = "MASTERMIND-POLICY-2026.1";
+  const policyVersionsApplied = [
+    "BPS-TRUST-2026.1",
+    "BPS-SHIELD-2026.1",
+    "BPS-MOM-2026.1",
+    "LH-RATE-FLOOR-2026.1"
+  ];
+  const chainSteps = [];
+  const evidenceIdsReferenced = [];
+  const reasons = [];
+  const reasonsAr = [];
+  const conflicts = [];
+  const conflictsAr = [];
+  let overrideAuthorityRequired = void 0;
+  const totalGuests = (intent.adults || 0) + (intent.children || 0);
+  const canonicalMoment = resolveCanonicalMoment(intent.requestedMoment);
+  const dateCheck = evaluateStayDates(intent.checkIn, intent.checkOut);
+  if (!dateCheck.allowed) {
+    chainSteps.push({
+      stepIndex: 1,
+      name: "Guest Intent & Dates",
+      nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E",
+      status: "failed",
+      summary: dateCheck.reason,
+      summaryAr: "\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0635\u0627\u0644\u062D\u0629 \u0623\u0648 \u062A\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u063A\u0627\u062F\u0631\u0629 \u064A\u0633\u0628\u0642 \u0627\u0644\u0648\u0635\u0648\u0644.",
+      blocking: true
+    });
+    reasons.push(`Invalid stay dates: ${dateCheck.reason}`);
+    reasonsAr.push("\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0635\u0627\u0644\u062D\u0629.");
+  } else {
+    chainSteps.push({
+      stepIndex: 1,
+      name: "Guest Intent & Dates",
+      nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E",
+      status: "passed",
+      summary: `Valid stay window: ${dateCheck.nights} nights (${intent.checkIn} to ${intent.checkOut}) for ${totalGuests} guests.`,
+      summaryAr: `\u0641\u062A\u0631\u0629 \u0625\u0642\u0627\u0645\u0629 \u0635\u062D\u064A\u062D\u0629: ${dateCheck.nights} \u0644\u064A\u0627\u0644\u064D \u0644\u0639\u062F\u062F ${totalGuests} \u0636\u064A\u0648\u0641.`,
+      blocking: false
+    });
+  }
+  const hasMomentEvidence = (property2.provenMoments || []).some(
+    (m) => m.key === canonicalMoment.id || m.key === canonicalMoment.legacyKey || m.id === canonicalMoment.id
+  );
+  if (hasMomentEvidence) {
+    const evidenceId = `ev-bps-${property2.id}-${canonicalMoment.id}`;
+    evidenceIdsReferenced.push(evidenceId);
+    chainSteps.push({
+      stepIndex: 2,
+      name: "Moment Qualification",
+      nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629",
+      status: "passed",
+      summary: `Verified for "${canonicalMoment.title}". Physical BPS criteria satisfied.`,
+      summaryAr: `\u0645\u0624\u0647\u0644 \u0648\u0645\u0648\u062B\u0642 \u0644\u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}". \u0645\u0639\u0627\u064A\u064A\u0631 BPS \u0645\u0643\u062A\u0645\u0644\u0629.`,
+      evidenceRef: evidenceId,
+      blocking: false
+    });
+  } else {
+    chainSteps.push({
+      stepIndex: 2,
+      name: "Moment Qualification",
+      nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629",
+      status: "warning",
+      summary: `Property has not officially proven "${canonicalMoment.title}". Flagged for operator review or alternative moment match.`,
+      summaryAr: `\u0644\u0645 \u064A\u062B\u0628\u062A \u0627\u0644\u0645\u0633\u0643\u0646 \u0631\u0633\u0645\u064A\u0627\u064B \u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}". \u064A\u0644\u0632\u0645 \u0645\u0631\u0627\u062C\u0639\u0629 \u0627\u0644\u0645\u0634\u063A\u0644.`,
+      blocking: false
+    });
+    conflicts.push(`Requested moment "${canonicalMoment.title}" is not yet proven on this property.`);
+    conflictsAr.push(`\u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 "${canonicalMoment.titleAr}" \u063A\u064A\u0631 \u0645\u0648\u062B\u0642\u0629 \u0628\u0639\u062F \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0643\u0646.`);
+  }
+  const isLiveAndSealed = property2.supplyStage === "live" && property2.sealIssued;
+  if (!isLiveAndSealed) {
+    chainSteps.push({
+      stepIndex: 3,
+      name: "Property Truth & Seal",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F",
+      status: "failed",
+      summary: `Property is in "${property2.supplyStage}" stage (Seal: ${property2.sealIssued ? "Issued" : "Missing"}). Stays cannot be confirmed.`,
+      summaryAr: `\u0627\u0644\u0645\u0633\u0643\u0646 \u0641\u064A \u0645\u0631\u062D\u0644\u0629 "${property2.supplyStage}" \u0648\u0627\u0644\u062E\u062A\u0645 \u063A\u064A\u0631 \u0645\u062A\u0627\u062D. \u0644\u0627 \u064A\u0645\u0643\u0646 \u062D\u062C\u0632 \u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0645\u0639\u062A\u0645\u062F\u0629.`,
+      blocking: true
+    });
+    reasons.push("Unsealed residence cannot be confirmed for stay.");
+    reasonsAr.push("\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0623\u0643\u064A\u062F \u0625\u0642\u0627\u0645\u0629 \u0641\u064A \u0645\u0633\u0643\u0646 \u063A\u064A\u0631 \u062D\u0627\u0635\u0644 \u0639\u0644\u0649 \u062E\u062A\u0645 \u0627\u0644\u062C\u0648\u062F\u0629.");
+  } else {
+    chainSteps.push({
+      stepIndex: 3,
+      name: "Property Truth & Seal",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F",
+      status: "passed",
+      summary: "Property holds Little Hut Active Seal of Standard with zero drift.",
+      summaryAr: "\u0627\u0644\u0645\u0633\u0643\u0646 \u064A\u062D\u0645\u0644 \u062E\u062A\u0645 \u0644\u064A\u062A\u0644 \u0647\u062A \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u062F\u0648\u0646 \u0623\u064A \u0627\u0646\u062D\u0631\u0627\u0641.",
+      blocking: false
+    });
+  }
+  if (assessment2) {
+    const trustPass = (assessment2.trustGates || []).every((g) => g.status === "passed");
+    const shieldPass = (assessment2.shieldGates || []).every((g) => g.status === "passed");
+    if (!trustPass || !shieldPass) {
+      chainSteps.push({
+        stepIndex: 4,
+        name: "BPS Trust & Shield Status",
+        nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
+        status: "failed",
+        summary: "One or more canonical BPS Trust or Shield gates are incomplete or unresolved.",
+        summaryAr: "\u0625\u062D\u062F\u0649 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0623\u0648 \u0627\u0644\u0623\u0645\u0627\u0646 \u0641\u064A \u062A\u0642\u064A\u064A\u0645 BPS \u063A\u064A\u0631 \u0645\u062C\u062A\u0627\u0632\u0629.",
+        blocking: true
+      });
+      reasons.push("Independent BPS evaluation has unresolved gates.");
+      reasonsAr.push("\u062A\u0642\u064A\u064A\u0645 BPS \u0627\u0644\u0645\u0633\u062A\u0642\u0644 \u064A\u062D\u062A\u0648\u064A \u0639\u0644\u0649 \u0628\u0648\u0627\u0628\u0627\u062A \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644\u0629.");
+    } else {
+      chainSteps.push({
+        stepIndex: 4,
+        name: "BPS Trust & Shield Status",
+        nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
+        status: "passed",
+        summary: "12 of 12 canonical BPS gates (6 Trust + 6 Shield) passed and current.",
+        summaryAr: "\u0661\u0662 \u0645\u0646 \u0661\u0662 \u0628\u0648\u0627\u0628\u0629 BPS (\u0666 \u062B\u0642\u0629 + \u0666 \u0623\u0645\u0627\u0646) \u0645\u062C\u062A\u0627\u0632\u0629 \u0648\u0633\u0627\u0631\u064A\u0629.",
+        blocking: false
+      });
+    }
+  } else {
+    chainSteps.push({
+      stepIndex: 4,
+      name: "BPS Trust & Shield Status",
+      nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
+      status: isLiveAndSealed ? "passed" : "warning",
+      summary: isLiveAndSealed ? "Assessment on record holds current seal." : "No assessment record loaded.",
+      summaryAr: isLiveAndSealed ? "\u0627\u0644\u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u0645\u0633\u062C\u0644 \u064A\u062D\u0645\u0644 \u062E\u062A\u0645\u0627\u064B \u0633\u0627\u0631\u064A\u0627\u064B." : "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u062A\u0642\u064A\u064A\u0645 \u0645\u062D\u0645\u0644.",
+      blocking: false
+    });
+  }
+  const overlappingHold = existingEnquiries.find(
+    (e) => e.propertyId === property2.id && ["hold", "payment_pending", "payment_received", "confirmed"].includes(e.stage || "") && isHoldActive(e.hold)
+  );
+  if (overlappingHold) {
+    chainSteps.push({
+      stepIndex: 5,
+      name: "Calendar & Availability Truth",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631",
+      status: "failed",
+      summary: `Active calendar hold exists until ${overlappingHold.hold?.expiresAt}.`,
+      summaryAr: "\u064A\u0648\u062C\u062F \u062D\u062C\u0632 \u0645\u0624\u0642\u062A \u0633\u0627\u0631\u064D \u0639\u0644\u0649 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0644\u0647\u0630\u0647 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E.",
+      blocking: true
+    });
+    reasons.push("Selected stay dates are blocked by an active calendar hold.");
+    reasonsAr.push("\u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u062E\u062A\u0627\u0631\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0628\u062D\u062C\u0632 \u0645\u0624\u0642\u062A \u0633\u0627\u0631\u064D.");
+  } else {
+    chainSteps.push({
+      stepIndex: 5,
+      name: "Calendar & Availability Truth",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631",
+      status: "passed",
+      summary: `Direct calendar authority held by Little Hut. Dates open.`,
+      summaryAr: "\u0633\u0644\u0637\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0627\u0644\u0645\u0628\u0627\u0634\u0631\u0629 \u0644\u062F\u0649 \u0644\u064A\u062A\u0644 \u0647\u062A. \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0645\u062A\u0627\u062D\u0629.",
+      blocking: false
+    });
+  }
+  const floor = property2.nightlyFloorEgp || 5e3;
+  const quoteCheck = evaluateRateFloor(property2, floor);
+  if (!quoteCheck.allowed) {
+    chainSteps.push({
+      stepIndex: 6,
+      name: "Rate Truth & Owner Floor",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u0645\u0627\u064A\u0629 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649",
+      status: "failed",
+      summary: quoteCheck.reason,
+      summaryAr: "\u0633\u0639\u0631 \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u0627\u0644\u0645\u0642\u062A\u0631\u062D \u064A\u0642\u0644 \u0639\u0646 \u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u0644\u0644\u0645\u0627\u0644\u0643.",
+      blocking: true
+    });
+    reasons.push("Owner rate floor is violated.");
+    reasonsAr.push("\u0645\u062E\u0627\u0644\u0641\u0629 \u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0627\u0644\u0643.");
+  } else {
+    chainSteps.push({
+      stepIndex: 6,
+      name: "Rate Truth & Owner Floor",
+      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u0645\u0627\u064A\u0629 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649",
+      status: "passed",
+      summary: `Rate floor ${floor.toLocaleString()} EGP/night respected.`,
+      summaryAr: `\u0627\u0644\u0633\u0639\u0631 \u064A\u062D\u062A\u0631\u0645 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649 (${floor.toLocaleString()} \u062C.\u0645/\u0644\u064A\u0644\u0629).`,
+      blocking: false
+    });
+  }
+  const payoutReady = property2.payoutReady;
+  if (!payoutReady) {
+    chainSteps.push({
+      stepIndex: 7,
+      name: "Operational Payout & Readiness",
+      nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0633\u062A\u062D\u0642\u0627\u062A",
+      status: "warning",
+      summary: "Owner payout destination pending. Can take request, but payout setup required before money intake.",
+      summaryAr: "\u062D\u0633\u0627\u0628 \u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0627\u0644\u0643 \u0642\u064A\u062F \u0627\u0644\u0627\u0633\u062A\u0643\u0645\u0627\u0644. \u064A\u0644\u0632\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F \u0642\u0628\u0644 \u0627\u0633\u062A\u0644\u0627\u0645 \u0627\u0644\u0623\u0645\u0648\u0627\u0644.",
+      blocking: false
+    });
+    conflicts.push("Owner payout account is not yet validated for bank wire transfer.");
+    conflictsAr.push("\u062D\u0633\u0627\u0628 \u0645\u0633\u062A\u062D\u0642\u0627\u062A \u0627\u0644\u0645\u0627\u0644\u0643 \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644 \u0628\u0639\u062F \u0644\u0644\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0628\u0646\u0643\u064A.");
+  } else {
+    chainSteps.push({
+      stepIndex: 7,
+      name: "Operational Payout & Readiness",
+      nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0633\u062A\u062D\u0642\u0627\u062A",
+      status: "passed",
+      summary: "Payout rails verified and operational baseline in place.",
+      summaryAr: "\u0645\u0633\u0627\u0631 \u0627\u0644\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0627\u0644\u064A \u0645\u0648\u062B\u0642 \u0648\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0645\u0643\u062A\u0645\u0644\u0629.",
+      blocking: false
+    });
+  }
+  const communityRequired = property2.communityApprovalRequired;
+  if (communityRequired) {
+    chainSteps.push({
+      stepIndex: 8,
+      name: "Community & Compound Rules",
+      nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0643\u0645\u0628\u0648\u0646\u062F \u0648\u0627\u0644\u062C\u0647\u0627\u062A \u0627\u0644\u0645\u0634\u0631\u0641\u0629",
+      status: "warning",
+      summary: "AZHA/Community gate pass requires named national ID clearance prior to arrival. Instant booking disabled.",
+      summaryAr: "\u062F\u062E\u0648\u0644 \u0643\u0645\u0628\u0648\u0646\u062F \u0623\u0632\u0647\u0627 \u064A\u062A\u0637\u0644\u0628 \u062A\u0635\u0631\u064A\u062D \u0628\u0648\u0627\u0628\u0629 \u0645\u0633\u0628\u0642 \u0628\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0642\u0648\u0645\u064A. \u0627\u0644\u062D\u062C\u0632 \u0627\u0644\u0641\u0648\u0631\u064A \u063A\u064A\u0631 \u0645\u0641\u0639\u0644.",
+      blocking: false
+    });
+    overrideAuthorityRequired = "community_authority";
+  } else {
+    chainSteps.push({
+      stepIndex: 8,
+      name: "Community & Compound Rules",
+      nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0643\u0645\u0628\u0648\u0646\u062F \u0648\u0627\u0644\u062C\u0647\u0627\u062A \u0627\u0644\u0645\u0634\u0631\u0641\u0629",
+      status: "passed",
+      summary: "Independent access; no external gate pass clearance required.",
+      summaryAr: "\u062F\u062E\u0648\u0644 \u0645\u0633\u062A\u0642\u0644 \u062F\u0648\u0646 \u0645\u062A\u0637\u0644\u0628\u0627\u062A \u062A\u0635\u0631\u064A\u062D \u0628\u0648\u0627\u0628\u0629 \u062E\u0627\u0631\u062C\u064A\u0629.",
+      blocking: false
+    });
+  }
+  const maxCap = property2.maxGuests || property2.maxCapacity || 6;
+  if (totalGuests > maxCap) {
+    chainSteps.push({
+      stepIndex: 9,
+      name: "Capacity & Material Risk",
+      nameAr: "\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
+      status: "failed",
+      summary: `Party size of ${totalGuests} exceeds residence capacity of ${maxCap}.`,
+      summaryAr: `\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 (${totalGuests}) \u064A\u062A\u062C\u0627\u0648\u0632 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0642\u0635\u0648\u0649 \u0644\u0644\u0645\u0633\u0643\u0646 (${maxCap}).`,
+      blocking: true
+    });
+    reasons.push(`Party size (${totalGuests}) exceeds maximum capacity (${maxCap}).`);
+    reasonsAr.push(`\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u064A\u062A\u062C\u0627\u0648\u0632 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0645\u0648\u062D\u0629 (${maxCap}).`);
+  } else {
+    chainSteps.push({
+      stepIndex: 9,
+      name: "Capacity & Material Risk",
+      nameAr: "\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
+      status: "passed",
+      summary: `Party size (${totalGuests}) within verified maximum capacity (${maxCap}).`,
+      summaryAr: `\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u0636\u0645\u0646 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0642\u0635\u0648\u0649 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629 \u0644\u0644\u0645\u0646\u0632\u0644 (${maxCap}).`,
+      blocking: false
+    });
+  }
+  const nights = dateCheck.nights || 3;
+  const nightlyRate = Math.max(floor, 5500);
+  const accommodationEgp = nights * nightlyRate;
+  const littleHutFeeEgp = Math.round(accommodationEgp * 0.12);
+  const cleaningFeeEgp = 1200;
+  const refundableDepositEgp = 3500;
+  const totalEgp = accommodationEgp + littleHutFeeEgp + cleaningFeeEgp + refundableDepositEgp;
+  chainSteps.push({
+    stepIndex: 10,
+    name: "Commercial Transparency & Quote",
+    nameAr: "\u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629 \u0648\u062D\u0633\u0627\u0628 \u0627\u0644\u062A\u0643\u0644\u0641\u0629",
+    status: "passed",
+    summary: `Accommodation: ${accommodationEgp.toLocaleString()} EGP \xB7 Platform Fee: ${littleHutFeeEgp.toLocaleString()} EGP \xB7 Total: ${totalEgp.toLocaleString()} EGP`,
+    summaryAr: `\u0627\u0644\u0625\u0642\u0627\u0645\u0629: ${accommodationEgp.toLocaleString()} \u062C.\u0645 \xB7 \u0627\u0644\u0631\u0633\u0648\u0645: ${littleHutFeeEgp.toLocaleString()} \u062C.\u0645 \xB7 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A: ${totalEgp.toLocaleString()} \u062C.\u0645`,
+    blocking: false
+  });
+  const hasBlockingFailure = chainSteps.some((s) => s.status === "failed" && s.blocking);
+  const hasWarnings = chainSteps.some((s) => s.status === "warning");
+  let decision2 = "recommend";
+  if (hasBlockingFailure) {
+    decision2 = "block";
+  } else if (communityRequired || hasWarnings || !hasMomentEvidence) {
+    decision2 = "require_human_review";
+    overrideAuthorityRequired = overrideAuthorityRequired || "operator";
+  }
+  return {
+    decision: decision2,
+    decisionVersion,
+    timestamp,
+    propertyId: property2.id,
+    propertyName: property2.name,
+    propertyNameAr: property2.nameAr,
+    chainSteps,
+    inputsUsed: {
+      requestedMoment: canonicalMoment.title,
+      checkIn: intent.checkIn,
+      checkOut: intent.checkOut,
+      nights,
+      partySize: totalGuests,
+      rateFloorEgp: floor,
+      calendarAuthority: property2.calendarAuthority || "little_hut",
+      communityApprovalRequired: Boolean(communityRequired)
+    },
+    evidenceIdsReferenced,
+    policyVersionsApplied,
+    reasons,
+    reasonsAr,
+    conflictingConstraints: conflicts,
+    conflictingConstraintsAr: conflictsAr,
+    overrideAuthorityRequired,
+    commercialSummary: {
+      nightlyRateEgp: nightlyRate,
+      nights,
+      accommodationEgp,
+      littleHutFeeEgp,
+      cleaningFeeEgp,
+      refundableDepositEgp,
+      totalEgp,
+      ownerFloorRespected: true
+    }
+  };
+}
+
 // server.ts
 var app = express();
 var port = 3e3;
@@ -2436,6 +3263,32 @@ app.post("/api/live/properties/:id/inventory-baseline", async (req, res) => {
   try {
     const property2 = await recordInventoryBaseline(requireSession(req), req.params.id, req.body || {});
     return res.json({ property: property2, dataset: await datasetResponse(req) });
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+app.post("/api/mastermind/evaluate", async (req, res) => {
+  try {
+    const { intent, property: property2, propertyId } = req.body || {};
+    if (!intent) return res.status(400).json({ error: "intent_required" });
+    let targetProperty = property2;
+    let assessment2 = void 0;
+    let ownerDecision = void 0;
+    const session = readSession(req);
+    if (!targetProperty && propertyId) {
+      const dataset = await loadLiveDataset(session);
+      targetProperty = dataset.properties.find((p) => p.id === propertyId);
+    }
+    if (!targetProperty) {
+      return res.status(404).json({ error: "property_not_found" });
+    }
+    if (session) {
+      const dataset = await loadLiveDataset(session);
+      assessment2 = dataset.assessments.find((a) => a.propertyId === targetProperty?.id);
+      ownerDecision = dataset.ownerDecisions.find((d) => d.propertyId === targetProperty?.id);
+    }
+    const evaluation = evaluateStayIntake(intent, targetProperty, assessment2, ownerDecision);
+    return res.json({ evaluation });
   } catch (error) {
     return sendError(res, error);
   }

@@ -22,7 +22,9 @@ export type CanonicalFlagshipMomentId =
   | 'barefoot_afternoon'
   | 'family_play'
   | 'the_long_sit'
-  | 'under_stars';
+  | 'under_stars'
+  | 'coastal_discovery'
+  | 'urban_retreat';
 
 export type PolicyVerificationStatus = 'provisional' | 'certified' | 'in_review';
 
@@ -564,6 +566,212 @@ export const CANONICAL_FLAGSHIP_MOMENTS: FlagshipMomentDefinition[] = [
       'أغطية صوفية دافئة مخصصة لأمسيات الشتاء والنسيم البارد',
     ],
   },
+  {
+    id: 'coastal_discovery',
+    legacyKey: 'coastal_discovery',
+    sequence: '07',
+    title: 'Coastal Discovery',
+    titleAr: 'اكتشاف ساحلي',
+    hook: 'Direct secluded shoreline trails, untouched marine shallows, and sea glass horizons.',
+    hookAr: 'مسارات شاطئية مباشرة، مياه بحرية نقية وبكر، وأفق بحري ممتد.',
+    guestPromise: 'Wander where the tide meets untouched shores.',
+    guestPromiseAr: 'استكشف أسرار الساحل حيث تلتقي المياه بالشواطئ البكر.',
+    editorialDescription:
+      'An unhurried exploration along secluded shoreline cliffs and pristine marine shallows. Salty ocean mist, private walk-in sea access, panoramic coastal lookouts, and the restorative silence of natural waves without motorized watercraft intrusions.',
+    editorialDescriptionAr:
+      'استكشاف متأنٍ على طول جروف الشاطئ المنعزلة ومياه البحر النقية. رذاذ البحر المالح، وصول خاص ومباشر للشاطئ، إطلالات بانورامية مفتوحة، والهدوء التام لأمواج البحر الطبيعية دون أي ضوضاء محركات بحرية.',
+    image: '/moments/07-coastal-discovery.jpg',
+    imageAlt: 'Pristine coastal discovery shoreline with turquoise waters and secluded natural cliffs',
+    imageAltAr: 'شاطئ بكر منعزل بمياه فيروزية صافية وجروف صخرية طبيعية هادئة',
+    imagePosition: 'center 50%',
+    evidenceCriteria: [
+      {
+        title: 'Secluded Shoreline Proximity & Private Beach Corridor',
+        titleAr: 'قرب الشاطئ المنعزل وممر وصول خاص ومباشر',
+        description: 'Direct pedestrian access to uncrowded coastal sand or natural tidal coves within 180 seconds.',
+        descriptionAr: 'وصول مشاة مباشر وغير مزدحم إلى شاطئ رملي أو خليج بحري طبيعي خلال أقل من ٣ دقائق.',
+        protocol: {
+          protocolId: 'BPS-PROT-COAST-07',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'certified',
+          instrumentMethod: 'GPS-tracked physical egress timing & shoreline accessibility audit',
+          instrumentMethodAr: 'توقيت مسار المشي الفعلي بنظام GPS وتوثيق سهولة الوصول للشاطئ',
+          measuredParameter: 'Door-to-shoreline walking time in seconds',
+          measuredParameterAr: 'زمن المشي من عتبة المنزل إلى الشاطئ بالثواني',
+          targetThreshold: 'Walk time <= 180 seconds via private or semi-private uninterrupted path',
+          toleranceMargin: '+-15 seconds',
+          provenanceRequirement: 'Timestamped continuous video trace from home threshold to waterline',
+          provenanceRequirementAr: 'فيديو متواصل ومؤرخ من عتبة المنزل حتى ملامسة مياه البحر',
+        },
+      },
+      {
+        title: 'Unobstructed Marine Horizon & Seascape Purity',
+        titleAr: 'أفق بحري مفتوح ونقاء المشهد الطبيعي',
+        description: 'Minimum 150-degree unobstructed coastal panorama free of industrial cranes or commercial billboards.',
+        descriptionAr: 'بانوراما بحرية لا تقل عن ١٥٠ درجة خالية تماماً من الرافعات الصناعية أو اللوحات التجارية.',
+        protocol: {
+          protocolId: 'BPS-PROT-VISTA-07',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'certified',
+          instrumentMethod: 'Optical compass 360-degree surveyor photography and line-of-sight analysis',
+          instrumentMethodAr: 'تصوير بانورامي ببوصلة بصرية وتحليل خط الأفق البصري',
+          measuredParameter: 'Unobstructed nautical arc in degrees',
+          measuredParameterAr: 'زاوية الأفق البحري المفتوح بالدرجات',
+          targetThreshold: '>= 150 degrees unbroken marine view',
+          toleranceMargin: '+-5 degrees',
+          provenanceRequirement: 'Calibrated wide-angle photo with compass overlay and horizon timestamp',
+          provenanceRequirementAr: 'صورة عريضة الزاوية مع شبكة البوصلة وتوثيق خط الأفق',
+        },
+      },
+      {
+        title: 'Natural Shoreline Acoustics & Low Motorized Disturbance',
+        titleAr: 'هدوء صوتي طبيعي وخلو تام من المحركات البحرية المزعجة',
+        description: 'Ambient sound dominated purely by natural wave action and sea breeze (<48 dBA LAeq).',
+        descriptionAr: 'بيئة صوتية تسودها حركة الأمواج الطبيعية ونسيم البحر فقط (أقل من ٤٨ ديسيبل).',
+        protocol: {
+          protocolId: 'BPS-PROT-ACOUST-07',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'provisional',
+          instrumentMethod: 'Class 1 sound level meter (IEC 61672-1) 15-minute coastal continuous logging',
+          instrumentMethodAr: 'قياس جهاز ديسيبل معتمد من الفئة الأولى لمدة ١٥ دقيقة متواصلة على الشاطئ',
+          measuredParameter: 'A-weighted equivalent continuous sound level (LAeq, 15m)',
+          measuredParameterAr: 'مستوى الصوت المستمر المكافئ (LAeq)',
+          targetThreshold: 'LAeq <= 48 dBA with zero jet-ski acoustic spikes > 52 dBA',
+          toleranceMargin: '+-1.5 dBA',
+          provenanceRequirement: 'Digital audio frequency log & calibrated sound level meter certificate',
+          provenanceRequirementAr: 'سجل الترددات الصوتية الرقمي وشهادة معايرة جهاز قياس الصوت',
+        },
+      },
+    ],
+    disqualifiers: [
+      'Industrial port view, cargo shipping terminal, or concrete sea wall blocking natural sand',
+      'Continuous commercial jet ski or motorized boat traffic creating sound levels > 52 dBA',
+      'High-density commercial beach concession with plastic loungers and loud public address audio',
+    ],
+    disqualifiersAr: [
+      'إطلالة على ميناء صناعي أو رصيف شحن بحري أو حواجز خرسانية تحجب الشاطئ الطبيعي',
+      'حركة دراجات مائية (جيت سكي) أو قوارب بمحركات تسبب ضوضاء تتجاوز ٥٢ ديسيبل',
+      'شاطئ تجاري مزدحم بمكبرات صوت أو كراسي بلاستيكية متراصة بشكل عشوائي',
+    ],
+    photographyDirectives: [
+      'Capture natural wave patterns meeting undisturbed coastal geology or sand',
+      'Frame early morning or late afternoon golden reflections across the tidal shallows',
+      'Emphasize negative space and the immense horizon rather than crowded beach gear',
+    ],
+    minimumResidenceQualifications: [
+      'Direct private coastal footpath or immediate boardwalk egress to quiet shoreline',
+      'Outdoor warm-water foot rinse station before entering residence',
+      'Provided coastal discovery kit (brass marine binoculars, tide table, waterproof tote, shoreline throw)',
+    ],
+    minimumResidenceQualificationsAr: [
+      'ممر مشاة خاص ومباشر إلى الشاطئ الهادئ دون الحاجة لركوب سيارة',
+      'دش شاطئي أو نقطة شطف بالماء الدافئ عند مدخل المنزل',
+      'حقيبة استكشاف شاطئية مجهزة (دربيل بحري نحاسي، جدول المد والجزر، بطانية شاطئ قطنية)',
+    ],
+  },
+  {
+    id: 'urban_retreat',
+    legacyKey: 'urban_retreat',
+    sequence: '08',
+    title: 'Urban Retreat',
+    titleAr: 'ملاذ حضري',
+    hook: 'Architectural serenity, secluded courtyard gardens, and acoustic calm amidst the city.',
+    hookAr: 'سكينة معمارية، أفنية داخلية مظللة، وعزل صوتي فائق في قلب المدينة.',
+    guestPromise: 'A secluded sanctuary elevated above the city rhythm.',
+    guestPromiseAr: 'واحة منعزلة ومرتفعة فوق وتيرة المدينة وصخبها.',
+    editorialDescription:
+      'An architectural oasis nestled in the historic or cultural quarter. Soaring ceilings, secluded courtyard gardens, curated library walls, double-glazed acoustic tranquility, artisanal coffee roasts, and dappled courtyard shade while the city hums gently beyond thick stone walls.',
+    editorialDescriptionAr:
+      'واحة معمارية داخل الأحياء التاريخية أو الثقافية الراقية. أسقف عالية، أفنية داخلية مظللة، مكتبات منتقاة بعناية، عزل صوتي متقن، قهوة مختصة، وسكينة تامة خلف جدران حجرية سميكة تفصلك عن وتيرة المدينة.',
+    image: '/moments/08-urban-retreat.jpg',
+    imageAlt: 'Tranquil architectural urban courtyard with stone fountain, shaded pergolas, and lush greenery',
+    imageAltAr: 'فناء معماري حضري هادئ مع نافورة حجرية وعرائش مظللة وخضرة وارفة',
+    imagePosition: 'center 50%',
+    evidenceCriteria: [
+      {
+        title: 'Acoustic Decibel Isolation & City Buffer',
+        titleAr: 'عزل صوتي فائق وحاجز هادئ عن صخب المدينة',
+        description: 'Measured internal living and courtyard sound levels below 38 dBA despite urban density.',
+        descriptionAr: 'مستوى ضوضاء داخلي وفي الفناء أقل من ٣٨ ديسيبل رغم الحيوية الحضرية للمنطقة.',
+        protocol: {
+          protocolId: 'BPS-PROT-ACOUST-08',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'certified',
+          instrumentMethod: 'Class 1 sound level meter (IEC 61672-1) peak traffic 20-minute indoor recording',
+          instrumentMethodAr: 'قياس جهاز ديسيبل معتمد من الفئة الأولى أثناء ساعات الذروة الحضرية لمدة ٢٠ دقيقة',
+          measuredParameter: 'A-weighted equivalent continuous indoor sound level (LAeq, indoor)',
+          measuredParameterAr: 'مستوى الصوت الداخلي المستمر المكافئ (LAeq)',
+          targetThreshold: 'Indoor LAeq <= 38 dBA with windows closed (or courtyard <= 45 dBA)',
+          toleranceMargin: '+-1.5 dBA',
+          provenanceRequirement: 'Continuous meter time-series CSV log with GPS & address stamp',
+          provenanceRequirementAr: 'سجل زمني رقمي متواصل لجهاز القياس مع الإحداثيات والعنوان',
+        },
+      },
+      {
+        title: 'Private Enclosed Courtyard or Sky Atrium',
+        titleAr: 'فناء داخلي خاص أو حديقة سماوية مغلقة',
+        description: 'Dedicated private outdoor or semi-outdoor green sanctuary of at least 15 sqm with living vegetative canopy.',
+        descriptionAr: 'مساحة خضراء خاصة ومحمية لا تقل عن ١٥ م² مع أشجار أو نباتات حية توفر ظلاً طبيعياً.',
+        protocol: {
+          protocolId: 'BPS-PROT-GREEN-08',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'certified',
+          instrumentMethod: 'Architectural floor plan verification & canopy area laser measurement',
+          instrumentMethodAr: 'مطابقة المخطط المعماري وقياس المساحة المظللة بجهاز الليزر',
+          measuredParameter: 'Private courtyard vegetative usable area in square meters',
+          measuredParameterAr: 'المساحة النباتية المفيدة للفناء الداخلي بالمتر المربع',
+          targetThreshold: '>= 15.0 sqm dedicated private garden/patio area with living greenery',
+          toleranceMargin: '+-0.5 sqm',
+          provenanceRequirement: 'Laser meter distance display photos and botanical checklist audit',
+          provenanceRequirementAr: 'صور قياس جهاز الليزر وقائمة التوثيق النباتي للفناء',
+        },
+      },
+      {
+        title: 'Architectural Provenance & Curated Library Sanctuary',
+        titleAr: 'أصالة معمارية ومكتبة ثقافية منتقاة',
+        description: 'Authentic heritage masonry or celebrated contemporary architectural residence with quiet study/library.',
+        descriptionAr: 'عمارة تراثية أصيلة أو تصميم معماري معاصر مميز مع ركن مطالعة ومكتبة أدبية غنية.',
+        protocol: {
+          protocolId: 'BPS-PROT-ARCH-08',
+          policyVersion: 'BPS-MOM-2026.1',
+          verificationStatus: 'provisional',
+          instrumentMethod: 'BPS architectural heritage appraisal & interior design audit',
+          instrumentMethodAr: 'تقييم معايير الجودة المعمارية والتصميم الداخلي المعتمد من BPS',
+          measuredParameter: 'Ceiling clearance, acoustic glazing rating, and library volume count',
+          measuredParameterAr: 'ارتفاع الأسقف، درجة العزل المعماري للنوافذ، وعدد الكتب المنتقاة',
+          targetThreshold: 'Ceiling >= 3.2m, certified double-glazed facade, library >= 30 curated literary volumes',
+          toleranceMargin: 'Strict minimum thresholds',
+          provenanceRequirement: 'Photographic catalog of masonry details, library titles, and glazing cross-sections',
+          provenanceRequirementAr: 'كتالوج صور للتفاصيل المعمارية وعناوين المكتبة وقطاعات الزجاج العازل',
+        },
+      },
+    ],
+    disqualifiers: [
+      'Traffic horns or street sirens clearly audible inside bedroom > 42 dBA',
+      'Shared commercial building lobby with heavy generic foot traffic and no private residence foyer',
+      'Absence of any private outdoor/patio space or inability to open to fresh air in tranquility',
+    ],
+    disqualifiersAr: [
+      'أبواق السيارات أو صفارات الإنذار مسموعة بوضوح داخل غرف النوم بمستوى أعلى من ٤٢ ديسيبل',
+      'مدخل تجاري مشترك مزدحم دون مدخل خاص أو بهو سكني مستقل ومحمي',
+      'انعدام أي مساحة فناء خاصة أو شرفة هادئة تتيح استنشاق الهواء العليل بسكينة',
+    ],
+    photographyDirectives: [
+      'Focus on the architectural play of light through courtyard arches and leafy pergola canopies',
+      'Capture intimate quiet corners: open books, artisanal ceramic cups on stone tables, reading lamps',
+      'Contrast the historic/architectural stillness with the soft silhouette of the surrounding city',
+    ],
+    minimumResidenceQualifications: [
+      'Double or triple-glazed acoustic architectural windows throughout all living spaces',
+      'Private internal courtyard, walled patio, or landscaped private rooftop atrium',
+      'Dedicated pour-over/espresso bar with artisanal roasted beans and curated local literary collection',
+    ],
+    minimumResidenceQualificationsAr: [
+      'نوافذ زجاجية مزدوجة أو ثلاثية عازلة للصوت في جميع المساحات وغرف النوم',
+      'فناء داخلي خاص أو حديقة علوية مورقة محاطة بأسوار عازلة للرؤية',
+      'ركن قهوة مختصة مجهز بمعدات التقطير وحبوب قهوة طازجة مع مكتبة أدبية محلية منتقاة',
+    ],
+  },
 ];
 
 /**
@@ -577,10 +785,12 @@ export function resolveCanonicalMoment(keyOrSlug: string): FlagshipMomentDefinit
   // Fallbacks for related keys
   if (normalized.includes('morning') || normalized.includes('dawn')) return CANONICAL_FLAGSHIP_MOMENTS[0];
   if (normalized.includes('breakfast') || normalized.includes('table')) return CANONICAL_FLAGSHIP_MOMENTS[1];
-  if (normalized.includes('barefoot') || normalized.includes('afternoon') || normalized.includes('swim')) return CANONICAL_FLAGSHIP_MOMENTS[2];
-  if (normalized.includes('play') || normalized.includes('family')) return CANONICAL_FLAGSHIP_MOMENTS[3];
-  if (normalized.includes('sit') || normalized.includes('dinner') || normalized.includes('hearth')) return CANONICAL_FLAGSHIP_MOMENTS[4];
+  if (normalized.includes('barefoot') || normalized.includes('afternoon') || normalized.includes('drift')) return CANONICAL_FLAGSHIP_MOMENTS[2];
+  if (normalized.includes('play') || normalized.includes('family') || normalized.includes('swim')) return CANONICAL_FLAGSHIP_MOMENTS[3];
+  if (normalized.includes('sit') || normalized.includes('dinner') || normalized.includes('hearth') || normalized.includes('long_sit')) return CANONICAL_FLAGSHIP_MOMENTS[4];
   if (normalized.includes('star') || normalized.includes('night') || normalized.includes('fire')) return CANONICAL_FLAGSHIP_MOMENTS[5];
+  if (normalized.includes('coast') || normalized.includes('discovery') || normalized.includes('beach') || normalized.includes('cove')) return CANONICAL_FLAGSHIP_MOMENTS[6];
+  if (normalized.includes('urban') || normalized.includes('retreat') || normalized.includes('courtyard') || normalized.includes('city')) return CANONICAL_FLAGSHIP_MOMENTS[7];
 
   return CANONICAL_FLAGSHIP_MOMENTS[0];
 }

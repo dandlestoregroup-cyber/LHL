@@ -24,7 +24,7 @@ const assert = (condition, message) => {
   passed += 1;
 };
 
-assert(MOMENT_KEYS.length === 6 && new Set(MOMENT_KEYS).size === 6, 'six exact canonical Moments are locked');
+assert(MOMENT_KEYS.length === 8 && new Set(MOMENT_KEYS).size === 8, 'eight canonical Moments are locked');
 assert(TRUST_GATE_KEYS.length === 6 && new Set(TRUST_GATE_KEYS).size === 6, 'six exact TRUST gates are locked');
 assert(SHIELD_GATE_KEYS.length === 6 && new Set(SHIELD_GATE_KEYS).size === 6, 'six exact SHIELD gates are locked');
 assert(SUPPLY_STAGES.join('|') === 'sourced|owner_engaged|assessment_scheduled|decision_pending|activation_ready|live|paused|declined', 'supply stages are locked');

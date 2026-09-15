@@ -40,6 +40,8 @@ const momentCopy: Record<MomentKey, { title: string; titleAr: string; summary: s
   night_swim: { title: 'Night Swim', titleAr: 'السباحة الليلية', summary: 'Safe evening water access with lighting and supervision rules verified.', summaryAr: 'دخول آمن للمياه مساءً بعد توثيق الإضاءة وقواعد الإشراف.' },
   fire_conversation: { title: 'Fire Conversation', titleAr: 'حوار حول النار', summary: 'A protected outdoor fire setting verified for safe evening use.', summaryAr: 'جلسة نار خارجية محمية وموثقة للاستخدام المسائي الآمن.' },
   silent_reading: { title: 'Silent Reading', titleAr: 'القراءة الصامتة', summary: 'A dedicated reading corner with measured acoustic calm.', summaryAr: 'ركن قراءة مخصص مع هدوء صوتي مقاس.' },
+  coastal_discovery: { title: 'Coastal Discovery', titleAr: 'اكتشاف ساحلي', summary: 'Direct secluded shoreline access and panoramic coastal horizon verified by independent site audit.', summaryAr: 'وصول مباشر لشاطئ منعزل وأفق بحري مفتوح موثق بالمعاينة المستقلة.' },
+  urban_retreat: { title: 'Urban Retreat', titleAr: 'ملاذ حضري', summary: 'Architectural serenity and acoustic decibel buffer (<38 dBA) inside a private courtyard setting.', summaryAr: 'سكينة معمارية وعزل صوتي فائق في فناء خاص وهادئ بعيداً عن صخب المدينة.' },
 };
 
 const provenMoment = (propertyId: string, key: MomentKey, date: string) => ({
@@ -80,33 +82,33 @@ export const DEMO_PROPERTIES: Property[] = [
     summary: 'Pool-view family chalet shaped around calm mornings, easy arrivals, and community-approved stays.', summaryAr: 'شاليه عائلي بإطلالة على حمام السباحة، مصمم لصباح هادئ ووصول سهل وإقامات معتمدة من إدارة الكمبوند.',
     ownerPartnerId: 'partner-owner-mariam', operatorPartnerId: 'partner-operator-lina', assessorPartnerId: 'partner-assessor-dina', communityAuthorityPartnerId: 'partner-community-azha',
     communityApprovalRequired: true, calendarAuthority: 'little_hut', nightlyFloorEgp: 6000, payoutReady: true, activationChecklistComplete: true, sealIssued: true,
-    provenMoments: [provenMoment('azure-haven', 'slow_morning', '2026-02-12'), provenMoment('azure-haven', 'long_table', '2026-02-12')],
+    provenMoments: [provenMoment('azure-haven', 'slow_morning', '2026-02-12'), provenMoment('azure-haven', 'long_table', '2026-02-12'), provenMoment('azure-haven', 'coastal_discovery', '2026-02-12')],
   }),
   property('property-seaward-library', 'live', {
     slug: 'seaward-library', name: 'The Seaward Library', nameAr: 'مكتبة البحر', location: 'Ain Sokhna', locationAr: 'العين السخنة',
     summary: 'A sea-facing reading home where quiet, morning light, and the reading corner are independently proven.', summaryAr: 'بيت للقراءة مواجه للبحر، موثق فيه الهدوء وضوء الصباح وركن القراءة بشكل مستقل.',
     ownerPartnerId: 'partner-owner-mariam', operatorPartnerId: 'partner-operator-kareem', assessorPartnerId: 'partner-assessor-dina', calendarAuthority: 'little_hut', bookingMode: 'instant', nightlyFloorEgp: 5200, payoutReady: true, activationChecklistComplete: true, sealIssued: true, maxGuests: 4, bedroomCount: 2,
     heroImage: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=84&w=1600',
-    provenMoments: [provenMoment('seaward-library', 'slow_morning', '2026-01-18'), provenMoment('seaward-library', 'silent_reading', '2026-01-18')],
+    provenMoments: [provenMoment('seaward-library', 'slow_morning', '2026-01-18'), provenMoment('seaward-library', 'silent_reading', '2026-01-18'), provenMoment('seaward-library', 'coastal_discovery', '2026-01-18')],
   }),
   property('property-casa-bianca', 'live', {
     slug: 'casa-bianca', name: 'Casa Bianca', nameAr: 'كازا بيانكا', location: 'Alexandria', locationAr: 'الإسكندرية',
     summary: 'A restored courtyard home verified for long-table gatherings and slow shaded afternoons.', summaryAr: 'بيت بفناء مُرمم وموثق للمائدة الممتدة وهدوء الظهيرة في الظل.',
     ownerPartnerId: 'partner-owner-nadia', scoutPartnerId: 'partner-scout-omar', operatorPartnerId: 'partner-operator-lina', assessorPartnerId: 'partner-assessor-hassan', calendarAuthority: 'little_hut', nightlyFloorEgp: 4800, payoutReady: true, activationChecklistComplete: true, sealIssued: true,
     heroImage: 'https://images.unsplash.com/photo-1512918766671-ad6568148a1b?auto=format&fit=crop&q=84&w=1600',
-    provenMoments: [provenMoment('casa-bianca', 'long_table', '2026-03-05'), provenMoment('casa-bianca', 'afternoon_drift', '2026-03-05')],
+    provenMoments: [provenMoment('casa-bianca', 'long_table', '2026-03-05'), provenMoment('casa-bianca', 'afternoon_drift', '2026-03-05'), provenMoment('casa-bianca', 'urban_retreat', '2026-03-05')],
   }),
   property('property-dune-house', 'activation_ready', {
     name: 'Dune House', nameAr: 'بيت الكثبان', location: 'Ras El Hekma', locationAr: 'رأس الحكمة', summary: 'Owner-approved home completing calendar and arrival controls.', summaryAr: 'بيت وافق عليه المالك ويستكمل ضوابط التقويم والوصول.',
     ownerPartnerId: 'partner-owner-youssef', scoutPartnerId: 'partner-scout-omar', operatorPartnerId: 'partner-operator-kareem', assessorPartnerId: 'partner-assessor-hassan', calendarAuthority: 'external', nightlyFloorEgp: 9000, payoutReady: true,
     heroImage: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&q=84&w=1600',
-    provenMoments: [provenMoment('dune-house', 'slow_morning', '2026-08-17'), provenMoment('dune-house', 'fire_conversation', '2026-08-17')],
+    provenMoments: [provenMoment('dune-house', 'slow_morning', '2026-08-17'), provenMoment('dune-house', 'fire_conversation', '2026-08-17'), provenMoment('dune-house', 'coastal_discovery', '2026-08-17')],
   }),
   property('property-lagoon-pavilion', 'decision_pending', {
     name: 'Lagoon Pavilion', nameAr: 'جناح اللاجون', location: 'El Gouna', locationAr: 'الجونة', summary: 'Assessment passed; owner commercial decision is now required.', summaryAr: 'اجتاز التقييم وينتظر الآن القرار التجاري للمالك.',
     ownerPartnerId: 'partner-owner-youssef', operatorPartnerId: 'partner-operator-kareem', assessorPartnerId: 'partner-assessor-dina', calendarAuthority: 'external',
-    heroImage: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&q=84&w=1600',
-    provenMoments: [provenMoment('lagoon-pavilion', 'night_swim', '2026-08-26'), provenMoment('lagoon-pavilion', 'afternoon_drift', '2026-08-26')],
+    heroImage: 'https://images.unsplash.com/photo-160058515526-990dced4db0d?auto=format&fit=crop&q=84&w=1600',
+    provenMoments: [provenMoment('lagoon-pavilion', 'night_swim', '2026-08-26'), provenMoment('lagoon-pavilion', 'afternoon_drift', '2026-08-26'), provenMoment('lagoon-pavilion', 'urban_retreat', '2026-08-26')],
   }),
   property('property-olive-courtyard', 'assessment_scheduled', {
     name: 'Olive Courtyard', nameAr: 'فناء الزيتون', location: 'North Coast', locationAr: 'الساحل الشمالي', summary: 'Owner consent captured; independent visit booked.', summaryAr: 'تم توثيق موافقة المالك وحجز الزيارة المستقلة.',
@@ -155,11 +157,11 @@ const assessment = (id: string, propertyId: string, assessorPartnerId: string, r
 });
 
 export const DEMO_ASSESSMENTS: Assessment[] = [
-  assessment('assessment-azure-haven', 'property-azure-haven', 'partner-assessor-dina', 'passed', ['slow_morning', 'long_table']),
-  assessment('assessment-seaward', 'property-seaward-library', 'partner-assessor-dina', 'passed', ['slow_morning', 'silent_reading']),
-  assessment('assessment-casa', 'property-casa-bianca', 'partner-assessor-hassan', 'passed', ['long_table', 'afternoon_drift']),
-  assessment('assessment-dune', 'property-dune-house', 'partner-assessor-hassan', 'passed', ['slow_morning', 'fire_conversation']),
-  assessment('assessment-lagoon', 'property-lagoon-pavilion', 'partner-assessor-dina', 'passed', ['night_swim', 'afternoon_drift']),
+  assessment('assessment-azure-haven', 'property-azure-haven', 'partner-assessor-dina', 'passed', ['slow_morning', 'long_table', 'coastal_discovery']),
+  assessment('assessment-seaward', 'property-seaward-library', 'partner-assessor-dina', 'passed', ['slow_morning', 'silent_reading', 'coastal_discovery']),
+  assessment('assessment-casa', 'property-casa-bianca', 'partner-assessor-hassan', 'passed', ['long_table', 'afternoon_drift', 'urban_retreat']),
+  assessment('assessment-dune', 'property-dune-house', 'partner-assessor-hassan', 'passed', ['slow_morning', 'fire_conversation', 'coastal_discovery']),
+  assessment('assessment-lagoon', 'property-lagoon-pavilion', 'partner-assessor-dina', 'passed', ['night_swim', 'afternoon_drift', 'urban_retreat']),
   assessment('assessment-olive', 'property-olive-courtyard', 'partner-assessor-hassan', 'scheduled', [], 'pending'),
   assessment('assessment-palm', 'property-palm-pavilion', 'partner-assessor-dina', 'conditions', [], 'failed'),
 ];

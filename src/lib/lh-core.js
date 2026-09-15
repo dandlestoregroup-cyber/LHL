@@ -7,6 +7,8 @@ export const MOMENTS = Object.freeze({
   NIGHT_SWIM: 'night_swim',
   FIRE_CONVERSATION: 'fire_conversation',
   SILENT_READING: 'silent_reading',
+  COASTAL_DISCOVERY: 'coastal_discovery',
+  URBAN_RETREAT: 'urban_retreat',
 });
 
 export const MOMENT_KEYS = Object.freeze(Object.values(MOMENTS));

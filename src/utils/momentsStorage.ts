@@ -71,6 +71,16 @@ const MOMENT_CORRELATIONS: Record<string, string[]> = {
   '06': ['card-06', '06', 'silent_reading', 'under-stars'],
   'silent_reading': ['card-06', '06', 'silent_reading', 'under-stars'],
   'under-stars': ['card-06', '06', 'silent_reading', 'under-stars'],
+
+  'card-07': ['card-07', '07', 'coastal_discovery', 'coastal-discovery'],
+  '07': ['card-07', '07', 'coastal_discovery', 'coastal-discovery'],
+  'coastal_discovery': ['card-07', '07', 'coastal_discovery', 'coastal-discovery'],
+  'coastal-discovery': ['card-07', '07', 'coastal_discovery', 'coastal-discovery'],
+
+  'card-08': ['card-08', '08', 'urban_retreat', 'urban-retreat'],
+  '08': ['card-08', '08', 'urban_retreat', 'urban-retreat'],
+  'urban_retreat': ['card-08', '08', 'urban_retreat', 'urban-retreat'],
+  'urban-retreat': ['card-08', '08', 'urban_retreat', 'urban-retreat'],
 };
 
 /**

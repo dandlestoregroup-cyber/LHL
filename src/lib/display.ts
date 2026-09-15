@@ -47,6 +47,8 @@ export const momentLabels: Record<MomentKey, { en: string; ar: string }> = {
   night_swim: { en: 'Family Play', ar: 'مرح عائلي' },
   fire_conversation: { en: 'The Long Sit', ar: 'الجلسة الطويلة' },
   silent_reading: { en: 'Under Stars', ar: 'تحت النجوم' },
+  coastal_discovery: { en: 'Coastal Discovery', ar: 'اكتشاف ساحلي' },
+  urban_retreat: { en: 'Urban Retreat', ar: 'ملاذ حضري' },
 };
 
 export const label = <T extends string>(map: Record<T, { en: string; ar: string }>, key: T, lang: Language) => map[key][lang];

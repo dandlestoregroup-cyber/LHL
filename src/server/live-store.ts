@@ -208,6 +208,13 @@ export async function createLiveEnquiry(input: Record<string, unknown>): Promise
     adults,
     children,
     requestedMoment,
+    notes: typeof input.notes === 'string' && input.notes.trim() ? input.notes.trim().slice(0, 500) : undefined,
+    mastermindAudit: typeof input.mastermindDecisionVersion === 'string' ? {
+      decisionVersion: String(input.mastermindDecisionVersion),
+      decision: (input.mastermindDecision as any) || 'recommend',
+      evaluatedAt: now,
+      quotedEstimateEgp: typeof input.quotedEstimateEgp === 'number' ? input.quotedEstimateEgp : undefined,
+    } : undefined,
     stage: 'received',
     source: 'direct',
     communityApproval: {

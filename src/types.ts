@@ -66,7 +66,9 @@ export type MomentKey =
   | 'afternoon_drift'
   | 'night_swim'
   | 'fire_conversation'
-  | 'silent_reading';
+  | 'silent_reading'
+  | 'coastal_discovery'
+  | 'urban_retreat';
 
 export type VisualMomentKey =
   | 'slow_morning'
@@ -74,7 +76,9 @@ export type VisualMomentKey =
   | 'golden_dinner'
   | 'quiet_reset'
   | 'sunset_swim'
-  | 'fireside_night';
+  | 'fireside_night'
+  | 'coastal_discovery'
+  | 'urban_retreat';
 
 export type CanonicalMomentId =
   | 'slow_morning'
@@ -86,7 +90,9 @@ export type CanonicalMomentId =
   | 'late_breakfast'
   | 'family_play'
   | 'the_long_sit'
-  | 'under_stars';
+  | 'under_stars'
+  | 'coastal_discovery'
+  | 'urban_retreat';
 
 export type MomentState = 'possible' | 'enabled' | 'ruled_out' | 'unknown';
 
@@ -482,12 +488,46 @@ export interface Enquiry {
     mode: 'request' | 'instant';
     reason: string;
   };
+  mastermindAudit?: {
+    decisionVersion: string;
+    decision: 'recommend' | 'require_human_review' | 'block';
+    evaluatedAt: string;
+    quotedEstimateEgp?: number;
+  };
   proofStay?: ProofStayRecord;
   readinessCheck?: ReadinessCheckRecord;
   isDemo?: boolean;
 }
 
 export type BookingRequest = Enquiry;
+
+export interface GuestbookModule {
+  id: string;
+  type: 'welcome' | 'essentials' | 'moments' | 'guide' | 'local' | 'rules' | 'contacts' | 'checkout' | 'upsells';
+  titleEn: string;
+  titleAr: string;
+  visible: boolean;
+  order: number;
+  config?: Record<string, any>;
+}
+
+export interface GuestbookLifestyleAsset {
+  id: string;
+  assetId: string; // references CROSS_GUIDE_BELIEVABLE_VISUALS
+  moduleTarget: string;
+  order: number;
+}
+
+export interface PropertyGuestbookConfig {
+  propertyId: string;
+  modules: GuestbookModule[];
+  customMoments?: PropertyMoment[];
+  lifestyleInjections: GuestbookLifestyleAsset[];
+  themeOverrides?: {
+    primaryColor?: string;
+    fontFamily?: string;
+  };
+}
 
 export interface OperatingDataset {
   mode: DataMode;
@@ -499,6 +539,7 @@ export interface OperatingDataset {
   assessments: Assessment[];
   ownerDecisions: OwnerDecision[];
   enquiries: Enquiry[];
+  guestbookConfigs?: PropertyGuestbookConfig[];
 }
 
 export interface ScoutCandidate {
@@ -530,3 +571,407 @@ export interface SecurityTestResult {
   actual: string;
   enforcedBy: 'Firestore Security Rules' | 'Authority Matrix Engine' | 'Domain Core Engine';
 }
+
+/**
+ * ============================================================================
+ * Little Hut Operations Layer (Modular Extension)
+ * Proving Ground: Azure Haven at AZHA Ain Sokhna
+ * ============================================================================
+ */
+
+export type AutomationTrigger =
+  | 'booking_confirmed'
+  | 'days_before_checkin_3'
+  | 'day_before_checkin'
+  | 'checkin_morning'
+  | 'checkout_morning'
+  | 'post_checkout'
+  | 'quiet_hours_warning';
+
+export type MessagingChannel = 'whatsapp' | 'sms' | 'email';
+
+export interface AutomationRule {
+  id: string;
+  propertyId: string; // or 'all'
+  name: string;
+  nameAr: string;
+  trigger: AutomationTrigger;
+  offsetHours: number; // e.g. -72 (3 days before), 0 (at event), +2 (after checkout)
+  channel: MessagingChannel;
+  active: boolean;
+  templateBodyEn: string;
+  templateBodyAr: string;
+  applicableMoments?: MomentKey[];
+  descriptionEn?: string;
+  descriptionAr?: string;
+}
+
+export interface ScheduledMessage {
+  id: string;
+  enquiryId: string;
+  propertyId: string;
+  trigger: AutomationTrigger;
+  scheduledFor: string;
+  sentAt?: string;
+  status: 'pending' | 'sent' | 'cancelled' | 'failed';
+  recipientName: string;
+  recipientPhoneMasked: string;
+  channel: MessagingChannel;
+  previewSubject: string;
+  previewSubjectAr?: string;
+  previewBody: string;
+  previewBodyAr?: string;
+}
+
+export interface TurnoverChecklistItem {
+  key: string;
+  label: string;
+  labelAr: string;
+  completed: boolean;
+  requiredForMoment?: string;
+  photoRequired: boolean;
+  notes?: string;
+}
+
+export interface TurnoverPhotoProof {
+  id: string;
+  url: string;
+  caption: string;
+  captionAr: string;
+  timestamp: string;
+  tag: 'linens' | 'slow_morning_tea' | 'bathroom_sanitized' | 'ac_calibrated' | 'lagoon_towels' | 'general';
+  verifiedBy?: string;
+}
+
+export interface TurnoverJob {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  cleanerPartnerId: string;
+  cleanerName: string;
+  cleanerPhone: string;
+  scheduledDate: string;
+  windowTime: string; // e.g. '11:00 AM – 03:00 PM'
+  status: 'scheduled' | 'in_progress' | 'ready_for_review' | 'completed' | 'flagged';
+  checklist: TurnoverChecklistItem[];
+  photos: TurnoverPhotoProof[];
+  notes?: string;
+  completedAt?: string;
+  approvedByOperatorId?: string;
+}
+
+export type CoHostActionCategory =
+  | 'late_checkout'
+  | 'gate_clearance'
+  | 'smartlock_issuance'
+  | 'guest_faq'
+  | 'turnover_dispatch'
+  | 'pricing_adjustment';
+
+export interface AiCoHostAction {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  category: CoHostActionCategory;
+  title: string;
+  titleAr: string;
+  reasoning: string;
+  reasoningAr: string;
+  confidenceScore: number; // 0-100
+  contextSource: string; // e.g. "Calendar gap: next arrival in 26h; Slow Morning moment unaffected"
+  status: 'pending_review' | 'approved' | 'dismissed';
+  suggestedActionLabel: string;
+  suggestedActionLabelAr: string;
+  suggestedPayload?: Record<string, any>;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface SmartLockDevice {
+  id: string;
+  propertyId: string;
+  lockName: string;
+  model: string;
+  batteryLevel: number;
+  onlineStatus: 'online' | 'mesh_active' | 'offline';
+  doorStatus: 'locked' | 'unlocked';
+  lastSyncedAt: string;
+  autoLockDelaySeconds: number;
+}
+
+export interface SmartLockAccessCode {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  role: 'guest' | 'cleaner' | 'maintenance' | 'operator';
+  label: string;
+  labelAr: string;
+  code: string;
+  startsAt: string;
+  endsAt: string;
+  status: 'active' | 'scheduled' | 'revoked' | 'expired';
+  usageCount: number;
+  lastUsedAt?: string;
+}
+
+export interface DynamicNightlyRate {
+  date: string; // YYYY-MM-DD
+  dayOfWeek: string;
+  baseFloorEgp: number; // strictly respected!
+  currentRateEgp: number;
+  recommendedRateEgp: number;
+  demandFactor: 'high_demand_weekend' | 'holiday_surge' | 'lagoon_weather_prime' | 'orphan_gap_fill' | 'baseline';
+  demandScore: number; // 1-100
+  reasoning: string;
+  reasoningAr: string;
+  status: 'applied' | 'pending' | 'guarded_floor';
+}
+
+export interface DynamicPricingConfig {
+  propertyId: string;
+  enabled: boolean;
+  rateFloorEgp: number; // Protected owner floor
+  rateCeilingEgp: number;
+  minStayNights: number;
+  weekendSurgePercent: number;
+  orphanGapDiscountPercent: number;
+  lastOptimizedAt: string;
+}
+
+export interface OperationsInboxMessage {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  category: 'guest_inquiry' | 'turnover_update' | 'smart_lock_alert' | 'cohost_approval' | 'maintenance' | 'damage_alert' | 'sensor_alert';
+  title: string;
+  titleAr: string;
+  subtitle: string;
+  subtitleAr: string;
+  timestamp: string;
+  urgent: boolean;
+  read: boolean;
+  senderName: string;
+  senderRole: 'guest' | 'cleaner' | 'system' | 'lock' | 'technician' | 'sensor';
+  actionTarget?: {
+    tab: 'rules' | 'turnovers' | 'cohost' | 'access' | 'pricing' | 'maintenance' | 'damage' | 'upsells' | 'audit' | 'addons' | 'journey';
+    targetId?: string;
+  };
+}
+
+// ==========================================
+// 1. Maintenance Tasks
+// ==========================================
+export type MaintenanceUrgency = 'routine' | 'urgent' | 'critical_blocker';
+export type MaintenanceStatus = 'reported' | 'scheduled' | 'in_progress' | 'resolved' | 'verified_by_operator';
+
+export interface MaintenanceTask {
+  id: string;
+  propertyId: string;
+  title: string;
+  titleAr: string;
+  description: string;
+  descriptionAr: string;
+  urgency: MaintenanceUrgency;
+  status: MaintenanceStatus;
+  reportedAt: string;
+  assignedTechnician: string;
+  technicianPhone: string;
+  estimatedCostEgp: number;
+  actualCostEgp?: number;
+  photoEvidenceBefore?: string;
+  photoEvidenceAfter?: string;
+  blocksBookings: boolean;
+  resolvedAt?: string;
+  verifiedBy?: string;
+  relatedMoment?: string; // e.g. 'Sunset Swim' (pool heater) or 'Quiet Reset' (AC whisper mode)
+}
+
+// ==========================================
+// 2. Damage & Incident Workflow
+// ==========================================
+export type DamageSeverity = 'minor' | 'moderate' | 'major_structural';
+export type DamageIncidentStatus = 'reported' | 'under_review' | 'deposit_deducted' | 'insurance_claimed' | 'resolved';
+
+export interface DamageIncident {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  guestName: string;
+  reportedAt: string;
+  severity: DamageSeverity;
+  itemDamaged: string;
+  itemDamagedAr: string;
+  description: string;
+  descriptionAr: string;
+  photoEvidence: string[];
+  repairCostEstimateEgp: number;
+  depositAmountHeldEgp: number;
+  deductionAmountEgp: number;
+  status: DamageIncidentStatus;
+  insuranceClaimNumber?: string;
+  resolvedAt?: string;
+  notes?: string;
+}
+
+// ==========================================
+// 3. Guest Journey & Digital Guidebook
+// ==========================================
+export type JourneyStageKey = 'booking_confirmed' | 'pre_arrival_id' | 'arrival_access' | 'in_stay_moments' | 'departure_review';
+
+export interface GuestJourneyMilestone {
+  stage: JourneyStageKey;
+  label: string;
+  labelAr: string;
+  status: 'completed' | 'in_progress' | 'upcoming';
+  scheduledDate: string;
+  summary: string;
+  summaryAr: string;
+  actionRequired?: string;
+  actionRequiredAr?: string;
+  actionLink?: string;
+}
+
+// ==========================================
+// 4. Approvals, Alerts & Audit Trail
+// ==========================================
+export type AuditEventType =
+  | 'price_override'
+  | 'rate_floor_enforced'
+  | 'late_checkout_approved'
+  | 'smart_lock_unlocked'
+  | 'smart_lock_pin_issued'
+  | 'turnover_photo_approved'
+  | 'cleaner_dispatched'
+  | 'damage_incident_logged'
+  | 'deposit_deducted'
+  | 'maintenance_scheduled'
+  | 'maintenance_task_closed'
+  | 'addon_adapter_toggled'
+  | 'sensor_noise_alert'
+  | 'guest_identity_verified';
+
+export interface AuditTrailEvent {
+  id: string;
+  timestamp: string;
+  eventType: AuditEventType;
+  actorName: string;
+  actorRole: 'operator' | 'owner' | 'cleaner' | 'system_mastermind' | 'guest' | 'addon_adapter';
+  propertyId: string;
+  description: string;
+  descriptionAr: string;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+}
+
+export interface OperationalAlert {
+  id: string;
+  propertyId: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  titleAr: string;
+  message: string;
+  messageAr: string;
+  timestamp: string;
+  acknowledged: boolean;
+  actionTarget?: string;
+}
+
+// ==========================================
+// 5. Reviews, Upsells & Concierge
+// ==========================================
+export interface UpsellItem {
+  id: string;
+  propertyId: string;
+  momentId?: string; // links directly to a Signature Moment
+  title: string;
+  titleAr: string;
+  tagline: string;
+  taglineAr: string;
+  priceEgp: number;
+  imageUrl: string;
+  category: 'culinary' | 'experience' | 'wellness' | 'convenience';
+  popular: boolean;
+  available: boolean;
+}
+
+export interface ConciergeRequest {
+  id: string;
+  propertyId: string;
+  enquiryId?: string;
+  guestName: string;
+  upsellItemId?: string;
+  requestType: 'culinary' | 'transport' | 'lagoon_activity' | 'late_checkout' | 'custom';
+  title: string;
+  titleAr: string;
+  notes: string;
+  priceEgp: number;
+  status: 'pending' | 'confirmed' | 'fulfilled' | 'declined';
+  requestedAt: string;
+  scheduledFor: string;
+}
+
+export interface VerifiedGuestReview {
+  id: string;
+  propertyId: string;
+  enquiryId: string;
+  guestName: string;
+  stayDate: string;
+  overallRating: number; // 1-5
+  momentRatings: {
+    momentId: string;
+    momentTitle: string;
+    rating: number; // 1-5
+  }[];
+  comment: string;
+  commentAr?: string;
+  verifiedStay: boolean;
+  operatorResponse?: string;
+  publishedAt: string;
+}
+
+// ==========================================
+// 6. Configurable Add-ons & Adapter Registry
+// ==========================================
+export type AddOnCapability =
+  | 'ota_pms_sync'
+  | 'dynamic_pricing_data'
+  | 'smart_locks'
+  | 'id_verification'
+  | 'damage_protection'
+  | 'property_sensors'
+  | 'payments'
+  | 'housekeeping';
+
+export type OtaPmsProvider = 'native_little_hut' | 'guesty' | 'hostaway';
+export type DynamicPricingProvider = 'native_little_hut' | 'pricelabs' | 'beyond';
+export type SmartLockProvider = 'native_little_hut' | 'operto' | 'nuki' | 'igloohome';
+export type IdVerificationProvider = 'native_little_hut' | 'chekin' | 'truvi';
+export type DamageProtectionProvider = 'native_little_hut' | 'truvi';
+export type PropertySensorProvider = 'native_little_hut' | 'minut';
+export type PaymentsProvider = 'native_little_hut' | 'paytabs' | 'paymob';
+export type HousekeepingProvider = 'native_little_hut' | 'turno' | 'doinn';
+
+export interface CapabilityAddOnSetting<TProvider extends string> {
+  capability: AddOnCapability;
+  provider: TProvider;
+  isNative: boolean; // true if running 100% native Little Hut
+  enabled: boolean;
+  syncStatus: 'synced' | 'pending' | 'error' | 'idle';
+  lastSyncedAt?: string;
+  externalAccountLabel?: string;
+  telemetryData?: Record<string, any>;
+  notes?: string;
+}
+
+export interface PropertyAddOnConfiguration {
+  propertyId: string;
+  otaPms: CapabilityAddOnSetting<OtaPmsProvider>;
+  dynamicPricing: CapabilityAddOnSetting<DynamicPricingProvider>;
+  smartLocks: CapabilityAddOnSetting<SmartLockProvider>;
+  idVerification: CapabilityAddOnSetting<IdVerificationProvider>;
+  damageProtection: CapabilityAddOnSetting<DamageProtectionProvider>;
+  propertySensors: CapabilityAddOnSetting<PropertySensorProvider>;
+  payments: CapabilityAddOnSetting<PaymentsProvider>;
+  housekeeping: CapabilityAddOnSetting<HousekeepingProvider>;
+}
+

@@ -10,52 +10,98 @@ interface GuestHomeViewProps {
   navigate: (path: string) => void;
 }
 
+const MOMENT_FILTER_OPTIONS: { id: string; labelEn: string; labelAr: string; icon: React.ElementType }[] = [
+  { id: 'all', labelEn: 'All Moments', labelAr: 'جميع اللحظات', icon: Sparkles },
+  { id: 'coastal_discovery', labelEn: 'Coastal Discovery', labelAr: 'اكتشاف ساحلي', icon: Compass },
+  { id: 'urban_retreat', labelEn: 'Urban Retreat', labelAr: 'ملاذ حضري', icon: Building2 },
+  { id: 'slow_morning', labelEn: 'Slow Morning', labelAr: 'صباح هادئ', icon: Coffee },
+  { id: 'long_table', labelEn: 'Long Table', labelAr: 'مائدة ممتدة', icon: Sun },
+  { id: 'afternoon_drift', labelEn: 'Afternoon Drift', labelAr: 'انسياب الظهيرة', icon: Waves },
+  { id: 'night_swim', labelEn: 'Night Swim', labelAr: 'سباحة ليلية', icon: Waves },
+  { id: 'fire_conversation', labelEn: 'Fire & Starlight', labelAr: 'حديث النار والنجوم', icon: Sparkles },
+  { id: 'silent_reading', labelEn: 'Silent Reading', labelAr: 'قراءة صامتة', icon: BookOpen },
+];
+
 export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
   const { lang, t, isRTL } = useAuth();
   const { mode, setMode, dataset: { properties } } = useOperating();
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedMoment, setSelectedMoment] = useState<string>('all');
 
   const seawardProp = properties.find(p => p.id === 'azha_aquila_standalone') || properties.find(p => p.id === 'seaward_library') || properties[0];
   const seawardFacts = seawardProp ? publicCardFacts(seawardProp) : null;
 
+  const hasMoment = (p: typeof properties[0], momentId: string) => {
+    if (momentId === 'all') return true;
+    const matchProven = p.provenMoments?.some(
+      m => m.key === momentId || m.key.toLowerCase().replace(/[-\s]/g, '_') === momentId
+    );
+    if (matchProven) return true;
+    if (Array.isArray(p.canonicalMoments)) {
+      return p.canonicalMoments.some(
+        m => (m.momentId === momentId || m.momentId?.toLowerCase().replace(/[-\s]/g, '_') === momentId) && m.state === 'enabled'
+      );
+    }
+    if (p.canonicalMoments && typeof p.canonicalMoments === 'object') {
+      return (p.canonicalMoments as Record<string, string>)[momentId] === 'enabled';
+    }
+    return false;
+  };
+
+  const getMomentCount = (momentId: string) => {
+    return properties.filter(p => {
+      const facts = publicCardFacts(p);
+      if (!facts.visible) return false;
+      return hasMoment(p, momentId);
+    }).length;
+  };
+
   const filteredProperties = properties.filter(p => {
     const facts = publicCardFacts(p);
     if (!facts.visible) return false;
-    if (selectedFilter === 'all') return true;
+
+    // Location Filter
     if (selectedFilter === 'azha') {
-      return (
+      const match = (
         p.id.toLowerCase().includes('azha') ||
         p.location.toLowerCase().includes('azha') ||
         p.name.toLowerCase().includes('azha')
       );
-    }
-    if (selectedFilter === 'sokhna_redsea') {
-      return (
+      if (!match) return false;
+    } else if (selectedFilter === 'sokhna_redsea') {
+      const match = (
         p.location.toLowerCase().includes('sokhna') ||
         p.location.toLowerCase().includes('red sea') ||
         p.location.toLowerCase().includes('gouna') ||
         p.location.toLowerCase().includes('marsa alam') ||
         p.location.toLowerCase().includes('soma')
       );
-    }
-    if (selectedFilter === 'north_coast') {
-      return (
+      if (!match) return false;
+    } else if (selectedFilter === 'north_coast') {
+      const match = (
         p.location.toLowerCase().includes('north coast') ||
         p.location.toLowerCase().includes('alexandria') ||
         p.location.toLowerCase().includes('ras el hekma') ||
         p.location.toLowerCase().includes('sidi heneish') ||
         p.location.toLowerCase().includes('almaza')
       );
-    }
-    if (selectedFilter === 'sinai_nile') {
-      return (
+      if (!match) return false;
+    } else if (selectedFilter === 'sinai_nile') {
+      const match = (
         p.location.toLowerCase().includes('sinai') ||
         p.location.toLowerCase().includes('dahab') ||
         p.location.toLowerCase().includes('aswan') ||
         p.location.toLowerCase().includes('cairo') ||
         p.location.toLowerCase().includes('sudr')
       );
+      if (!match) return false;
     }
+
+    // Moment Filter
+    if (selectedMoment !== 'all') {
+      if (!hasMoment(p, selectedMoment)) return false;
+    }
+
     return true;
   });
 
@@ -306,26 +352,118 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
 
         {/* Destination Filter Tabs */}
         {properties.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2.5 mb-12 pb-2">
-            {[
-              { id: 'all', labelEn: 'All Sanctuaries', labelAr: 'جميع الملاذات' },
-              { id: 'azha', labelEn: '✨ Azha (Ain Sokhna & North)', labelAr: '✨ أزها (السخنة والساحل)' },
-              { id: 'sokhna_redsea', labelEn: 'Ain Sokhna & Red Sea', labelAr: 'العين السخنة والبحر الأحمر' },
-              { id: 'north_coast', labelEn: 'North Coast & Alex', labelAr: 'الساحل الشمالي والإسكندرية' },
-              { id: 'sinai_nile', labelEn: 'Sinai & Nile Valley', labelAr: 'سيناء ووادي النيل' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedFilter(tab.id)}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all rounded-xs cursor-pointer border ${
-                  selectedFilter === tab.id
-                    ? 'bg-[#2A201C] text-[#FAF5EE] border-[#2A201C] shadow-xs'
-                    : 'bg-white text-[#5C4B40] border-[#EBDDD1] hover:text-[#2A201C] hover:border-[#B84E36]'
-                }`}
-              >
-                {lang === 'ar' ? tab.labelAr : tab.labelEn}
-              </button>
-            ))}
+          <div className="space-y-4 mb-10">
+            {/* 1. Location / Region Tabs */}
+            <div className="flex flex-wrap items-center gap-2 pb-1">
+              {[
+                { id: 'all', labelEn: 'All Regions', labelAr: 'جميع المناطق' },
+                { id: 'azha', labelEn: '✨ Azha (Ain Sokhna & North)', labelAr: '✨ أزها (السخنة والساحل)' },
+                { id: 'sokhna_redsea', labelEn: 'Ain Sokhna & Red Sea', labelAr: 'العين السخنة والبحر الأحمر' },
+                { id: 'north_coast', labelEn: 'North Coast & Alex', labelAr: 'الساحل الشمالي والإسكندرية' },
+                { id: 'sinai_nile', labelEn: 'Sinai & Nile Valley', labelAr: 'سيناء ووادي النيل' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedFilter(tab.id)}
+                  className={`px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all rounded-xs cursor-pointer border ${
+                    selectedFilter === tab.id
+                      ? 'bg-[#2A201C] text-[#FAF5EE] border-[#2A201C] shadow-xs'
+                      : 'bg-white text-[#5C4B40] border-[#EBDDD1] hover:text-[#2A201C] hover:border-[#B84E36]'
+                  }`}
+                >
+                  {lang === 'ar' ? tab.labelAr : tab.labelEn}
+                </button>
+              ))}
+            </div>
+
+            {/* 2. Signature Moment Filter Pills (Book the Moment, not the Property) */}
+            <div className="pt-2 border-t border-[#EBDDD1]/60">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#B84E36] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'تصفية بحسب اللحظة الموثقة (معايير BPS):' : 'Filter by Proven Signature Moment:'}</span>
+                </span>
+                {selectedMoment !== 'all' && (
+                  <button
+                    onClick={() => setSelectedMoment('all')}
+                    className="text-[11px] font-bold text-[#7E6C60] hover:text-[#B84E36] transition-colors cursor-pointer underline underline-offset-4"
+                  >
+                    {lang === 'ar' ? 'إعادة ضبط اللحظات' : 'Reset Moment Filter'}
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {MOMENT_FILTER_OPTIONS.map(option => {
+                  const Icon = option.icon;
+                  const isSelected = selectedMoment === option.id;
+                  const count = getMomentCount(option.id);
+
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setSelectedMoment(option.id)}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                        isSelected
+                          ? 'bg-[#B84E36] text-white border-[#B84E36] shadow-sm'
+                          : 'bg-white text-[#2A201C] border-[#EBDDD1] hover:border-[#B84E36] hover:text-[#B84E36]'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-[#B84E36]'}`} />
+                      <span>{lang === 'ar' ? option.labelAr : option.labelEn}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-[#FAF5EE] text-[#7E6C60]'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Active Moment Context Banner */}
+            {selectedMoment !== 'all' && (
+              <div className="p-4 bg-white border border-[#B84E36]/30 rounded-sm shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-full bg-[#FAF0EB] border border-[#B84E36]/20 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-5 h-5 text-[#B84E36]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#B84E36]">
+                        {lang === 'ar' ? 'اللحظة المحددة' : 'Active Moment Filter'}
+                      </span>
+                      <span className="px-2 py-0.5 bg-[#FAF0EB] text-[#B84E36] text-[10px] font-bold rounded-full">
+                        {filteredProperties.length} {lang === 'ar' ? 'عقار يثبت هذه اللحظة' : 'residences proven'}
+                      </span>
+                    </div>
+                    <h4 className="font-serif-editorial text-lg text-[#2A201C]">
+                      {lang === 'ar' 
+                        ? MOMENT_FILTER_OPTIONS.find(m => m.id === selectedMoment)?.labelAr 
+                        : MOMENT_FILTER_OPTIONS.find(m => m.id === selectedMoment)?.labelEn}
+                    </h4>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      const slug = selectedMoment.replace(/_/g, '-');
+                      navigate(`/moments/${slug}`);
+                    }}
+                    className="px-3.5 py-2 bg-[#FAF5EE] hover:bg-[#EBDDD1] text-[#2A201C] text-xs font-bold uppercase tracking-wider rounded-xs transition-colors cursor-pointer text-center flex-1 sm:flex-initial"
+                  >
+                    {lang === 'ar' ? 'معايير توثيق هذه اللحظة' : 'View Moment Protocol'}
+                  </button>
+                  <button
+                    onClick={() => setSelectedMoment('all')}
+                    className="px-3.5 py-2 bg-[#2A201C] hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors cursor-pointer text-center"
+                  >
+                    {lang === 'ar' ? 'إلغاء التصفية' : 'Show All Moments'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -406,32 +544,56 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
                         "{lang === 'ar' ? property.taglineAr : property.tagline}"
                       </p>
 
-                      {/* Canonical Moment states if available */}
-                      {property.canonicalMoments && (
+                      {/* Proven Signature Moments tags */}
+                      {((property.provenMoments && property.provenMoments.length > 0) || property.canonicalMoments) && (
                         <div className="pt-3 border-t border-[#FAF5EE] flex flex-wrap gap-1.5">
-                          {Array.isArray(property.canonicalMoments)
-                            ? property.canonicalMoments
-                                .filter(m => m.state === 'enabled')
-                                .slice(0, 3)
-                                .map(m => (
+                          {property.provenMoments && property.provenMoments.length > 0
+                            ? property.provenMoments.map(m => {
+                                const isMatch = selectedMoment !== 'all' && (m.key === selectedMoment || m.key.toLowerCase().replace(/[-\s]/g, '_') === selectedMoment);
+                                return (
                                   <span
-                                    key={m.momentId}
-                                    className="px-2 py-0.5 bg-[#FAF5EE] border border-[#EBDDD1] text-[10px] text-[#2A201C] rounded-xs capitalize font-semibold"
+                                    key={m.key}
+                                    className={`px-2 py-0.5 text-[10px] rounded-xs font-semibold transition-colors ${
+                                      isMatch
+                                        ? 'bg-[#B84E36] text-white border border-[#B84E36] shadow-xs font-bold'
+                                        : 'bg-[#FAF5EE] border border-[#EBDDD1] text-[#2A201C]'
+                                    }`}
                                   >
+                                    {isMatch && '★ '}
                                     {lang === 'ar' ? m.nameAr || m.name : m.name}
                                   </span>
-                                ))
-                            : Object.entries(property.canonicalMoments as Record<string, string>)
-                                .filter(([_, state]) => state === 'enabled')
-                                .slice(0, 3)
-                                .map(([mId]) => (
-                                  <span
-                                    key={mId}
-                                    className="px-2 py-0.5 bg-[#FAF5EE] border border-[#EBDDD1] text-[10px] text-[#2A201C] rounded-xs capitalize font-semibold"
-                                  >
-                                    {mId.replace('_', ' ')}
-                                  </span>
-                                ))}
+                                );
+                              })
+                            : Array.isArray(property.canonicalMoments)
+                                ? property.canonicalMoments
+                                    .filter(m => m.state === 'enabled')
+                                    .slice(0, 3)
+                                    .map(m => {
+                                      const isMatch = selectedMoment !== 'all' && m.momentId === selectedMoment;
+                                      return (
+                                        <span
+                                          key={m.momentId}
+                                          className={`px-2 py-0.5 text-[10px] rounded-xs font-semibold ${
+                                            isMatch
+                                              ? 'bg-[#B84E36] text-white border border-[#B84E36]'
+                                              : 'bg-[#FAF5EE] border border-[#EBDDD1] text-[#2A201C]'
+                                          }`}
+                                        >
+                                          {lang === 'ar' ? m.nameAr || m.name : m.name}
+                                        </span>
+                                      );
+                                    })
+                                : Object.entries(property.canonicalMoments as Record<string, string>)
+                                    .filter(([_, state]) => state === 'enabled')
+                                    .slice(0, 3)
+                                    .map(([mId]) => (
+                                      <span
+                                        key={mId}
+                                        className="px-2 py-0.5 bg-[#FAF5EE] border border-[#EBDDD1] text-[10px] text-[#2A201C] rounded-xs capitalize font-semibold"
+                                      >
+                                        {mId.replace('_', ' ')}
+                                      </span>
+                                    ))}
                         </div>
                       )}
                     </div>
@@ -451,6 +613,36 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
             })}
           </div>
         )}
+
+        {/* Digital Visual Guest Book Feature Callout */}
+        <div className="mt-14 p-6 md:p-8 bg-white border border-[#EBDDD1] rounded-sm shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-sm bg-[#FAF0EB] border border-[#B84E36]/30 flex items-center justify-center text-[#B84E36] shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#B84E36] font-bold block">
+                {lang === 'ar' ? 'رفيق الإقامة الرقمي الفوري' : 'Automated Digital Companion'}
+              </span>
+              <h3 className="font-serif-editorial text-2xl text-[#2A201C]">
+                {lang === 'ar' ? 'دليل الضيف الرقمي المخصص لكل مسكن وكمبوند' : 'Digital Visual Guest Book & Compound Guide'}
+              </h3>
+              <p className="text-xs text-[#5C4B40] max-w-2xl leading-relaxed">
+                {lang === 'ar'
+                  ? 'مهيأ تلقائياً لكل مسكن: تصاريح بوابات QR، أساور ومواعيد اللاجون الكريستالي، أرقام الصيدليات والتوصيل، إرشادات الأجهزة، ومشاهد بصرية صادقة تعكس روح الإقامة.'
+                  : 'Tailored per residence and compound: instant QR gate pass, Crystal Lagoon wristband rules, doorstep pharmacy delivery, living guides, and believable cross-guide photography.'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/guestbook')}
+            className="px-6 py-3 bg-[#2A201C] hover:bg-[#B84E36] text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors shrink-0 flex items-center gap-2 cursor-pointer shadow-xs"
+          >
+            <span>{lang === 'ar' ? 'فتح دليل الضيف' : 'Open Guest Book'}</span>
+            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </section>
 
       {/* 4. The 6 Canonical Moments Grid */}

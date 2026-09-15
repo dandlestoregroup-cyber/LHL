@@ -27,7 +27,7 @@ export const CanonicalMomentsGrid: React.FC<CanonicalMomentsGridProps> = ({
           {isRTL ? 'المعايير المعمارية' : 'The Experiential Standard'}
         </span>
         <h2 className="font-serif-editorial text-3xl md:text-5xl text-[#2A201C] mt-4 mb-4 leading-tight">
-          {isRTL ? '٦ لحظات ليتل هت' : '6 Canonical Little Hut Moments'}
+          {isRTL ? `${cards.length} لحظات ليتل هت الموثقة` : `${cards.length} Canonical Little Hut Moments`}
         </h2>
         <p className="text-sm text-[#5C4B40] font-medium leading-relaxed max-w-lg mx-auto">
           {isRTL 

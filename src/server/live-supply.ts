@@ -46,6 +46,8 @@ const momentLabels: Record<MomentKey, [string, string]> = {
   night_swim: ['Night Swim', 'السباحة الليلية'],
   fire_conversation: ['Fire Conversation', 'حوار حول النار'],
   silent_reading: ['Silent Reading', 'القراءة الصامتة'],
+  coastal_discovery: ['Coastal Discovery', 'اكتشاف ساحلي'],
+  urban_retreat: ['Urban Retreat', 'ملاذ حضري'],
 };
 
 const cleanString = (value: unknown, field: string, max = 180): string => {

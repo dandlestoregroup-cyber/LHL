@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
 import { UserRole } from '../types';
-import { Globe, Sparkles, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { Globe, Sparkles, Phone, Mail, ShieldCheck, BookOpen, Sliders } from 'lucide-react';
 
 interface NavbarProps {
   currentPath: string;
@@ -197,6 +197,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
           </button>
 
           <button
+            onClick={() => navigate('/guestbook')}
+            className={`transition-colors hover:text-[#B84E36] pb-1 border-b-2 cursor-pointer flex items-center gap-1.5 ${
+              currentPath.startsWith('/guestbook') ? 'border-[#B84E36] text-[#B84E36]' : 'border-transparent text-[#2A201C]'
+            }`}
+          >
+            <BookOpen className="w-3 h-3 text-[#B84E36]" />
+            <span>{lang === 'ar' ? 'دليل الضيف' : 'Guest Book'}</span>
+          </button>
+
+          <button
             onClick={() => navigate('/owner')}
             className={`transition-colors hover:text-[#B84E36] pb-1 border-b-2 cursor-pointer ${
               currentPath === '/owner' ? 'border-[#B84E36] text-[#B84E36]' : 'border-transparent text-[#2A201C]'
@@ -212,6 +222,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             }`}
           >
             {t.nav.operatorView}
+          </button>
+
+          <button
+            onClick={() => navigate('/operations')}
+            className={`inline-flex items-center gap-1 transition-colors hover:text-[#B84E36] pb-1 border-b-2 cursor-pointer font-bold ${
+              currentPath.startsWith('/operations') ? 'border-[#B84E36] text-[#B84E36]' : 'border-transparent text-[#2A201C]'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5 text-[#B84E36]" />
+            <span>{lang === 'ar' ? 'التشغيل الذكي' : 'Operations'}</span>
           </button>
 
           <button
@@ -307,6 +327,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             {t.nav.moments}
           </button>
           <button
+            onClick={() => navigate('/guestbook')}
+            className={`whitespace-nowrap pb-0.5 border-b-2 transition-colors cursor-pointer ${
+              currentPath.startsWith('/guestbook') ? 'border-[#B84E36] text-[#B84E36] font-bold' : 'border-transparent text-[#7E6C60]'
+            }`}
+          >
+            {lang === 'ar' ? 'دليل الضيف' : 'Guest Book'}
+          </button>
+          <button
             onClick={() => navigate('/owner')}
             className={`whitespace-nowrap pb-0.5 border-b-2 transition-colors cursor-pointer ${
               currentPath === '/owner' ? 'border-[#B84E36] text-[#B84E36] font-bold' : 'border-transparent text-[#7E6C60]'
@@ -321,6 +349,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
             }`}
           >
             {t.nav.operatorView}
+          </button>
+          <button
+            onClick={() => navigate('/operations')}
+            className={`whitespace-nowrap pb-0.5 border-b-2 transition-colors cursor-pointer ${
+              currentPath.startsWith('/operations') ? 'border-[#B84E36] text-[#B84E36] font-bold' : 'border-transparent text-[#7E6C60]'
+            }`}
+          >
+            {lang === 'ar' ? 'التشغيل الذكي' : 'Operations'}
           </button>
           <button
             onClick={() => navigate('/bps')}
