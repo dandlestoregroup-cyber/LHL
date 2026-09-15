@@ -16,6 +16,17 @@ assert(
   NATIVE_CORE_CAPABILITIES.length >= 10,
   'Little Hut must retain a substantial native product core'
 );
+assert.equal(
+  new Set(NATIVE_CORE_CAPABILITIES.map((capability) => capability.key)).size,
+  NATIVE_CORE_CAPABILITIES.length,
+  'Native capability registry must not contain duplicate keys'
+);
+assert(
+  NATIVE_CORE_CAPABILITIES.every(
+    (capability) => capability.label && capability.labelAr && capability.description && capability.descriptionAr
+  ),
+  'Every native capability must remain explicitly documented in English and Arabic'
+);
 assert.equal(ADDON_CATALOG.length, 8, 'Expected the eight approved configurable add-on categories');
 
 const expectedAddOnKeys = [
