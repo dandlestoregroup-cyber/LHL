@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-export type BusinessCollection = 'properties' | 'assessments' | 'ownerDecisions' | 'enquiries';
+export type BusinessCollection = 'properties' | 'assessments' | 'ownerDecisions' | 'enquiries' | 'operatorPortfolioImports';
 
 export interface DerivedOutboxRecord {
   id: string;
@@ -12,10 +12,11 @@ const aggregateType: Record<BusinessCollection, string> = {
   assessments: 'assessment',
   ownerDecisions: 'owner_decision',
   enquiries: 'enquiry',
+  operatorPortfolioImports: 'operator_portfolio_import',
 };
 
 export function isBusinessCollection(collection: string): collection is BusinessCollection {
-  return ['properties', 'assessments', 'ownerDecisions', 'enquiries'].includes(collection);
+  return ['properties', 'assessments', 'ownerDecisions', 'enquiries', 'operatorPortfolioImports'].includes(collection);
 }
 
 const nestedField = (value: unknown, field: string): unknown =>
@@ -45,6 +46,17 @@ const summarize = (collection: BusinessCollection, data: Record<string, unknown>
       propertyId: data.propertyId,
       decision: data.decision,
       payoutReady: data.payoutReady === true,
+    };
+  }
+  if (collection === 'operatorPortfolioImports') {
+    return {
+      workspaceId: data.workspaceId,
+      operatorPartnerId: data.operatorPartnerId,
+      status: data.status,
+      totalRows: data.totalRows,
+      acceptedRows: data.acceptedRows,
+      reviewRows: data.reviewRows,
+      rejectedRows: data.rejectedRows,
     };
   }
   const proofStay = typeof data.proofStay === 'object' && data.proofStay && !Array.isArray(data.proofStay)
