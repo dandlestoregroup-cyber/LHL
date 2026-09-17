@@ -39,6 +39,7 @@ import {
   listPartnerInvites,
   revokePartnerInvite,
 } from './src/server/partner-invites';
+import { registerOperatorRoutes } from './src/server/operator-routes';
 import {
   authenticatePassword,
   clearSession,
@@ -120,6 +121,8 @@ const datasetResponse = async (req: Request) => {
   }
   return dataset;
 };
+
+registerOperatorRoutes(app, requireSession, sendError);
 
 app.post('/api/auth/sign-up', async (req, res) => {
   if (!authLimiter.allow(clientKey(req))) return res.status(429).json({ error: 'auth_rate_limited' });
