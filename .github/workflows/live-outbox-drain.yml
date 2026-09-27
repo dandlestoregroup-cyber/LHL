@@ -2,8 +2,10 @@ name: Live outbox drain
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *'
+# Legacy LHL lineage is no longer the published runtime. Keep this mutating
+# worker unscheduled while the current moment-homes backend/outbox destination
+# and existing secret are unverified; Activepieces remains frozen/default-off.
+# Retain manual invocation only for deliberate qualification after verification.
 
 permissions:
   contents: read
