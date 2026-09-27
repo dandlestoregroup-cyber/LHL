@@ -2,8 +2,10 @@ name: Live runtime smoke
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 * * * *'
+# Legacy LHL lineage is no longer the published runtime. The current Lovable
+# implementation and its release monitors live in dandlestoregroup-cyber/moment-homes.
+# Retain manual invocation for historical diagnosis; do not schedule a probe
+# without a verified LHL-owned backend destination.
 
 permissions:
   contents: read
