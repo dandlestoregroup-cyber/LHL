@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-01T05:42:02.446527+00:00",
+  "environment": "local browser + synthetic API fixtures",
+  "origin": "http://127.0.0.1:3000",
+  "source_base": "e681ad026d94a48cab6594ec5b981cec13c7d412",
+  "checks": [
+    "360px: factual home, blank dates and proven-only Moment selection",
+    "360px: durable Demo receipt and refresh preservation",
+    "360px: no horizontal overflow",
+    "360px: unknown and withdrawn routes do not fall back to a home",
+    "360px: joining home cannot take a booking request",
+    "390px: factual home, blank dates and proven-only Moment selection",
+    "390px: durable Demo receipt and refresh preservation",
+    "390px: no horizontal overflow",
+    "390px: unknown and withdrawn routes do not fall back to a home",
+    "390px: joining home cannot take a booking request",
+    "430px: factual home, blank dates and proven-only Moment selection",
+    "430px: durable Demo receipt and refresh preservation",
+    "430px: no horizontal overflow",
+    "430px: unknown and withdrawn routes do not fall back to a home",
+    "430px: joining home cannot take a booking request",
+    "1440px: factual home, blank dates and proven-only Moment selection",
+    "1440px: durable Demo receipt and refresh preservation",
+    "1440px: no horizontal overflow",
+    "1440px: unknown and withdrawn routes do not fall back to a home",
+    "1440px: joining home cannot take a booking request",
+    "Synthetic Live: no seeded guest identity or contact",
+    "Synthetic Live: rejected persistence preserves input and never displays success",
+    "Synthetic Live: pending write and duplicate-submit guard",
+    "Synthetic Live: retry waits for receipt ID and sends normalized private/masked contact",
+    "390px Arabic: RTL form, proven Moments and no overflow",
+    "1440px Arabic: RTL form and no overflow"
+  ],
+  "passed": 26,
+  "limits": [
+    "not production verification",
+    "no real payment, provider delivery, auth session or physical stay",
+    "Live responses are synthetic"
+  ]
+}

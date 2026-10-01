@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
       )}
 
       {/* Main Editorial Nav */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Logo & Tagline */}
         <button
           onClick={() => navigate('/')}
@@ -176,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
         </button>
 
         {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold tracking-[0.12em] uppercase text-[#2A201C]">
+        <nav className="hidden lg:flex order-3 w-full flex-wrap items-center gap-x-6 gap-y-3 text-xs font-semibold tracking-[0.12em] uppercase text-[#2A201C]">
           <button
             onClick={() => navigate('/')}
             className={`transition-colors hover:text-[#B84E36] pb-1 border-b-2 cursor-pointer ${
@@ -403,4 +403,3 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
     </header>
   );
 };
-

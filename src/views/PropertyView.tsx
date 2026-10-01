@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
-import { qualifyGuestRequest, resolveBookingMode } from '../lib/lh-core';
+import { publicCardFacts } from '../lib/lh-core';
+import { findGuestProperty, submitPersistedEnquiry, provenGuestMoments, normalizeGuestPhone, maskGuestPhone } from '../lib/guest-journey';
 import { evaluateStayIntake, type MastermindEvaluationResult } from '../lib/mastermind';
 import { MastermindEvaluationPanel } from '../components/MastermindEvaluationPanel';
-import { CanonicalMomentsRecord, CanonicalMomentId, MomentState } from '../types';
+import { MomentState } from '../types';
 import { ArrowLeft, ArrowRight, ShieldCheck, Award, MapPin, Users, Calendar, Sparkles, Check, AlertCircle, Lock, Compass, Sun, Coffee, Eye, BookOpen } from 'lucide-react';
 
 interface PropertyViewProps {
@@ -16,15 +17,21 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
   const { lang, t, isRTL, user } = useAuth();
   const { mode, dataset: { properties }, createEnquiry } = useOperating();
 
-  const property = properties.find(p => p.slug === slug || p.id === slug) || properties[0];
+  const property = findGuestProperty(properties, slug);
+  const provenMoments = property ? provenGuestMoments(property) : [];
+  const requestLock = useRef(false);
 
-  const [partySize, setPartySize] = useState(2);
-  const [checkIn, setCheckIn] = useState('2026-09-15');
-  const [checkOut, setCheckOut] = useState('2026-09-18');
-  const [momentFocus, setMomentFocus] = useState('slow_morning');
+  const [partySize, setPartySize] = useState(1);
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [selectedMoment, setMomentFocus] = useState('');
+  const momentFocus = provenMoments.some(moment => moment.key === selectedMoment) ? selectedMoment : provenMoments[0]?.key || '';
+  const [guestName, setGuestName] = useState(mode === 'demo' ? user?.name || '' : '');
+  const [guestPhone, setGuestPhone] = useState(mode === 'demo' ? '+20 100 000 0000' : '');
   const [guestNotes, setGuestNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [requestId, setRequestId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const [mastermindResult, setMastermindResult] = useState<MastermindEvaluationResult | null>(() => {
@@ -89,18 +96,20 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
   if (!property) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] py-20 text-center">
-        <h2 className="font-serif-editorial text-2xl text-[#0D2340]">Property Not Found</h2>
+        <h2 className="font-serif-editorial text-2xl text-[#0D2340]">{lang === 'ar' ? 'هذا المسكن غير متاح للنشر' : 'This home is not available'}</h2>
         <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-[#B74C2B] text-white text-xs font-bold uppercase">
-          Back to Collection
+          {lang === 'ar' ? 'العودة للمجموعة' : 'Back to Collection'}
         </button>
       </div>
     );
   }
 
-  const isJoining = property.publicState === 'joining' || property.lifecycle === 'shortlisted';
+  const isJoining = publicCardFacts(property).joining;
+  const capacity = property.maxGuests;
 
-  const handleRequestSubmit = (e: React.FormEvent) => {
+  const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (requestLock.current) return;
     setErrorMessage('');
 
     if (isJoining) {
@@ -112,22 +121,26 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
       return;
     }
 
-    if (partySize > property.maxCapacity) {
+    if (partySize > capacity) {
       setErrorMessage(
         lang === 'ar'
-          ? `عدد الضيوف (${partySize}) يتجاوز السعة القصوى للمنزل (${property.maxCapacity}).`
-          : `Party size (${partySize}) exceeds maximum capacity (${property.maxCapacity}).`
+          ? `عدد الضيوف (${partySize}) يتجاوز السعة القصوى للمنزل (${capacity}).`
+          : `Party size (${partySize}) exceeds maximum capacity (${capacity}).`
       );
       return;
     }
 
+    requestLock.current = true;
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      createEnquiry({
+    try {
+      if (!guestName.trim()) throw new Error('Enter your name.');
+      const phone = normalizeGuestPhone(guestPhone);
+      const enquiry = await submitPersistedEnquiry(() => createEnquiry({
         propertyId: property.id,
-        guestName: user?.name || 'Sarah Mansour',
-        guestPhoneMasked: '+971 50 *** **12',
+        guestName: guestName.trim(),
+        guestPhone: phone,
+        guestPhoneMasked: maskGuestPhone(phone),
         checkIn,
         checkOut,
         adults: partySize,
@@ -137,11 +150,17 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
         mastermindDecisionVersion: mastermindResult?.decisionVersion,
         mastermindDecision: mastermindResult?.decision,
         quotedEstimateEgp: mastermindResult?.commercialSummary?.totalEgp,
-      });
-
-      setIsSubmitting(false);
+      }));
+      setRequestId(enquiry.id);
       setSubmissionSuccess(true);
-    }, 350);
+    } catch (error) {
+      setErrorMessage(lang === 'ar'
+        ? 'لم يتم تأكيد الطلب. راجع التواريخ والبيانات وحاول مرة أخرى.'
+        : error instanceof Error ? error.message : 'The request could not be saved. Please try again.');
+    } finally {
+      requestLock.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   const getMomentStateBadge = (state: MomentState) => {
@@ -232,7 +251,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
               <span>{lang === 'ar' ? 'دليل الضيف الرقمي' : 'Digital Guest Book'}</span>
             </button>
             <span className="px-3.5 py-2 bg-white border border-[#E9DED1] text-xs font-mono text-[#0D2340] rounded-xs">
-              {lang === 'ar' ? `السعة: ${property.maxCapacity} ضيوف` : `Max Capacity: ${property.maxCapacity} Guests`}
+              {lang === 'ar' ? `السعة: ${capacity} ضيوف` : `Max Capacity: ${capacity} Guests`}
             </span>
           </div>
         </div>
@@ -269,10 +288,10 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                 {lang === 'ar' ? 'فلسفة وتفاصيل المسكن' : 'Sanctuary Essence'}
               </span>
               <p className="font-serif-editorial text-2xl sm:text-3xl text-[#0D2340] italic leading-snug mb-6">
-                "{lang === 'ar' ? property.taglineAr : property.tagline}"
+                {lang === 'ar' ? property.taglineAr || property.summaryAr : property.tagline || property.summary}
               </p>
               <p className="text-sm md:text-base text-[#2C3E50] leading-relaxed font-light">
-                {lang === 'ar' ? property.descriptionAr : property.description}
+                {lang === 'ar' ? property.descriptionAr || property.summaryAr : property.description || property.summary}
               </p>
             </div>
 
@@ -283,7 +302,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                   {t.property.canonicalMomentsTitle}
                 </span>
                 <h3 className="font-serif-editorial text-2xl text-[#0D2340]">
-                  {lang === 'ar' ? 'تقييم اللحظات الست المعتمدة' : 'The 6 Canonical Moments Audit'}
+                {lang === 'ar' ? 'لحظات موثقة لهذا المسكن' : 'Moments verified for this home'}
                 </h3>
                 <p className="text-xs text-[#6D7480] mt-1">
                   {t.property.canonicalMomentsSubtitle}
@@ -291,31 +310,21 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(['slow_morning', 'late_breakfast', 'barefoot_afternoon', 'family_play', 'the_long_sit', 'under_stars'] as CanonicalMomentId[]).map((mId) => {
-                  let state: MomentState = 'unknown';
-                  if (property.canonicalMoments) {
-                    if (Array.isArray(property.canonicalMoments)) {
-                      const fit = property.canonicalMoments.find(m => m.momentId === mId);
-                      state = fit?.state || 'unknown';
-                    } else {
-                      state = (property.canonicalMoments as Record<string, MomentState>)[mId] || 'unknown';
-                    }
-                  }
-                  const badge = getMomentStateBadge(state);
-                  const momentInfo = t.canonicalMoments[mId];
+                {provenMoments.map((moment) => {
+                  const badge = getMomentStateBadge('enabled');
 
                   return (
-                    <div key={mId} className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs space-y-2">
+                    <div key={moment.key} className="p-4 bg-[#FAF7F2] border border-[#E9DED1] rounded-xs space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <h4 className="font-serif-editorial text-base text-[#0D2340] font-bold">
-                          {momentInfo?.title || mId.replace('_', ' ')}
+                          {lang === 'ar' ? moment.titleAr : moment.title || moment.key?.replaceAll('_', ' ')}
                         </h4>
                         <span className={`px-2 py-0.5 text-[9px] font-mono uppercase font-bold rounded-xs border ${badge.color}`}>
                           {badge.label}
                         </span>
                       </div>
                       <p className="text-[11px] text-[#6D7480] leading-relaxed">
-                        {momentInfo?.desc}
+                        {lang === 'ar' ? moment.summaryAr || moment.descriptionAr : moment.summary || moment.description}
                       </p>
                     </div>
                   );
@@ -332,9 +341,9 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                 </h4>
               </div>
               <p className="text-xs text-gray-300 leading-relaxed">
-                {lang === 'ar'
-                  ? 'تم فحص المسكن وفق بوابات TRUST ودرع الأمان SHIELD مع تحقيق انحراف أدلة ٠.٠٪ وتعيين مشغل مرخص.'
-                  : 'Independent physical audit verified with zero evidence drift. Operational calendar held strictly under Little Hut central authority.'}
+                {isJoining
+                  ? (lang === 'ar' ? 'لا يمكن الحجز حتى يكتمل التقييم المستقل وموافقة المالك وتجهيز الإقامة.' : 'Booking opens after independent assessment, owner approval and stay preparation are complete.')
+                  : (lang === 'ar' ? 'ختم ليتل هت فعال. التوافر والسعر وتصاريح المجتمع تخضع للتأكيد قبل الحجز.' : 'The Little Hut seal is active. Availability, price and any community approval must be confirmed before booking.')}
               </p>
             </div>
           </div>
@@ -370,13 +379,13 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                   </div>
 
                   {errorMessage && (
-                    <div className="p-3 bg-red-50 border border-red-300 text-red-900 rounded-xs text-xs">
+                    <div role="alert" className="p-3 bg-red-50 border border-red-300 text-red-900 rounded-xs text-xs">
                       {errorMessage}
                     </div>
                   )}
 
                   {submissionSuccess ? (
-                    <div className="p-6 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xs text-center space-y-3">
+                    <div role="status" className="p-6 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xs text-center space-y-3">
                       <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
                         <Check className="w-6 h-6" />
                       </div>
@@ -384,17 +393,26 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                         {t.property.requestSent}
                       </h4>
                       <p className="text-xs text-emerald-800 leading-relaxed">
-                        {t.property.requestSentDetails}
+                        {lang === 'ar' ? 'تم حفظ طلبك. الإقامة غير مؤكدة حتى يتم التحقق من التوافر والسعر والتصاريح المطلوبة.' : 'Your request is saved. Your stay is confirmed only after availability, price and any required approvals are verified.'}
                       </p>
+                      <p className="text-xs break-all">{lang === 'ar' ? 'رقم الطلب' : 'Request reference'}: {requestId}</p>
                       <button
-                        onClick={() => navigate('/operator')}
+                        onClick={() => navigate('/')}
                         className="mt-2 inline-block px-4 py-2 bg-[#0D2340] text-white text-xs font-bold uppercase tracking-wider rounded-xs"
                       >
-                        {lang === 'ar' ? 'عرض في مكتب التشغيل' : 'View in Operator Desk'}
+                        {lang === 'ar' ? 'العودة للمجموعة' : 'Back to Collection'}
                       </button>
                     </div>
                   ) : (
                     <form onSubmit={handleRequestSubmit} className="space-y-4">
+                      <div>
+                        <label htmlFor="guest-name" className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">{lang === 'ar' ? 'اسمك' : 'Your name'}</label>
+                        <input id="guest-name" autoComplete="name" required maxLength={120} value={guestName} onChange={(e) => setGuestName(e.target.value)} className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs" />
+                      </div>
+                      <div>
+                        <label htmlFor="guest-phone" className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">{lang === 'ar' ? 'رقم الهاتف أو واتساب' : 'Phone or WhatsApp'}</label>
+                        <input id="guest-phone" type="tel" autoComplete="tel" required maxLength={64} value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs" />
+                      </div>
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#0D2340] mb-1">
                           {t.property.partySizeLabel}
@@ -404,7 +422,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                           onChange={(e) => setPartySize(parseInt(e.target.value))}
                           className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs bg-white text-[#0D2340] focus:outline-none focus:border-[#B74C2B]"
                         >
-                          {Array.from({ length: property.maxCapacity }, (_, i) => i + 1).map((n) => (
+                          {Array.from({ length: capacity }, (_, i) => i + 1).map((n) => (
                             <option key={n} value={n}>
                               {n} {lang === 'ar' ? 'ضيوف' : (n === 1 ? 'Guest' : 'Guests')}
                             </option>
@@ -419,6 +437,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                           </label>
                           <input
                             type="date"
+                            required
                             value={checkIn}
                             onChange={(e) => setCheckIn(e.target.value)}
                             className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
@@ -430,6 +449,8 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                           </label>
                           <input
                             type="date"
+                            required
+                            min={checkIn || undefined}
                             value={checkOut}
                             onChange={(e) => setCheckOut(e.target.value)}
                             className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs focus:outline-none focus:border-[#B74C2B]"
@@ -446,12 +467,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
                           onChange={(e) => setMomentFocus(e.target.value)}
                           className="w-full px-3 py-2 text-xs border border-[#E9DED1] rounded-xs bg-white text-[#0D2340] focus:outline-none focus:border-[#B74C2B]"
                         >
-                          <option value="slow_morning">{t.canonicalMoments.slow_morning.title}</option>
-                          <option value="late_breakfast">{t.canonicalMoments.late_breakfast.title}</option>
-                          <option value="barefoot_afternoon">{t.canonicalMoments.barefoot_afternoon.title}</option>
-                          <option value="family_play">{t.canonicalMoments.family_play.title}</option>
-                          <option value="the_long_sit">{t.canonicalMoments.the_long_sit.title}</option>
-                          <option value="under_stars">{t.canonicalMoments.under_stars.title}</option>
+                          {provenMoments.map((moment) => <option key={moment.key} value={moment.key}>{lang === 'ar' ? moment.titleAr : moment.title || moment.key?.replaceAll('_', ' ')}</option>)}
                         </select>
                       </div>
 
@@ -472,7 +488,7 @@ export const PropertyView: React.FC<PropertyViewProps> = ({ slug, navigate }) =>
 
                       <button
                         type="submit"
-                        disabled={isSubmitting || mastermindResult?.decision === 'block'}
+                        disabled={isSubmitting || !momentFocus || mastermindResult?.decision === 'block'}
                         className="w-full py-3 bg-[#B74C2B] hover:bg-[#A33E20] disabled:bg-stone-300 text-white text-xs font-bold uppercase tracking-wider rounded-xs transition-colors shadow-xs"
                       >
                         {isSubmitting ? (lang === 'ar' ? 'جارٍ المعالجة...' : 'Submitting...') : t.property.submitRequest}

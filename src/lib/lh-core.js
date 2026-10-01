@@ -70,28 +70,24 @@ export function evaluateEvidence(evidenceType) {
 }
 
 export function publicPropertyFacts(property) {
-  const isLive = property?.supplyStage === 'live' || property?.lifecycle === 'live';
-  const isJoining = property?.publicState === 'joining' || property?.lifecycle === 'shortlisted' || (property?.joiningVisible && !isLive && !['paused', 'declined'].includes(property?.supplyStage));
+  const isLive = property?.supplyStage ? property.supplyStage === 'live' : property?.lifecycle === 'live';
+  const excluded = ['paused', 'declined'].includes(property?.supplyStage) || ['suspended', 'offline'].includes(property?.lifecycle);
+  const publicHome = Boolean(!excluded && isLive && property?.publiclyVisible === true && property?.sealIssued === true);
+  const isJoining = !excluded && !isLive && Boolean(property?.joiningVisible || property?.publicState === 'joining' || property?.lifecycle === 'shortlisted');
   return {
-    publicHome: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
+    publicHome,
     joining: Boolean(isJoining),
-    bookable: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
-    showSeal: Boolean(isLive && property?.sealIssued),
+    bookable: publicHome,
+    showSeal: publicHome,
     showRate: false,
   };
 }
 
 export function publicCardFacts(property) {
-  const isLive = property?.supplyStage === 'live' || property?.lifecycle === 'live';
-  const isJoining = property?.publicState === 'joining' || property?.lifecycle === 'shortlisted' || (property?.joiningVisible && !isLive);
-  const visible = Boolean(isLive || isJoining || property?.publiclyVisible || property?.publiclyAnnounced);
+  const facts = publicPropertyFacts(property);
   return {
-    visible,
-    publicHome: Boolean(isLive && (property?.publiclyVisible ?? true) && property?.sealIssued),
-    joining: Boolean(isJoining),
-    bookable: Boolean(isLive && property?.sealIssued),
-    showSeal: Boolean(isLive && property?.sealIssued),
-    showRate: false,
+    ...facts,
+    visible: facts.publicHome || facts.joining,
   };
 }
 

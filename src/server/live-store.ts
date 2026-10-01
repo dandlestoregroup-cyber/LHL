@@ -1,9 +1,10 @@
 import crypto from 'node:crypto';
 import type { Assessment, Enquiry, EnquiryStage, MomentKey, OperatingDataset, OwnerDecision, Partner, Property } from '../types';
-import { canConfirmStay, evaluateRateFloor, evaluateStayDates, isHoldActive } from '../lib/lh-core.js';
+import { canConfirmStay, evaluateRateFloor, evaluateStayDates, isHoldActive, publicCardFacts } from '../lib/lh-core.js';
 import { createDocument, getDocument, listDocuments, replaceDocument } from './firestore-rest';
 import type { LiveSession } from './session-auth';
 import { isBootstrapIdentity } from './session-auth';
+import { normalizeGuestPhone, maskGuestPhone, provenGuestMoments } from '../lib/guest-journey';
 
 export class LiveStoreError extends Error {
   constructor(public readonly code: string, public readonly status = 400) {
@@ -67,7 +68,7 @@ export async function loadLiveDataset(session?: LiveSession | null): Promise<Ope
       asOf: now,
       partners: [],
       properties: properties
-        .filter((property) => (property.supplyStage === 'live' && property.publiclyVisible && property.sealIssued) || property.joiningVisible)
+        .filter((property) => publicCardFacts(property).visible)
         .map(publicProperty),
       assessments: [],
       ownerDecisions: [],
@@ -105,7 +106,11 @@ export async function loadLiveDataset(session?: LiveSession | null): Promise<Ope
     properties: scopedProperties,
     assessments: assessments.filter((assessment) => propertyIds.has(assessment.propertyId)),
     ownerDecisions: ownerDecisions.filter((decision) => propertyIds.has(decision.propertyId)),
-    enquiries: canSeeBookings ? enquiries.filter((enquiry) => propertyIds.has(enquiry.propertyId)) : [],
+    enquiries: canSeeBookings ? enquiries.filter((enquiry) => propertyIds.has(enquiry.propertyId)).map((enquiry) => {
+      if (current.role === 'operator') return enquiry;
+      const { guestPhone: _phone, ...redacted } = enquiry;
+      return redacted;
+    }) : [],
   };
 }
 
@@ -192,8 +197,15 @@ export async function createLiveEnquiry(input: Record<string, unknown>): Promise
     throw new LiveStoreError('invalid_guest_count');
   }
   const requestedMoment = cleanString(input.requestedMoment, 'requested_moment', 64) as MomentKey;
-  if (!property.provenMoments.some((moment) => moment.key === requestedMoment)) throw new LiveStoreError('unproven_moment');
+  if (!provenGuestMoments(property).some((moment) => moment.key === requestedMoment)) throw new LiveStoreError('unproven_moment');
   const now = new Date().toISOString();
+  let guestPhone: string | undefined;
+  const legacyContact = typeof input.guestPhoneMasked === 'string' && !/[*•xX]/.test(input.guestPhoneMasked)
+    ? input.guestPhoneMasked : undefined;
+  if (input.guestPhone !== undefined || legacyContact !== undefined) {
+    try { guestPhone = normalizeGuestPhone(input.guestPhone ?? legacyContact); }
+    catch { throw new LiveStoreError('invalid_guest_phone'); }
+  }
   const enquiry: Enquiry = {
     id: `live-enquiry-${crypto.randomUUID()}`,
     dataMode: 'live',
@@ -202,7 +214,8 @@ export async function createLiveEnquiry(input: Record<string, unknown>): Promise
     updatedAt: now,
     propertyId,
     guestName: cleanString(input.guestName, 'guest_name', 120),
-    guestPhoneMasked: cleanString(input.guestPhoneMasked, 'guest_phone', 64),
+    guestPhoneMasked: guestPhone ? maskGuestPhone(guestPhone) : cleanString(input.guestPhoneMasked, 'guest_phone', 64),
+    ...(guestPhone ? { guestPhone } : {}),
     checkIn,
     checkOut,
     adults,
@@ -225,7 +238,8 @@ export async function createLiveEnquiry(input: Record<string, unknown>): Promise
     timeline: [{ stage: 'received', at: now, note: 'Guest submitted stay enquiry.' }],
   };
   await createDocument('enquiries', enquiry.id, enquiry as unknown as Record<string, unknown>);
-  return enquiry;
+  const { guestPhone: _privatePhone, ...receipt } = enquiry;
+  return receipt;
 }
 
 export interface AdvanceInput {

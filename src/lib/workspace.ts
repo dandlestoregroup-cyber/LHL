@@ -1,9 +1,16 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
-
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const auth = getAuth(app);
+// Optional browser OAuth uses public Firebase config; Live auth stays server-owned.
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+};
+export const auth = firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId
+  ? getAuth(getApps().some(app => app.name === 'lhl-google-workspace')
+    ? getApp('lhl-google-workspace')
+    : initializeApp(firebaseConfig, 'lhl-google-workspace'))
+  : null;
 
 const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/calendar');
@@ -21,6 +28,10 @@ export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
 ) => {
+  if (!auth) {
+    onAuthFailure?.();
+    return () => {};
+  }
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
       if (cachedAccessToken) {
@@ -37,6 +48,7 @@ export const initAuth = (
 };
 
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
+  if (!auth) throw new Error('Google Calendar is not configured for this deployment.');
   try {
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
@@ -60,6 +72,6 @@ export const getAccessToken = async (): Promise<string | null> => {
 };
 
 export const logout = async () => {
-  await signOut(auth);
+  if (auth) await signOut(auth);
   cachedAccessToken = null;
 };

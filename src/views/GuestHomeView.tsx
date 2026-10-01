@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useOperating } from '../context/OperatingContext';
 import { publicCardFacts } from '../lib/lh-core';
+import { hasProvenGuestMoment, provenGuestMoments } from '../lib/guest-journey';
 import { Compass, Sparkles, ArrowRight, ShieldCheck, Sun, BookOpen, Coffee, Waves, Building2, Plus, Info } from 'lucide-react';
 import { BrandMomentsGallery } from '../components/BrandMomentsGallery';
 import { CanonicalMomentsGrid } from '../components/CanonicalMomentsGrid';
@@ -28,30 +29,18 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [selectedMoment, setSelectedMoment] = useState<string>('all');
 
-  const seawardProp = properties.find(p => p.id === 'azha_aquila_standalone') || properties.find(p => p.id === 'seaward_library') || properties[0];
+  const publicHomes = properties.filter(p => publicCardFacts(p).publicHome);
+  const seawardProp = publicHomes.find(p => p.id === 'azha_aquila_standalone') || publicHomes.find(p => p.id === 'seaward_library') || publicHomes[0];
   const seawardFacts = seawardProp ? publicCardFacts(seawardProp) : null;
 
   const hasMoment = (p: typeof properties[0], momentId: string) => {
-    if (momentId === 'all') return true;
-    const matchProven = p.provenMoments?.some(
-      m => m.key === momentId || m.key.toLowerCase().replace(/[-\s]/g, '_') === momentId
-    );
-    if (matchProven) return true;
-    if (Array.isArray(p.canonicalMoments)) {
-      return p.canonicalMoments.some(
-        m => (m.momentId === momentId || m.momentId?.toLowerCase().replace(/[-\s]/g, '_') === momentId) && m.state === 'enabled'
-      );
-    }
-    if (p.canonicalMoments && typeof p.canonicalMoments === 'object') {
-      return (p.canonicalMoments as Record<string, string>)[momentId] === 'enabled';
-    }
-    return false;
+    return hasProvenGuestMoment(p, momentId);
   };
 
   const getMomentCount = (momentId: string) => {
     return properties.filter(p => {
       const facts = publicCardFacts(p);
-      if (!facts.visible) return false;
+      if (!facts.publicHome) return false;
       return hasMoment(p, momentId);
     }).length;
   };
@@ -114,7 +103,7 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
           alt="Little Hut Vacations Coastal Villa"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        
+
         {/* Subtle, Warm Cinematic Scrim for Perfect Contrast without Muddying the Image */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1F1714]/90 via-[#1F1714]/40 to-black/25 pointer-events-none"></div>
 
@@ -213,8 +202,8 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
             <div className="flex items-center gap-2.5 text-[#B84E36]">
               <Info className="w-4 h-4 shrink-0" />
               <span className="font-medium">
-                {lang === 'ar' 
-                  ? 'أنت حالياً في وضع التشغيل الفعلي (Live). لا توجد عقارات وهمية مسبقة.' 
+                {lang === 'ar'
+                  ? 'أنت حالياً في وضع التشغيل الفعلي (Live). لا توجد عقارات وهمية مسبقة.'
                   : 'You are currently in Live Mode. Zero fictional demo records exist here.'}
               </span>
             </div>
@@ -247,7 +236,7 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#C8A15A]">
-                    {seawardFacts.badge}
+                    {lang === 'ar' ? 'ختم ليتل هت فعال' : 'Little Hut seal active'}
                   </span>
                   {mode === 'demo' && (
                     <span className="px-2 py-0.5 bg-[#FAF0EB] text-[#B84E36] border border-[#EBDDD1] text-[10px] font-mono font-bold uppercase rounded-xs">
@@ -343,9 +332,9 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#EBDDD1] text-xs font-bold text-[#2A201C] uppercase tracking-wider rounded-xs self-start md:self-auto shadow-xs">
             <ShieldCheck className="w-4 h-4 text-[#6E7C62]" />
             <span>
-              {lang === 'ar' 
-                ? `${properties.filter(p => p.lifecycle === 'live').length} منازل معتمدة بالختم` 
-                : `${properties.filter(p => p.lifecycle === 'live').length} Seal-Certified Residences`}
+              {lang === 'ar'
+                ? `${publicHomes.length} منازل معتمدة بالختم`
+                : `${publicHomes.length} Seal-Certified Residences`}
             </span>
           </div>
         </div>
@@ -439,8 +428,8 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
                       </span>
                     </div>
                     <h4 className="font-serif-editorial text-lg text-[#2A201C]">
-                      {lang === 'ar' 
-                        ? MOMENT_FILTER_OPTIONS.find(m => m.id === selectedMoment)?.labelAr 
+                      {lang === 'ar'
+                        ? MOMENT_FILTER_OPTIONS.find(m => m.id === selectedMoment)?.labelAr
                         : MOMENT_FILTER_OPTIONS.find(m => m.id === selectedMoment)?.labelEn}
                     </h4>
                   </div>
@@ -496,8 +485,8 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProperties.map((property) => {
               const facts = publicCardFacts(property);
-              const isJoining = property.publicState === 'joining' || property.lifecycle === 'shortlisted';
-              
+              const isJoining = facts.joining;
+
               return (
                 <div
                   key={property.id}
@@ -523,7 +512,7 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
                             ? (lang === 'ar' ? 'ينضم إلى ليتل هت' : 'Joining Little Hut')
                             : (lang === 'ar' ? 'موثق بالختم' : 'Seal Certified')}
                         </span>
-                        
+
                         {mode === 'demo' && (
                           <span className="px-2 py-0.5 bg-[#B84E36] text-white text-[9px] font-mono font-bold uppercase rounded-xs shadow-xs">
                             DEMO
@@ -544,56 +533,14 @@ export const GuestHomeView: React.FC<GuestHomeViewProps> = ({ navigate }) => {
                         "{lang === 'ar' ? property.taglineAr : property.tagline}"
                       </p>
 
-                      {/* Proven Signature Moments tags */}
-                      {((property.provenMoments && property.provenMoments.length > 0) || property.canonicalMoments) && (
+                      {/* Only the independently proven projection can claim a Moment. */}
+                      {provenGuestMoments(property).length > 0 && (
                         <div className="pt-3 border-t border-[#FAF5EE] flex flex-wrap gap-1.5">
-                          {property.provenMoments && property.provenMoments.length > 0
-                            ? property.provenMoments.map(m => {
-                                const isMatch = selectedMoment !== 'all' && (m.key === selectedMoment || m.key.toLowerCase().replace(/[-\s]/g, '_') === selectedMoment);
-                                return (
-                                  <span
-                                    key={m.key}
-                                    className={`px-2 py-0.5 text-[10px] rounded-xs font-semibold transition-colors ${
-                                      isMatch
-                                        ? 'bg-[#B84E36] text-white border border-[#B84E36] shadow-xs font-bold'
-                                        : 'bg-[#FAF5EE] border border-[#EBDDD1] text-[#2A201C]'
-                                    }`}
-                                  >
-                                    {isMatch && '★ '}
-                                    {lang === 'ar' ? m.nameAr || m.name : m.name}
-                                  </span>
-                                );
-                              })
-                            : Array.isArray(property.canonicalMoments)
-                                ? property.canonicalMoments
-                                    .filter(m => m.state === 'enabled')
-                                    .slice(0, 3)
-                                    .map(m => {
-                                      const isMatch = selectedMoment !== 'all' && m.momentId === selectedMoment;
-                                      return (
-                                        <span
-                                          key={m.momentId}
-                                          className={`px-2 py-0.5 text-[10px] rounded-xs font-semibold ${
-                                            isMatch
-                                              ? 'bg-[#B84E36] text-white border border-[#B84E36]'
-                                              : 'bg-[#FAF5EE] border border-[#EBDDD1] text-[#2A201C]'
-                                          }`}
-                                        >
-                                          {lang === 'ar' ? m.nameAr || m.name : m.name}
-                                        </span>
-                                      );
-                                    })
-                                : Object.entries(property.canonicalMoments as Record<string, string>)
-                                    .filter(([_, state]) => state === 'enabled')
-                                    .slice(0, 3)
-                                    .map(([mId]) => (
-                                      <span
-                                        key={mId}
-                                        className="px-2 py-0.5 bg-[#FAF5EE] border border-[#EBDDD1] text-[10px] text-[#2A201C] rounded-xs capitalize font-semibold"
-                                      >
-                                        {mId.replace('_', ' ')}
-                                      </span>
-                                    ))}
+                          {provenGuestMoments(property).map(moment => (
+                            <span key={moment.key} className={`px-2 py-0.5 text-[10px] rounded-xs font-semibold border ${selectedMoment === moment.key ? 'bg-[#B84E36] text-white border-[#B84E36]' : 'bg-[#FAF5EE] border-[#EBDDD1] text-[#2A201C]'}`}>
+                              {lang === 'ar' ? moment.titleAr : moment.title || moment.key?.replaceAll('_', ' ')}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>

@@ -421,6 +421,7 @@ export interface Enquiry {
   propertySlug?: string;
   guestId?: string;
   guestName: string;
+  guestPhone?: string;
   guestPhoneMasked?: string;
   guestEmail?: string;
   checkIn?: string;
@@ -974,4 +975,3 @@ export interface PropertyAddOnConfiguration {
   payments: CapabilityAddOnSetting<PaymentsProvider>;
   housekeeping: CapabilityAddOnSetting<HousekeepingProvider>;
 }
-

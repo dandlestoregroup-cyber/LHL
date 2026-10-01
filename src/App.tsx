@@ -23,7 +23,7 @@ import { GuestBookView } from './views/GuestBookView';
 import { OperationsLayerView } from './views/OperationsLayerView';
 
 function AppContent() {
-  const { lang, t, isRTL, user } = useAuth();
+  const { lang, t, isRTL, user, mode } = useAuth();
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return window.location.pathname || '/';
   });
@@ -65,7 +65,7 @@ function AppContent() {
       if (parts[3] === 'guestbook') {
         return <GuestBookView initialPropertySlug={slug} navigate={navigate} />;
       }
-      return <PropertyView slug={slug} navigate={navigate} />;
+      return <PropertyView key={`${mode}:${slug}`} slug={slug} navigate={navigate} />;
     }
     if (currentPath === '/owner') {
       return <OwnerView navigate={navigate} />;
