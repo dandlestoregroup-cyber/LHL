@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { bi } from '../lib/display';
 import { useSignatureMomentsWithCustom } from '../utils/momentsStorage';
 import { MomentsUploadStudioModal } from '../components/MomentsUploadStudioModal';
+import { provenGuestMoments } from '../lib/guest-journey';
 
 export function MomentView({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
   const { lang, publicHomes } = useOperating();
@@ -13,7 +14,7 @@ export function MomentView({ slug, navigate }: { slug: string; navigate: (path: 
   const [isStudioOpen, setIsStudioOpen] = useState(false);
 
   const active = moments.find((m) => m.slug === slug) || moments[0];
-  const matchingHomes = publicHomes.filter((home) => home.provenMoments.some((moment) => moment.key === active.key));
+  const matchingHomes = publicHomes.filter((home) => provenGuestMoments(home).some((moment) => moment.key === active.key));
   const isAdmin = Boolean(user && (user.role === 'admin' || user.role === 'operator'));
 
   return (

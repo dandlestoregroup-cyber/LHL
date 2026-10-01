@@ -1,0 +1,36 @@
+{
+  "source_base": "e681ad026d94a48cab6594ec5b981cec13c7d412",
+  "scope": "technical source candidate only",
+  "qualification_command": "npm run qualify",
+  "qualification_exit": 0,
+  "node_version": "v24.19.0",
+  "browser_report": "lhl-guest-source-qa.json",
+  "browser_checks": 26,
+  "contract_sha256": "fe78483f5d5b982d604b6f3bc06e850bca8c9b1ef1f01c8ef10a7aa68e6429c9",
+  "source_sha256": {
+    "dist-server/server.js": "379d19b5bd8054644dbe6215786e93112e6036f382d054287e0d42b96a53d755",
+    "package.json": "4c4c0b0786bcf574a8b0c07c32df6dc9177529e01768870b7b2bf4aa53722e17",
+    "scripts/qualify_guest_journey.py": "c9147e77fe812a73f5b791c9f50410ee5b761346302252bd08c8686c963ae86c",
+    "src/App.tsx": "f3e4925eeb0d06ec2359b49dd9eaa26074a3bd8540fa17196f89b2a3f2cf40be",
+    "src/components/Navbar.tsx": "bfd127426f4f28adfa3a970ac43f295d50997ac86305bf1325f33aa271abeb7b",
+    "src/context/OperatingContext.tsx": "e3a2d1a8b842b2dbfbc216d99e57080d3716d26c856faf44efcb6f8303621583",
+    "src/lib/guest-journey.selftest.ts": "53a301407522cab424e46078e1ffbb498ca6fd0ed4c2bc1b11abac962c3508f4",
+    "src/lib/guest-journey.ts": "30cd9d135be456b3ed485d2b0f26e3e1cd1677b72ad6b602ee61be0be8217c63",
+    "src/lib/lh-core.js": "c9d751dcfed2526a75402fec5ec375671aad2f9ec602b30dfde4c2179cd8a2e1",
+    "src/lib/workspace.ts": "a1cf2c4c3d764d74d22c874d0d8a602a90551e5f1290859e4752b2b4a4106e8d",
+    "src/server/guest-contact.selftest.ts": "25e5cb6baa843cc88b7e1ab3ab52fa38bdd00d92bb5c8b8620ecc503aa998e58",
+    "src/server/live-store.ts": "7e97f803c4f03fe8e1e4eeb43c262fc758d64b01f7ac32a6ec387e55d966dc2a",
+    "src/types.ts": "70beee5347fe0aecc6191b22da9c29519f232b2abf7423339532192688c0898a",
+    "src/views/GuestHomeView.tsx": "d17e885749b4fd7fbe513e44ded73831f069b3d62c1b5078a8e42f63e551ea9b",
+    "src/views/MomentView.tsx": "e51fdecf3b51d1fd2adf80120ab78baf3b167f7eebb640d52ad1ff670e27185a",
+    "src/views/PropertyView.tsx": "6579f213132c4dd86b2d7ea85d307bb0b1195a1755f366c3b4e147aa06784bcb",
+    "src/vite-env.d.ts": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+  },
+  "limitations": [
+    "Local npm dependencies resolve allowed ranges; exact-candidate GitHub CI uses the existing frozen Bun lock.",
+    "Browser Live API responses and Firestore provider responses are isolated synthetic fixtures.",
+    "No deployed auth/data/payment/delivery/recovery or physical-stay acceptance was established.",
+    "Client build retains its existing large-bundle warning.",
+    "No merge or production promotion is authorized by the restoration contract."
+  ]
+}

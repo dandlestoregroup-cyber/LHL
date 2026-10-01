@@ -34,7 +34,9 @@ var momentCopy = {
   afternoon_drift: { title: "Afternoon Drift", titleAr: "\u0633\u0643\u0648\u0646 \u0627\u0644\u0638\u0647\u064A\u0631\u0629", summary: "Shaded afternoon rest with measured thermal comfort.", summaryAr: "\u0631\u0627\u062D\u0629 \u0638\u0647\u064A\u0631\u0629 \u0645\u0638\u0644\u0644\u0629 \u0645\u0639 \u0642\u064A\u0627\u0633 \u0627\u0644\u0631\u0627\u062D\u0629 \u0627\u0644\u062D\u0631\u0627\u0631\u064A\u0629." },
   night_swim: { title: "Night Swim", titleAr: "\u0627\u0644\u0633\u0628\u0627\u062D\u0629 \u0627\u0644\u0644\u064A\u0644\u064A\u0629", summary: "Safe evening water access with lighting and supervision rules verified.", summaryAr: "\u062F\u062E\u0648\u0644 \u0622\u0645\u0646 \u0644\u0644\u0645\u064A\u0627\u0647 \u0645\u0633\u0627\u0621\u064B \u0628\u0639\u062F \u062A\u0648\u062B\u064A\u0642 \u0627\u0644\u0625\u0636\u0627\u0621\u0629 \u0648\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0625\u0634\u0631\u0627\u0641." },
   fire_conversation: { title: "Fire Conversation", titleAr: "\u062D\u0648\u0627\u0631 \u062D\u0648\u0644 \u0627\u0644\u0646\u0627\u0631", summary: "A protected outdoor fire setting verified for safe evening use.", summaryAr: "\u062C\u0644\u0633\u0629 \u0646\u0627\u0631 \u062E\u0627\u0631\u062C\u064A\u0629 \u0645\u062D\u0645\u064A\u0629 \u0648\u0645\u0648\u062B\u0642\u0629 \u0644\u0644\u0627\u0633\u062A\u062E\u062F\u0627\u0645 \u0627\u0644\u0645\u0633\u0627\u0626\u064A \u0627\u0644\u0622\u0645\u0646." },
-  silent_reading: { title: "Silent Reading", titleAr: "\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0627\u0645\u062A\u0629", summary: "A dedicated reading corner with measured acoustic calm.", summaryAr: "\u0631\u0643\u0646 \u0642\u0631\u0627\u0621\u0629 \u0645\u062E\u0635\u0635 \u0645\u0639 \u0647\u062F\u0648\u0621 \u0635\u0648\u062A\u064A \u0645\u0642\u0627\u0633." }
+  silent_reading: { title: "Silent Reading", titleAr: "\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0627\u0645\u062A\u0629", summary: "A dedicated reading corner with measured acoustic calm.", summaryAr: "\u0631\u0643\u0646 \u0642\u0631\u0627\u0621\u0629 \u0645\u062E\u0635\u0635 \u0645\u0639 \u0647\u062F\u0648\u0621 \u0635\u0648\u062A\u064A \u0645\u0642\u0627\u0633." },
+  coastal_discovery: { title: "Coastal Discovery", titleAr: "\u0627\u0643\u062A\u0634\u0627\u0641 \u0633\u0627\u062D\u0644\u064A", summary: "Direct secluded shoreline access and panoramic coastal horizon verified by independent site audit.", summaryAr: "\u0648\u0635\u0648\u0644 \u0645\u0628\u0627\u0634\u0631 \u0644\u0634\u0627\u0637\u0626 \u0645\u0646\u0639\u0632\u0644 \u0648\u0623\u0641\u0642 \u0628\u062D\u0631\u064A \u0645\u0641\u062A\u0648\u062D \u0645\u0648\u062B\u0642 \u0628\u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629 \u0627\u0644\u0645\u0633\u062A\u0642\u0644\u0629." },
+  urban_retreat: { title: "Urban Retreat", titleAr: "\u0645\u0644\u0627\u0630 \u062D\u0636\u0631\u064A", summary: "Architectural serenity and acoustic decibel buffer (<38 dBA) inside a private courtyard setting.", summaryAr: "\u0633\u0643\u064A\u0646\u0629 \u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u0648\u0639\u0632\u0644 \u0635\u0648\u062A\u064A \u0641\u0627\u0626\u0642 \u0641\u064A \u0641\u0646\u0627\u0621 \u062E\u0627\u0635 \u0648\u0647\u0627\u062F\u0626 \u0628\u0639\u064A\u062F\u0627\u064B \u0639\u0646 \u0635\u062E\u0628 \u0627\u0644\u0645\u062F\u064A\u0646\u0629." }
 };
 var provenMoment = (propertyId, key, date) => ({
   key,
@@ -81,7 +83,7 @@ var DEMO_PROPERTIES = [
     payoutReady: true,
     activationChecklistComplete: true,
     sealIssued: true,
-    provenMoments: [provenMoment("azure-haven", "slow_morning", "2026-02-12"), provenMoment("azure-haven", "long_table", "2026-02-12")]
+    provenMoments: [provenMoment("azure-haven", "slow_morning", "2026-02-12"), provenMoment("azure-haven", "long_table", "2026-02-12"), provenMoment("azure-haven", "coastal_discovery", "2026-02-12")]
   }),
   property("property-seaward-library", "live", {
     slug: "seaward-library",
@@ -103,7 +105,7 @@ var DEMO_PROPERTIES = [
     maxGuests: 4,
     bedroomCount: 2,
     heroImage: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=84&w=1600",
-    provenMoments: [provenMoment("seaward-library", "slow_morning", "2026-01-18"), provenMoment("seaward-library", "silent_reading", "2026-01-18")]
+    provenMoments: [provenMoment("seaward-library", "slow_morning", "2026-01-18"), provenMoment("seaward-library", "silent_reading", "2026-01-18"), provenMoment("seaward-library", "coastal_discovery", "2026-01-18")]
   }),
   property("property-casa-bianca", "live", {
     slug: "casa-bianca",
@@ -123,7 +125,7 @@ var DEMO_PROPERTIES = [
     activationChecklistComplete: true,
     sealIssued: true,
     heroImage: "https://images.unsplash.com/photo-1512918766671-ad6568148a1b?auto=format&fit=crop&q=84&w=1600",
-    provenMoments: [provenMoment("casa-bianca", "long_table", "2026-03-05"), provenMoment("casa-bianca", "afternoon_drift", "2026-03-05")]
+    provenMoments: [provenMoment("casa-bianca", "long_table", "2026-03-05"), provenMoment("casa-bianca", "afternoon_drift", "2026-03-05"), provenMoment("casa-bianca", "urban_retreat", "2026-03-05")]
   }),
   property("property-dune-house", "activation_ready", {
     name: "Dune House",
@@ -140,7 +142,7 @@ var DEMO_PROPERTIES = [
     nightlyFloorEgp: 9e3,
     payoutReady: true,
     heroImage: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&q=84&w=1600",
-    provenMoments: [provenMoment("dune-house", "slow_morning", "2026-08-17"), provenMoment("dune-house", "fire_conversation", "2026-08-17")]
+    provenMoments: [provenMoment("dune-house", "slow_morning", "2026-08-17"), provenMoment("dune-house", "fire_conversation", "2026-08-17"), provenMoment("dune-house", "coastal_discovery", "2026-08-17")]
   }),
   property("property-lagoon-pavilion", "decision_pending", {
     name: "Lagoon Pavilion",
@@ -153,8 +155,8 @@ var DEMO_PROPERTIES = [
     operatorPartnerId: "partner-operator-kareem",
     assessorPartnerId: "partner-assessor-dina",
     calendarAuthority: "external",
-    heroImage: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&q=84&w=1600",
-    provenMoments: [provenMoment("lagoon-pavilion", "night_swim", "2026-08-26"), provenMoment("lagoon-pavilion", "afternoon_drift", "2026-08-26")]
+    heroImage: "https://images.unsplash.com/photo-160058515526-990dced4db0d?auto=format&fit=crop&q=84&w=1600",
+    provenMoments: [provenMoment("lagoon-pavilion", "night_swim", "2026-08-26"), provenMoment("lagoon-pavilion", "afternoon_drift", "2026-08-26"), provenMoment("lagoon-pavilion", "urban_retreat", "2026-08-26")]
   }),
   property("property-olive-courtyard", "assessment_scheduled", {
     name: "Olive Courtyard",
@@ -247,11 +249,11 @@ var assessment = (id, propertyId, assessorPartnerId, result, moments, status = "
   recommendationAr: result === "passed" ? "\u0627\u0644\u0627\u0646\u062A\u0642\u0627\u0644 \u0625\u0644\u0649 \u0642\u0631\u0627\u0631 \u0627\u0644\u0645\u0627\u0644\u0643." : result === "scheduled" ? "\u062A\u0645 \u062A\u062D\u062F\u064A\u062F \u0645\u0648\u0639\u062F \u0627\u0644\u0632\u064A\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062A\u0642\u0644\u0629." : "\u0644\u0627 \u064A\u062A\u0645 \u0627\u0644\u062A\u0641\u0639\u064A\u0644 \u062D\u062A\u0649 \u0645\u0639\u0627\u0644\u062C\u0629 \u0627\u0644\u0646\u062A\u064A\u062C\u0629 \u0627\u0644\u0645\u0627\u0646\u0639\u0629."
 });
 var DEMO_ASSESSMENTS = [
-  assessment("assessment-azure-haven", "property-azure-haven", "partner-assessor-dina", "passed", ["slow_morning", "long_table"]),
-  assessment("assessment-seaward", "property-seaward-library", "partner-assessor-dina", "passed", ["slow_morning", "silent_reading"]),
-  assessment("assessment-casa", "property-casa-bianca", "partner-assessor-hassan", "passed", ["long_table", "afternoon_drift"]),
-  assessment("assessment-dune", "property-dune-house", "partner-assessor-hassan", "passed", ["slow_morning", "fire_conversation"]),
-  assessment("assessment-lagoon", "property-lagoon-pavilion", "partner-assessor-dina", "passed", ["night_swim", "afternoon_drift"]),
+  assessment("assessment-azure-haven", "property-azure-haven", "partner-assessor-dina", "passed", ["slow_morning", "long_table", "coastal_discovery"]),
+  assessment("assessment-seaward", "property-seaward-library", "partner-assessor-dina", "passed", ["slow_morning", "silent_reading", "coastal_discovery"]),
+  assessment("assessment-casa", "property-casa-bianca", "partner-assessor-hassan", "passed", ["long_table", "afternoon_drift", "urban_retreat"]),
+  assessment("assessment-dune", "property-dune-house", "partner-assessor-hassan", "passed", ["slow_morning", "fire_conversation", "coastal_discovery"]),
+  assessment("assessment-lagoon", "property-lagoon-pavilion", "partner-assessor-dina", "passed", ["night_swim", "afternoon_drift", "urban_retreat"]),
   assessment("assessment-olive", "property-olive-courtyard", "partner-assessor-hassan", "scheduled", [], "pending"),
   assessment("assessment-palm", "property-palm-pavilion", "partner-assessor-dina", "conditions", [], "failed")
 ];
@@ -888,7 +890,9 @@ var MOMENTS = Object.freeze({
   AFTERNOON_DRIFT: "afternoon_drift",
   NIGHT_SWIM: "night_swim",
   FIRE_CONVERSATION: "fire_conversation",
-  SILENT_READING: "silent_reading"
+  SILENT_READING: "silent_reading",
+  COASTAL_DISCOVERY: "coastal_discovery",
+  URBAN_RETREAT: "urban_retreat"
 });
 var MOMENT_KEYS = Object.freeze(Object.values(MOMENTS));
 var TRUST_GATE_KEYS = Object.freeze([
@@ -931,6 +935,26 @@ var BOOKING_SPINE = Object.freeze([
   "completed"
 ]);
 var TERMINAL_ENQUIRY_STAGES = Object.freeze(["declined", "expired", "cancelled"]);
+function publicPropertyFacts(property2) {
+  const isLive = property2?.supplyStage ? property2.supplyStage === "live" : property2?.lifecycle === "live";
+  const excluded = ["paused", "declined"].includes(property2?.supplyStage) || ["suspended", "offline"].includes(property2?.lifecycle);
+  const publicHome = Boolean(!excluded && isLive && property2?.publiclyVisible === true && property2?.sealIssued === true);
+  const isJoining = !excluded && !isLive && Boolean(property2?.joiningVisible || property2?.publicState === "joining" || property2?.lifecycle === "shortlisted");
+  return {
+    publicHome,
+    joining: Boolean(isJoining),
+    bookable: publicHome,
+    showSeal: publicHome,
+    showRate: false
+  };
+}
+function publicCardFacts(property2) {
+  const facts = publicPropertyFacts(property2);
+  return {
+    ...facts,
+    visible: facts.publicHome || facts.joining
+  };
+}
 function evaluateRateFloor(property2, nightlyRateEgp) {
   if (!property2 || typeof property2.nightlyFloorEgp !== "number" || property2.nightlyFloorEgp <= 0) {
     return { allowed: false, reason: "No valid owner floor; quoting and payment are blocked." };
@@ -1113,6 +1137,24 @@ function isBootstrapIdentity(session) {
   return Boolean(email && session.email === email);
 }
 
+// src/lib/guest-journey.ts
+function provenGuestMoments(property2) {
+  const seen = /* @__PURE__ */ new Set();
+  return (property2.provenMoments || []).filter((moment) => {
+    if (!moment.key || !MOMENT_KEYS.includes(moment.key) || seen.has(moment.key)) return false;
+    if (moment.level && !["proven", "Proven", "enabled"].includes(moment.level)) return false;
+    seen.add(moment.key);
+    return true;
+  });
+}
+var maskGuestPhone = (phone) => `\u2022\u2022\u2022\u2022 ${phone.replace(/\D/g, "").slice(-4)}`;
+function normalizeGuestPhone(value) {
+  if (typeof value !== "string") throw new Error("Enter a valid contact number, including country code.");
+  const phone = value.trim().replace(/[\s().-]/g, "");
+  if (!/^\+?\d{8,15}$/.test(phone)) throw new Error("Enter a valid contact number, including country code.");
+  return phone;
+}
+
 // src/server/live-store.ts
 var LiveStoreError = class extends Error {
   constructor(code, status = 400) {
@@ -1171,7 +1213,7 @@ async function loadLiveDataset(session) {
       labelAr: "\u0627\u0644\u062A\u0634\u063A\u064A\u0644 \u0627\u0644\u0641\u0639\u0644\u064A \u2014 \u0627\u0644\u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0639\u0627\u0645\u0629 \u0627\u0644\u0645\u0648\u062B\u0642\u0629 \u0641\u0642\u0637",
       asOf: now,
       partners: [],
-      properties: properties.filter((property2) => property2.supplyStage === "live" && property2.publiclyVisible && property2.sealIssued || property2.joiningVisible).map(publicProperty),
+      properties: properties.filter((property2) => publicCardFacts(property2).visible).map(publicProperty),
       assessments: [],
       ownerDecisions: [],
       enquiries: []
@@ -1213,7 +1255,11 @@ async function loadLiveDataset(session) {
     properties: scopedProperties,
     assessments: assessments.filter((assessment2) => propertyIds.has(assessment2.propertyId)),
     ownerDecisions: ownerDecisions.filter((decision2) => propertyIds.has(decision2.propertyId)),
-    enquiries: canSeeBookings ? enquiries.filter((enquiry2) => propertyIds.has(enquiry2.propertyId)) : []
+    enquiries: canSeeBookings ? enquiries.filter((enquiry2) => propertyIds.has(enquiry2.propertyId)).map((enquiry2) => {
+      if (current.role === "operator") return enquiry2;
+      const { guestPhone: _phone, ...redacted } = enquiry2;
+      return redacted;
+    }) : []
   };
 }
 async function bootstrapFirstScout(session, input) {
@@ -1297,8 +1343,17 @@ async function createLiveEnquiry(input) {
     throw new LiveStoreError("invalid_guest_count");
   }
   const requestedMoment = cleanString(input.requestedMoment, "requested_moment", 64);
-  if (!property2.provenMoments.some((moment) => moment.key === requestedMoment)) throw new LiveStoreError("unproven_moment");
+  if (!provenGuestMoments(property2).some((moment) => moment.key === requestedMoment)) throw new LiveStoreError("unproven_moment");
   const now = (/* @__PURE__ */ new Date()).toISOString();
+  let guestPhone;
+  const legacyContact = typeof input.guestPhoneMasked === "string" && !/[*•xX]/.test(input.guestPhoneMasked) ? input.guestPhoneMasked : void 0;
+  if (input.guestPhone !== void 0 || legacyContact !== void 0) {
+    try {
+      guestPhone = normalizeGuestPhone(input.guestPhone ?? legacyContact);
+    } catch {
+      throw new LiveStoreError("invalid_guest_phone");
+    }
+  }
   const enquiry2 = {
     id: `live-enquiry-${crypto6.randomUUID()}`,
     dataMode: "live",
@@ -1307,12 +1362,20 @@ async function createLiveEnquiry(input) {
     updatedAt: now,
     propertyId,
     guestName: cleanString(input.guestName, "guest_name", 120),
-    guestPhoneMasked: cleanString(input.guestPhoneMasked, "guest_phone", 64),
+    guestPhoneMasked: guestPhone ? maskGuestPhone(guestPhone) : cleanString(input.guestPhoneMasked, "guest_phone", 64),
+    ...guestPhone ? { guestPhone } : {},
     checkIn,
     checkOut,
     adults,
     children,
     requestedMoment,
+    notes: typeof input.notes === "string" && input.notes.trim() ? input.notes.trim().slice(0, 500) : void 0,
+    mastermindAudit: typeof input.mastermindDecisionVersion === "string" ? {
+      decisionVersion: String(input.mastermindDecisionVersion),
+      decision: input.mastermindDecision || "recommend",
+      evaluatedAt: now,
+      quotedEstimateEgp: typeof input.quotedEstimateEgp === "number" ? input.quotedEstimateEgp : void 0
+    } : void 0,
     stage: "received",
     source: "direct",
     communityApproval: {
@@ -1323,7 +1386,8 @@ async function createLiveEnquiry(input) {
     timeline: [{ stage: "received", at: now, note: "Guest submitted stay enquiry." }]
   };
   await createDocument("enquiries", enquiry2.id, enquiry2);
-  return enquiry2;
+  const { guestPhone: _privatePhone, ...receipt } = enquiry2;
+  return receipt;
 }
 async function advanceLiveEnquiry(session, id, input = {}) {
   const partner = await partnerFor(session);
@@ -1694,7 +1758,9 @@ var momentLabels = {
   afternoon_drift: ["Afternoon Drift", "\u0633\u0643\u0648\u0646 \u0627\u0644\u0638\u0647\u064A\u0631\u0629"],
   night_swim: ["Night Swim", "\u0627\u0644\u0633\u0628\u0627\u062D\u0629 \u0627\u0644\u0644\u064A\u0644\u064A\u0629"],
   fire_conversation: ["Fire Conversation", "\u062D\u0648\u0627\u0631 \u062D\u0648\u0644 \u0627\u0644\u0646\u0627\u0631"],
-  silent_reading: ["Silent Reading", "\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0627\u0645\u062A\u0629"]
+  silent_reading: ["Silent Reading", "\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0627\u0645\u062A\u0629"],
+  coastal_discovery: ["Coastal Discovery", "\u0627\u0643\u062A\u0634\u0627\u0641 \u0633\u0627\u062D\u0644\u064A"],
+  urban_retreat: ["Urban Retreat", "\u0645\u0644\u0627\u0630 \u062D\u0636\u0631\u064A"]
 };
 var cleanString4 = (value, field, max = 180) => {
   if (typeof value !== "string" || !value.trim() || value.trim().length > max) {
@@ -2692,6 +2758,208 @@ var CANONICAL_FLAGSHIP_MOMENTS = [
       "\u062A\u0631\u0627\u0633 \u0639\u0644\u0648\u064A \u0623\u0648 \u0641\u0646\u0627\u0621 \u0647\u0627\u062F\u0626 \u0645\u0641\u062A\u0648\u062D \u0628\u0627\u062A\u062C\u0627\u0647 \u0627\u0644\u0628\u062D\u0631 \u0623\u0648 \u0627\u0644\u0635\u062D\u0631\u0627\u0621",
       "\u0623\u063A\u0637\u064A\u0629 \u0635\u0648\u0641\u064A\u0629 \u062F\u0627\u0641\u0626\u0629 \u0645\u062E\u0635\u0635\u0629 \u0644\u0623\u0645\u0633\u064A\u0627\u062A \u0627\u0644\u0634\u062A\u0627\u0621 \u0648\u0627\u0644\u0646\u0633\u064A\u0645 \u0627\u0644\u0628\u0627\u0631\u062F"
     ]
+  },
+  {
+    id: "coastal_discovery",
+    legacyKey: "coastal_discovery",
+    sequence: "07",
+    title: "Coastal Discovery",
+    titleAr: "\u0627\u0643\u062A\u0634\u0627\u0641 \u0633\u0627\u062D\u0644\u064A",
+    hook: "Direct secluded shoreline trails, untouched marine shallows, and sea glass horizons.",
+    hookAr: "\u0645\u0633\u0627\u0631\u0627\u062A \u0634\u0627\u0637\u0626\u064A\u0629 \u0645\u0628\u0627\u0634\u0631\u0629\u060C \u0645\u064A\u0627\u0647 \u0628\u062D\u0631\u064A\u0629 \u0646\u0642\u064A\u0629 \u0648\u0628\u0643\u0631\u060C \u0648\u0623\u0641\u0642 \u0628\u062D\u0631\u064A \u0645\u0645\u062A\u062F.",
+    guestPromise: "Wander where the tide meets untouched shores.",
+    guestPromiseAr: "\u0627\u0633\u062A\u0643\u0634\u0641 \u0623\u0633\u0631\u0627\u0631 \u0627\u0644\u0633\u0627\u062D\u0644 \u062D\u064A\u062B \u062A\u0644\u062A\u0642\u064A \u0627\u0644\u0645\u064A\u0627\u0647 \u0628\u0627\u0644\u0634\u0648\u0627\u0637\u0626 \u0627\u0644\u0628\u0643\u0631.",
+    editorialDescription: "An unhurried exploration along secluded shoreline cliffs and pristine marine shallows. Salty ocean mist, private walk-in sea access, panoramic coastal lookouts, and the restorative silence of natural waves without motorized watercraft intrusions.",
+    editorialDescriptionAr: "\u0627\u0633\u062A\u0643\u0634\u0627\u0641 \u0645\u062A\u0623\u0646\u064D \u0639\u0644\u0649 \u0637\u0648\u0644 \u062C\u0631\u0648\u0641 \u0627\u0644\u0634\u0627\u0637\u0626 \u0627\u0644\u0645\u0646\u0639\u0632\u0644\u0629 \u0648\u0645\u064A\u0627\u0647 \u0627\u0644\u0628\u062D\u0631 \u0627\u0644\u0646\u0642\u064A\u0629. \u0631\u0630\u0627\u0630 \u0627\u0644\u0628\u062D\u0631 \u0627\u0644\u0645\u0627\u0644\u062D\u060C \u0648\u0635\u0648\u0644 \u062E\u0627\u0635 \u0648\u0645\u0628\u0627\u0634\u0631 \u0644\u0644\u0634\u0627\u0637\u0626\u060C \u0625\u0637\u0644\u0627\u0644\u0627\u062A \u0628\u0627\u0646\u0648\u0631\u0627\u0645\u064A\u0629 \u0645\u0641\u062A\u0648\u062D\u0629\u060C \u0648\u0627\u0644\u0647\u062F\u0648\u0621 \u0627\u0644\u062A\u0627\u0645 \u0644\u0623\u0645\u0648\u0627\u062C \u0627\u0644\u0628\u062D\u0631 \u0627\u0644\u0637\u0628\u064A\u0639\u064A\u0629 \u062F\u0648\u0646 \u0623\u064A \u0636\u0648\u0636\u0627\u0621 \u0645\u062D\u0631\u0643\u0627\u062A \u0628\u062D\u0631\u064A\u0629.",
+    image: "/moments/07-coastal-discovery.jpg",
+    imageAlt: "Pristine coastal discovery shoreline with turquoise waters and secluded natural cliffs",
+    imageAltAr: "\u0634\u0627\u0637\u0626 \u0628\u0643\u0631 \u0645\u0646\u0639\u0632\u0644 \u0628\u0645\u064A\u0627\u0647 \u0641\u064A\u0631\u0648\u0632\u064A\u0629 \u0635\u0627\u0641\u064A\u0629 \u0648\u062C\u0631\u0648\u0641 \u0635\u062E\u0631\u064A\u0629 \u0637\u0628\u064A\u0639\u064A\u0629 \u0647\u0627\u062F\u0626\u0629",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Secluded Shoreline Proximity & Private Beach Corridor",
+        titleAr: "\u0642\u0631\u0628 \u0627\u0644\u0634\u0627\u0637\u0626 \u0627\u0644\u0645\u0646\u0639\u0632\u0644 \u0648\u0645\u0645\u0631 \u0648\u0635\u0648\u0644 \u062E\u0627\u0635 \u0648\u0645\u0628\u0627\u0634\u0631",
+        description: "Direct pedestrian access to uncrowded coastal sand or natural tidal coves within 180 seconds.",
+        descriptionAr: "\u0648\u0635\u0648\u0644 \u0645\u0634\u0627\u0629 \u0645\u0628\u0627\u0634\u0631 \u0648\u063A\u064A\u0631 \u0645\u0632\u062F\u062D\u0645 \u0625\u0644\u0649 \u0634\u0627\u0637\u0626 \u0631\u0645\u0644\u064A \u0623\u0648 \u062E\u0644\u064A\u062C \u0628\u062D\u0631\u064A \u0637\u0628\u064A\u0639\u064A \u062E\u0644\u0627\u0644 \u0623\u0642\u0644 \u0645\u0646 \u0663 \u062F\u0642\u0627\u0626\u0642.",
+        protocol: {
+          protocolId: "BPS-PROT-COAST-07",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "certified",
+          instrumentMethod: "GPS-tracked physical egress timing & shoreline accessibility audit",
+          instrumentMethodAr: "\u062A\u0648\u0642\u064A\u062A \u0645\u0633\u0627\u0631 \u0627\u0644\u0645\u0634\u064A \u0627\u0644\u0641\u0639\u0644\u064A \u0628\u0646\u0638\u0627\u0645 GPS \u0648\u062A\u0648\u062B\u064A\u0642 \u0633\u0647\u0648\u0644\u0629 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u0634\u0627\u0637\u0626",
+          measuredParameter: "Door-to-shoreline walking time in seconds",
+          measuredParameterAr: "\u0632\u0645\u0646 \u0627\u0644\u0645\u0634\u064A \u0645\u0646 \u0639\u062A\u0628\u0629 \u0627\u0644\u0645\u0646\u0632\u0644 \u0625\u0644\u0649 \u0627\u0644\u0634\u0627\u0637\u0626 \u0628\u0627\u0644\u062B\u0648\u0627\u0646\u064A",
+          targetThreshold: "Walk time <= 180 seconds via private or semi-private uninterrupted path",
+          toleranceMargin: "+-15 seconds",
+          provenanceRequirement: "Timestamped continuous video trace from home threshold to waterline",
+          provenanceRequirementAr: "\u0641\u064A\u062F\u064A\u0648 \u0645\u062A\u0648\u0627\u0635\u0644 \u0648\u0645\u0624\u0631\u062E \u0645\u0646 \u0639\u062A\u0628\u0629 \u0627\u0644\u0645\u0646\u0632\u0644 \u062D\u062A\u0649 \u0645\u0644\u0627\u0645\u0633\u0629 \u0645\u064A\u0627\u0647 \u0627\u0644\u0628\u062D\u0631"
+        }
+      },
+      {
+        title: "Unobstructed Marine Horizon & Seascape Purity",
+        titleAr: "\u0623\u0641\u0642 \u0628\u062D\u0631\u064A \u0645\u0641\u062A\u0648\u062D \u0648\u0646\u0642\u0627\u0621 \u0627\u0644\u0645\u0634\u0647\u062F \u0627\u0644\u0637\u0628\u064A\u0639\u064A",
+        description: "Minimum 150-degree unobstructed coastal panorama free of industrial cranes or commercial billboards.",
+        descriptionAr: "\u0628\u0627\u0646\u0648\u0631\u0627\u0645\u0627 \u0628\u062D\u0631\u064A\u0629 \u0644\u0627 \u062A\u0642\u0644 \u0639\u0646 \u0661\u0665\u0660 \u062F\u0631\u062C\u0629 \u062E\u0627\u0644\u064A\u0629 \u062A\u0645\u0627\u0645\u0627\u064B \u0645\u0646 \u0627\u0644\u0631\u0627\u0641\u0639\u0627\u062A \u0627\u0644\u0635\u0646\u0627\u0639\u064A\u0629 \u0623\u0648 \u0627\u0644\u0644\u0648\u062D\u0627\u062A \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-VISTA-07",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "certified",
+          instrumentMethod: "Optical compass 360-degree surveyor photography and line-of-sight analysis",
+          instrumentMethodAr: "\u062A\u0635\u0648\u064A\u0631 \u0628\u0627\u0646\u0648\u0631\u0627\u0645\u064A \u0628\u0628\u0648\u0635\u0644\u0629 \u0628\u0635\u0631\u064A\u0629 \u0648\u062A\u062D\u0644\u064A\u0644 \u062E\u0637 \u0627\u0644\u0623\u0641\u0642 \u0627\u0644\u0628\u0635\u0631\u064A",
+          measuredParameter: "Unobstructed nautical arc in degrees",
+          measuredParameterAr: "\u0632\u0627\u0648\u064A\u0629 \u0627\u0644\u0623\u0641\u0642 \u0627\u0644\u0628\u062D\u0631\u064A \u0627\u0644\u0645\u0641\u062A\u0648\u062D \u0628\u0627\u0644\u062F\u0631\u062C\u0627\u062A",
+          targetThreshold: ">= 150 degrees unbroken marine view",
+          toleranceMargin: "+-5 degrees",
+          provenanceRequirement: "Calibrated wide-angle photo with compass overlay and horizon timestamp",
+          provenanceRequirementAr: "\u0635\u0648\u0631\u0629 \u0639\u0631\u064A\u0636\u0629 \u0627\u0644\u0632\u0627\u0648\u064A\u0629 \u0645\u0639 \u0634\u0628\u0643\u0629 \u0627\u0644\u0628\u0648\u0635\u0644\u0629 \u0648\u062A\u0648\u062B\u064A\u0642 \u062E\u0637 \u0627\u0644\u0623\u0641\u0642"
+        }
+      },
+      {
+        title: "Natural Shoreline Acoustics & Low Motorized Disturbance",
+        titleAr: "\u0647\u062F\u0648\u0621 \u0635\u0648\u062A\u064A \u0637\u0628\u064A\u0639\u064A \u0648\u062E\u0644\u0648 \u062A\u0627\u0645 \u0645\u0646 \u0627\u0644\u0645\u062D\u0631\u0643\u0627\u062A \u0627\u0644\u0628\u062D\u0631\u064A\u0629 \u0627\u0644\u0645\u0632\u0639\u062C\u0629",
+        description: "Ambient sound dominated purely by natural wave action and sea breeze (<48 dBA LAeq).",
+        descriptionAr: "\u0628\u064A\u0626\u0629 \u0635\u0648\u062A\u064A\u0629 \u062A\u0633\u0648\u062F\u0647\u0627 \u062D\u0631\u0643\u0629 \u0627\u0644\u0623\u0645\u0648\u0627\u062C \u0627\u0644\u0637\u0628\u064A\u0639\u064A\u0629 \u0648\u0646\u0633\u064A\u0645 \u0627\u0644\u0628\u062D\u0631 \u0641\u0642\u0637 (\u0623\u0642\u0644 \u0645\u0646 \u0664\u0668 \u062F\u064A\u0633\u064A\u0628\u0644).",
+        protocol: {
+          protocolId: "BPS-PROT-ACOUST-07",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "Class 1 sound level meter (IEC 61672-1) 15-minute coastal continuous logging",
+          instrumentMethodAr: "\u0642\u064A\u0627\u0633 \u062C\u0647\u0627\u0632 \u062F\u064A\u0633\u064A\u0628\u0644 \u0645\u0639\u062A\u0645\u062F \u0645\u0646 \u0627\u0644\u0641\u0626\u0629 \u0627\u0644\u0623\u0648\u0644\u0649 \u0644\u0645\u062F\u0629 \u0661\u0665 \u062F\u0642\u064A\u0642\u0629 \u0645\u062A\u0648\u0627\u0635\u0644\u0629 \u0639\u0644\u0649 \u0627\u0644\u0634\u0627\u0637\u0626",
+          measuredParameter: "A-weighted equivalent continuous sound level (LAeq, 15m)",
+          measuredParameterAr: "\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u0645\u0633\u062A\u0645\u0631 \u0627\u0644\u0645\u0643\u0627\u0641\u0626 (LAeq)",
+          targetThreshold: "LAeq <= 48 dBA with zero jet-ski acoustic spikes > 52 dBA",
+          toleranceMargin: "+-1.5 dBA",
+          provenanceRequirement: "Digital audio frequency log & calibrated sound level meter certificate",
+          provenanceRequirementAr: "\u0633\u062C\u0644 \u0627\u0644\u062A\u0631\u062F\u062F\u0627\u062A \u0627\u0644\u0635\u0648\u062A\u064A\u0629 \u0627\u0644\u0631\u0642\u0645\u064A \u0648\u0634\u0647\u0627\u062F\u0629 \u0645\u0639\u0627\u064A\u0631\u0629 \u062C\u0647\u0627\u0632 \u0642\u064A\u0627\u0633 \u0627\u0644\u0635\u0648\u062A"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Industrial port view, cargo shipping terminal, or concrete sea wall blocking natural sand",
+      "Continuous commercial jet ski or motorized boat traffic creating sound levels > 52 dBA",
+      "High-density commercial beach concession with plastic loungers and loud public address audio"
+    ],
+    disqualifiersAr: [
+      "\u0625\u0637\u0644\u0627\u0644\u0629 \u0639\u0644\u0649 \u0645\u064A\u0646\u0627\u0621 \u0635\u0646\u0627\u0639\u064A \u0623\u0648 \u0631\u0635\u064A\u0641 \u0634\u062D\u0646 \u0628\u062D\u0631\u064A \u0623\u0648 \u062D\u0648\u0627\u062C\u0632 \u062E\u0631\u0633\u0627\u0646\u064A\u0629 \u062A\u062D\u062C\u0628 \u0627\u0644\u0634\u0627\u0637\u0626 \u0627\u0644\u0637\u0628\u064A\u0639\u064A",
+      "\u062D\u0631\u0643\u0629 \u062F\u0631\u0627\u062C\u0627\u062A \u0645\u0627\u0626\u064A\u0629 (\u062C\u064A\u062A \u0633\u0643\u064A) \u0623\u0648 \u0642\u0648\u0627\u0631\u0628 \u0628\u0645\u062D\u0631\u0643\u0627\u062A \u062A\u0633\u0628\u0628 \u0636\u0648\u0636\u0627\u0621 \u062A\u062A\u062C\u0627\u0648\u0632 \u0665\u0662 \u062F\u064A\u0633\u064A\u0628\u0644",
+      "\u0634\u0627\u0637\u0626 \u062A\u062C\u0627\u0631\u064A \u0645\u0632\u062F\u062D\u0645 \u0628\u0645\u0643\u0628\u0631\u0627\u062A \u0635\u0648\u062A \u0623\u0648 \u0643\u0631\u0627\u0633\u064A \u0628\u0644\u0627\u0633\u062A\u064A\u0643\u064A\u0629 \u0645\u062A\u0631\u0627\u0635\u0629 \u0628\u0634\u0643\u0644 \u0639\u0634\u0648\u0627\u0626\u064A"
+    ],
+    photographyDirectives: [
+      "Capture natural wave patterns meeting undisturbed coastal geology or sand",
+      "Frame early morning or late afternoon golden reflections across the tidal shallows",
+      "Emphasize negative space and the immense horizon rather than crowded beach gear"
+    ],
+    minimumResidenceQualifications: [
+      "Direct private coastal footpath or immediate boardwalk egress to quiet shoreline",
+      "Outdoor warm-water foot rinse station before entering residence",
+      "Provided coastal discovery kit (brass marine binoculars, tide table, waterproof tote, shoreline throw)"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0645\u0645\u0631 \u0645\u0634\u0627\u0629 \u062E\u0627\u0635 \u0648\u0645\u0628\u0627\u0634\u0631 \u0625\u0644\u0649 \u0627\u0644\u0634\u0627\u0637\u0626 \u0627\u0644\u0647\u0627\u062F\u0626 \u062F\u0648\u0646 \u0627\u0644\u062D\u0627\u062C\u0629 \u0644\u0631\u0643\u0648\u0628 \u0633\u064A\u0627\u0631\u0629",
+      "\u062F\u0634 \u0634\u0627\u0637\u0626\u064A \u0623\u0648 \u0646\u0642\u0637\u0629 \u0634\u0637\u0641 \u0628\u0627\u0644\u0645\u0627\u0621 \u0627\u0644\u062F\u0627\u0641\u0626 \u0639\u0646\u062F \u0645\u062F\u062E\u0644 \u0627\u0644\u0645\u0646\u0632\u0644",
+      "\u062D\u0642\u064A\u0628\u0629 \u0627\u0633\u062A\u0643\u0634\u0627\u0641 \u0634\u0627\u0637\u0626\u064A\u0629 \u0645\u062C\u0647\u0632\u0629 (\u062F\u0631\u0628\u064A\u0644 \u0628\u062D\u0631\u064A \u0646\u062D\u0627\u0633\u064A\u060C \u062C\u062F\u0648\u0644 \u0627\u0644\u0645\u062F \u0648\u0627\u0644\u062C\u0632\u0631\u060C \u0628\u0637\u0627\u0646\u064A\u0629 \u0634\u0627\u0637\u0626 \u0642\u0637\u0646\u064A\u0629)"
+    ]
+  },
+  {
+    id: "urban_retreat",
+    legacyKey: "urban_retreat",
+    sequence: "08",
+    title: "Urban Retreat",
+    titleAr: "\u0645\u0644\u0627\u0630 \u062D\u0636\u0631\u064A",
+    hook: "Architectural serenity, secluded courtyard gardens, and acoustic calm amidst the city.",
+    hookAr: "\u0633\u0643\u064A\u0646\u0629 \u0645\u0639\u0645\u0627\u0631\u064A\u0629\u060C \u0623\u0641\u0646\u064A\u0629 \u062F\u0627\u062E\u0644\u064A\u0629 \u0645\u0638\u0644\u0644\u0629\u060C \u0648\u0639\u0632\u0644 \u0635\u0648\u062A\u064A \u0641\u0627\u0626\u0642 \u0641\u064A \u0642\u0644\u0628 \u0627\u0644\u0645\u062F\u064A\u0646\u0629.",
+    guestPromise: "A secluded sanctuary elevated above the city rhythm.",
+    guestPromiseAr: "\u0648\u0627\u062D\u0629 \u0645\u0646\u0639\u0632\u0644\u0629 \u0648\u0645\u0631\u062A\u0641\u0639\u0629 \u0641\u0648\u0642 \u0648\u062A\u064A\u0631\u0629 \u0627\u0644\u0645\u062F\u064A\u0646\u0629 \u0648\u0635\u062E\u0628\u0647\u0627.",
+    editorialDescription: "An architectural oasis nestled in the historic or cultural quarter. Soaring ceilings, secluded courtyard gardens, curated library walls, double-glazed acoustic tranquility, artisanal coffee roasts, and dappled courtyard shade while the city hums gently beyond thick stone walls.",
+    editorialDescriptionAr: "\u0648\u0627\u062D\u0629 \u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u062F\u0627\u062E\u0644 \u0627\u0644\u0623\u062D\u064A\u0627\u0621 \u0627\u0644\u062A\u0627\u0631\u064A\u062E\u064A\u0629 \u0623\u0648 \u0627\u0644\u062B\u0642\u0627\u0641\u064A\u0629 \u0627\u0644\u0631\u0627\u0642\u064A\u0629. \u0623\u0633\u0642\u0641 \u0639\u0627\u0644\u064A\u0629\u060C \u0623\u0641\u0646\u064A\u0629 \u062F\u0627\u062E\u0644\u064A\u0629 \u0645\u0638\u0644\u0644\u0629\u060C \u0645\u0643\u062A\u0628\u0627\u062A \u0645\u0646\u062A\u0642\u0627\u0629 \u0628\u0639\u0646\u0627\u064A\u0629\u060C \u0639\u0632\u0644 \u0635\u0648\u062A\u064A \u0645\u062A\u0642\u0646\u060C \u0642\u0647\u0648\u0629 \u0645\u062E\u062A\u0635\u0629\u060C \u0648\u0633\u0643\u064A\u0646\u0629 \u062A\u0627\u0645\u0629 \u062E\u0644\u0641 \u062C\u062F\u0631\u0627\u0646 \u062D\u062C\u0631\u064A\u0629 \u0633\u0645\u064A\u0643\u0629 \u062A\u0641\u0635\u0644\u0643 \u0639\u0646 \u0648\u062A\u064A\u0631\u0629 \u0627\u0644\u0645\u062F\u064A\u0646\u0629.",
+    image: "/moments/08-urban-retreat.jpg",
+    imageAlt: "Tranquil architectural urban courtyard with stone fountain, shaded pergolas, and lush greenery",
+    imageAltAr: "\u0641\u0646\u0627\u0621 \u0645\u0639\u0645\u0627\u0631\u064A \u062D\u0636\u0631\u064A \u0647\u0627\u062F\u0626 \u0645\u0639 \u0646\u0627\u0641\u0648\u0631\u0629 \u062D\u062C\u0631\u064A\u0629 \u0648\u0639\u0631\u0627\u0626\u0634 \u0645\u0638\u0644\u0644\u0629 \u0648\u062E\u0636\u0631\u0629 \u0648\u0627\u0631\u0641\u0629",
+    imagePosition: "center 50%",
+    evidenceCriteria: [
+      {
+        title: "Acoustic Decibel Isolation & City Buffer",
+        titleAr: "\u0639\u0632\u0644 \u0635\u0648\u062A\u064A \u0641\u0627\u0626\u0642 \u0648\u062D\u0627\u062C\u0632 \u0647\u0627\u062F\u0626 \u0639\u0646 \u0635\u062E\u0628 \u0627\u0644\u0645\u062F\u064A\u0646\u0629",
+        description: "Measured internal living and courtyard sound levels below 38 dBA despite urban density.",
+        descriptionAr: "\u0645\u0633\u062A\u0648\u0649 \u0636\u0648\u0636\u0627\u0621 \u062F\u0627\u062E\u0644\u064A \u0648\u0641\u064A \u0627\u0644\u0641\u0646\u0627\u0621 \u0623\u0642\u0644 \u0645\u0646 \u0663\u0668 \u062F\u064A\u0633\u064A\u0628\u0644 \u0631\u063A\u0645 \u0627\u0644\u062D\u064A\u0648\u064A\u0629 \u0627\u0644\u062D\u0636\u0631\u064A\u0629 \u0644\u0644\u0645\u0646\u0637\u0642\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-ACOUST-08",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "certified",
+          instrumentMethod: "Class 1 sound level meter (IEC 61672-1) peak traffic 20-minute indoor recording",
+          instrumentMethodAr: "\u0642\u064A\u0627\u0633 \u062C\u0647\u0627\u0632 \u062F\u064A\u0633\u064A\u0628\u0644 \u0645\u0639\u062A\u0645\u062F \u0645\u0646 \u0627\u0644\u0641\u0626\u0629 \u0627\u0644\u0623\u0648\u0644\u0649 \u0623\u062B\u0646\u0627\u0621 \u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0630\u0631\u0648\u0629 \u0627\u0644\u062D\u0636\u0631\u064A\u0629 \u0644\u0645\u062F\u0629 \u0662\u0660 \u062F\u0642\u064A\u0642\u0629",
+          measuredParameter: "A-weighted equivalent continuous indoor sound level (LAeq, indoor)",
+          measuredParameterAr: "\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u062F\u0627\u062E\u0644\u064A \u0627\u0644\u0645\u0633\u062A\u0645\u0631 \u0627\u0644\u0645\u0643\u0627\u0641\u0626 (LAeq)",
+          targetThreshold: "Indoor LAeq <= 38 dBA with windows closed (or courtyard <= 45 dBA)",
+          toleranceMargin: "+-1.5 dBA",
+          provenanceRequirement: "Continuous meter time-series CSV log with GPS & address stamp",
+          provenanceRequirementAr: "\u0633\u062C\u0644 \u0632\u0645\u0646\u064A \u0631\u0642\u0645\u064A \u0645\u062A\u0648\u0627\u0635\u0644 \u0644\u062C\u0647\u0627\u0632 \u0627\u0644\u0642\u064A\u0627\u0633 \u0645\u0639 \u0627\u0644\u0625\u062D\u062F\u0627\u062B\u064A\u0627\u062A \u0648\u0627\u0644\u0639\u0646\u0648\u0627\u0646"
+        }
+      },
+      {
+        title: "Private Enclosed Courtyard or Sky Atrium",
+        titleAr: "\u0641\u0646\u0627\u0621 \u062F\u0627\u062E\u0644\u064A \u062E\u0627\u0635 \u0623\u0648 \u062D\u062F\u064A\u0642\u0629 \u0633\u0645\u0627\u0648\u064A\u0629 \u0645\u063A\u0644\u0642\u0629",
+        description: "Dedicated private outdoor or semi-outdoor green sanctuary of at least 15 sqm with living vegetative canopy.",
+        descriptionAr: "\u0645\u0633\u0627\u062D\u0629 \u062E\u0636\u0631\u0627\u0621 \u062E\u0627\u0635\u0629 \u0648\u0645\u062D\u0645\u064A\u0629 \u0644\u0627 \u062A\u0642\u0644 \u0639\u0646 \u0661\u0665 \u0645\xB2 \u0645\u0639 \u0623\u0634\u062C\u0627\u0631 \u0623\u0648 \u0646\u0628\u0627\u062A\u0627\u062A \u062D\u064A\u0629 \u062A\u0648\u0641\u0631 \u0638\u0644\u0627\u064B \u0637\u0628\u064A\u0639\u064A\u0627\u064B.",
+        protocol: {
+          protocolId: "BPS-PROT-GREEN-08",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "certified",
+          instrumentMethod: "Architectural floor plan verification & canopy area laser measurement",
+          instrumentMethodAr: "\u0645\u0637\u0627\u0628\u0642\u0629 \u0627\u0644\u0645\u062E\u0637\u0637 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064A \u0648\u0642\u064A\u0627\u0633 \u0627\u0644\u0645\u0633\u0627\u062D\u0629 \u0627\u0644\u0645\u0638\u0644\u0644\u0629 \u0628\u062C\u0647\u0627\u0632 \u0627\u0644\u0644\u064A\u0632\u0631",
+          measuredParameter: "Private courtyard vegetative usable area in square meters",
+          measuredParameterAr: "\u0627\u0644\u0645\u0633\u0627\u062D\u0629 \u0627\u0644\u0646\u0628\u0627\u062A\u064A\u0629 \u0627\u0644\u0645\u0641\u064A\u062F\u0629 \u0644\u0644\u0641\u0646\u0627\u0621 \u0627\u0644\u062F\u0627\u062E\u0644\u064A \u0628\u0627\u0644\u0645\u062A\u0631 \u0627\u0644\u0645\u0631\u0628\u0639",
+          targetThreshold: ">= 15.0 sqm dedicated private garden/patio area with living greenery",
+          toleranceMargin: "+-0.5 sqm",
+          provenanceRequirement: "Laser meter distance display photos and botanical checklist audit",
+          provenanceRequirementAr: "\u0635\u0648\u0631 \u0642\u064A\u0627\u0633 \u062C\u0647\u0627\u0632 \u0627\u0644\u0644\u064A\u0632\u0631 \u0648\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062A\u0648\u062B\u064A\u0642 \u0627\u0644\u0646\u0628\u0627\u062A\u064A \u0644\u0644\u0641\u0646\u0627\u0621"
+        }
+      },
+      {
+        title: "Architectural Provenance & Curated Library Sanctuary",
+        titleAr: "\u0623\u0635\u0627\u0644\u0629 \u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u0648\u0645\u0643\u062A\u0628\u0629 \u062B\u0642\u0627\u0641\u064A\u0629 \u0645\u0646\u062A\u0642\u0627\u0629",
+        description: "Authentic heritage masonry or celebrated contemporary architectural residence with quiet study/library.",
+        descriptionAr: "\u0639\u0645\u0627\u0631\u0629 \u062A\u0631\u0627\u062B\u064A\u0629 \u0623\u0635\u064A\u0644\u0629 \u0623\u0648 \u062A\u0635\u0645\u064A\u0645 \u0645\u0639\u0645\u0627\u0631\u064A \u0645\u0639\u0627\u0635\u0631 \u0645\u0645\u064A\u0632 \u0645\u0639 \u0631\u0643\u0646 \u0645\u0637\u0627\u0644\u0639\u0629 \u0648\u0645\u0643\u062A\u0628\u0629 \u0623\u062F\u0628\u064A\u0629 \u063A\u0646\u064A\u0629.",
+        protocol: {
+          protocolId: "BPS-PROT-ARCH-08",
+          policyVersion: "BPS-MOM-2026.1",
+          verificationStatus: "provisional",
+          instrumentMethod: "BPS architectural heritage appraisal & interior design audit",
+          instrumentMethodAr: "\u062A\u0642\u064A\u064A\u0645 \u0645\u0639\u0627\u064A\u064A\u0631 \u0627\u0644\u062C\u0648\u062F\u0629 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u0648\u0627\u0644\u062A\u0635\u0645\u064A\u0645 \u0627\u0644\u062F\u0627\u062E\u0644\u064A \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u0645\u0646 BPS",
+          measuredParameter: "Ceiling clearance, acoustic glazing rating, and library volume count",
+          measuredParameterAr: "\u0627\u0631\u062A\u0641\u0627\u0639 \u0627\u0644\u0623\u0633\u0642\u0641\u060C \u062F\u0631\u062C\u0629 \u0627\u0644\u0639\u0632\u0644 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064A \u0644\u0644\u0646\u0648\u0627\u0641\u0630\u060C \u0648\u0639\u062F\u062F \u0627\u0644\u0643\u062A\u0628 \u0627\u0644\u0645\u0646\u062A\u0642\u0627\u0629",
+          targetThreshold: "Ceiling >= 3.2m, certified double-glazed facade, library >= 30 curated literary volumes",
+          toleranceMargin: "Strict minimum thresholds",
+          provenanceRequirement: "Photographic catalog of masonry details, library titles, and glazing cross-sections",
+          provenanceRequirementAr: "\u0643\u062A\u0627\u0644\u0648\u062C \u0635\u0648\u0631 \u0644\u0644\u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u0648\u0639\u0646\u0627\u0648\u064A\u0646 \u0627\u0644\u0645\u0643\u062A\u0628\u0629 \u0648\u0642\u0637\u0627\u0639\u0627\u062A \u0627\u0644\u0632\u062C\u0627\u062C \u0627\u0644\u0639\u0627\u0632\u0644"
+        }
+      }
+    ],
+    disqualifiers: [
+      "Traffic horns or street sirens clearly audible inside bedroom > 42 dBA",
+      "Shared commercial building lobby with heavy generic foot traffic and no private residence foyer",
+      "Absence of any private outdoor/patio space or inability to open to fresh air in tranquility"
+    ],
+    disqualifiersAr: [
+      "\u0623\u0628\u0648\u0627\u0642 \u0627\u0644\u0633\u064A\u0627\u0631\u0627\u062A \u0623\u0648 \u0635\u0641\u0627\u0631\u0627\u062A \u0627\u0644\u0625\u0646\u0630\u0627\u0631 \u0645\u0633\u0645\u0648\u0639\u0629 \u0628\u0648\u0636\u0648\u062D \u062F\u0627\u062E\u0644 \u063A\u0631\u0641 \u0627\u0644\u0646\u0648\u0645 \u0628\u0645\u0633\u062A\u0648\u0649 \u0623\u0639\u0644\u0649 \u0645\u0646 \u0664\u0662 \u062F\u064A\u0633\u064A\u0628\u0644",
+      "\u0645\u062F\u062E\u0644 \u062A\u062C\u0627\u0631\u064A \u0645\u0634\u062A\u0631\u0643 \u0645\u0632\u062F\u062D\u0645 \u062F\u0648\u0646 \u0645\u062F\u062E\u0644 \u062E\u0627\u0635 \u0623\u0648 \u0628\u0647\u0648 \u0633\u0643\u0646\u064A \u0645\u0633\u062A\u0642\u0644 \u0648\u0645\u062D\u0645\u064A",
+      "\u0627\u0646\u0639\u062F\u0627\u0645 \u0623\u064A \u0645\u0633\u0627\u062D\u0629 \u0641\u0646\u0627\u0621 \u062E\u0627\u0635\u0629 \u0623\u0648 \u0634\u0631\u0641\u0629 \u0647\u0627\u062F\u0626\u0629 \u062A\u062A\u064A\u062D \u0627\u0633\u062A\u0646\u0634\u0627\u0642 \u0627\u0644\u0647\u0648\u0627\u0621 \u0627\u0644\u0639\u0644\u064A\u0644 \u0628\u0633\u0643\u064A\u0646\u0629"
+    ],
+    photographyDirectives: [
+      "Focus on the architectural play of light through courtyard arches and leafy pergola canopies",
+      "Capture intimate quiet corners: open books, artisanal ceramic cups on stone tables, reading lamps",
+      "Contrast the historic/architectural stillness with the soft silhouette of the surrounding city"
+    ],
+    minimumResidenceQualifications: [
+      "Double or triple-glazed acoustic architectural windows throughout all living spaces",
+      "Private internal courtyard, walled patio, or landscaped private rooftop atrium",
+      "Dedicated pour-over/espresso bar with artisanal roasted beans and curated local literary collection"
+    ],
+    minimumResidenceQualificationsAr: [
+      "\u0646\u0648\u0627\u0641\u0630 \u0632\u062C\u0627\u062C\u064A\u0629 \u0645\u0632\u062F\u0648\u062C\u0629 \u0623\u0648 \u062B\u0644\u0627\u062B\u064A\u0629 \u0639\u0627\u0632\u0644\u0629 \u0644\u0644\u0635\u0648\u062A \u0641\u064A \u062C\u0645\u064A\u0639 \u0627\u0644\u0645\u0633\u0627\u062D\u0627\u062A \u0648\u063A\u0631\u0641 \u0627\u0644\u0646\u0648\u0645",
+      "\u0641\u0646\u0627\u0621 \u062F\u0627\u062E\u0644\u064A \u062E\u0627\u0635 \u0623\u0648 \u062D\u062F\u064A\u0642\u0629 \u0639\u0644\u0648\u064A\u0629 \u0645\u0648\u0631\u0642\u0629 \u0645\u062D\u0627\u0637\u0629 \u0628\u0623\u0633\u0648\u0627\u0631 \u0639\u0627\u0632\u0644\u0629 \u0644\u0644\u0631\u0624\u064A\u0629",
+      "\u0631\u0643\u0646 \u0642\u0647\u0648\u0629 \u0645\u062E\u062A\u0635\u0629 \u0645\u062C\u0647\u0632 \u0628\u0645\u0639\u062F\u0627\u062A \u0627\u0644\u062A\u0642\u0637\u064A\u0631 \u0648\u062D\u0628\u0648\u0628 \u0642\u0647\u0648\u0629 \u0637\u0627\u0632\u062C\u0629 \u0645\u0639 \u0645\u0643\u062A\u0628\u0629 \u0623\u062F\u0628\u064A\u0629 \u0645\u062D\u0644\u064A\u0629 \u0645\u0646\u062A\u0642\u0627\u0629"
+    ]
   }
 ];
 function resolveCanonicalMoment(keyOrSlug) {
@@ -2700,293 +2968,182 @@ function resolveCanonicalMoment(keyOrSlug) {
   if (exact) return exact;
   if (normalized.includes("morning") || normalized.includes("dawn")) return CANONICAL_FLAGSHIP_MOMENTS[0];
   if (normalized.includes("breakfast") || normalized.includes("table")) return CANONICAL_FLAGSHIP_MOMENTS[1];
-  if (normalized.includes("barefoot") || normalized.includes("afternoon") || normalized.includes("swim")) return CANONICAL_FLAGSHIP_MOMENTS[2];
-  if (normalized.includes("play") || normalized.includes("family")) return CANONICAL_FLAGSHIP_MOMENTS[3];
-  if (normalized.includes("sit") || normalized.includes("dinner") || normalized.includes("hearth")) return CANONICAL_FLAGSHIP_MOMENTS[4];
+  if (normalized.includes("barefoot") || normalized.includes("afternoon") || normalized.includes("drift")) return CANONICAL_FLAGSHIP_MOMENTS[2];
+  if (normalized.includes("play") || normalized.includes("family") || normalized.includes("swim")) return CANONICAL_FLAGSHIP_MOMENTS[3];
+  if (normalized.includes("sit") || normalized.includes("dinner") || normalized.includes("hearth") || normalized.includes("long_sit")) return CANONICAL_FLAGSHIP_MOMENTS[4];
   if (normalized.includes("star") || normalized.includes("night") || normalized.includes("fire")) return CANONICAL_FLAGSHIP_MOMENTS[5];
+  if (normalized.includes("coast") || normalized.includes("discovery") || normalized.includes("beach") || normalized.includes("cove")) return CANONICAL_FLAGSHIP_MOMENTS[6];
+  if (normalized.includes("urban") || normalized.includes("retreat") || normalized.includes("courtyard") || normalized.includes("city")) return CANONICAL_FLAGSHIP_MOMENTS[7];
   return CANONICAL_FLAGSHIP_MOMENTS[0];
 }
 
-// src/lib/mastermind.ts
+// src/lib/mastermind-policy.ts
+var readDates = (enquiry2) => ({
+  checkIn: enquiry2.checkIn || enquiry2.dates?.checkIn,
+  checkOut: enquiry2.checkOut || enquiry2.dates?.checkOut
+});
+var overlaps = (aStart, aEnd, bStart, bEnd) => {
+  if (!bStart || !bEnd) return false;
+  const a0 = Date.parse(`${aStart}T00:00:00Z`);
+  const a1 = Date.parse(`${aEnd}T00:00:00Z`);
+  const b0 = Date.parse(`${bStart}T00:00:00Z`);
+  const b1 = Date.parse(`${bEnd}T00:00:00Z`);
+  if (![a0, a1, b0, b1].every(Number.isFinite)) return false;
+  return a0 < b1 && b0 < a1;
+};
+var isBlockingBooking = (enquiry2) => {
+  const stage = enquiry2.stage || "";
+  if (stage === "confirmed") return true;
+  if (!["hold", "payment_pending", "payment_received", "community_approval_pending", "community_approved"].includes(stage)) return false;
+  return isHoldActive(enquiry2.hold);
+};
+var matchingQuote = (propertyId, checkIn, checkOut, enquiries) => enquiries.find((enquiry2) => {
+  if (enquiry2.propertyId !== propertyId || !enquiry2.quote) return false;
+  const dates = readDates(enquiry2);
+  return dates.checkIn === checkIn && dates.checkOut === checkOut;
+});
 function evaluateStayIntake(intent, property2, assessment2, ownerDecision, existingEnquiries = []) {
   const timestamp = (/* @__PURE__ */ new Date()).toISOString();
-  const decisionVersion = "MASTERMIND-POLICY-2026.1";
-  const policyVersionsApplied = [
-    "BPS-TRUST-2026.1",
-    "BPS-SHIELD-2026.1",
-    "BPS-MOM-2026.1",
-    "LH-RATE-FLOOR-2026.1"
-  ];
+  const decisionVersion = "MASTERMIND-POLICY-2026.2";
+  const policyVersionsApplied = ["BPS-TRUST-2026.1", "BPS-SHIELD-2026.1", "BPS-MOM-2026.1", "LH-RATE-FLOOR-2026.2"];
   const chainSteps = [];
   const evidenceIdsReferenced = [];
   const reasons = [];
   const reasonsAr = [];
   const conflicts = [];
   const conflictsAr = [];
-  let overrideAuthorityRequired = void 0;
+  let overrideAuthorityRequired;
   const totalGuests = (intent.adults || 0) + (intent.children || 0);
   const canonicalMoment = resolveCanonicalMoment(intent.requestedMoment);
   const dateCheck = evaluateStayDates(intent.checkIn, intent.checkOut);
   if (!dateCheck.allowed) {
-    chainSteps.push({
-      stepIndex: 1,
-      name: "Guest Intent & Dates",
-      nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E",
-      status: "failed",
-      summary: dateCheck.reason,
-      summaryAr: "\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0635\u0627\u0644\u062D\u0629 \u0623\u0648 \u062A\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u063A\u0627\u062F\u0631\u0629 \u064A\u0633\u0628\u0642 \u0627\u0644\u0648\u0635\u0648\u0644.",
-      blocking: true
-    });
+    chainSteps.push({ stepIndex: 1, name: "Guest Intent & Dates", nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E", status: "failed", summary: dateCheck.reason, summaryAr: "\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0635\u0627\u0644\u062D\u0629.", blocking: true });
     reasons.push(`Invalid stay dates: ${dateCheck.reason}`);
     reasonsAr.push("\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0635\u0627\u0644\u062D\u0629.");
   } else {
-    chainSteps.push({
-      stepIndex: 1,
-      name: "Guest Intent & Dates",
-      nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E",
-      status: "passed",
-      summary: `Valid stay window: ${dateCheck.nights} nights (${intent.checkIn} to ${intent.checkOut}) for ${totalGuests} guests.`,
-      summaryAr: `\u0641\u062A\u0631\u0629 \u0625\u0642\u0627\u0645\u0629 \u0635\u062D\u064A\u062D\u0629: ${dateCheck.nights} \u0644\u064A\u0627\u0644\u064D \u0644\u0639\u062F\u062F ${totalGuests} \u0636\u064A\u0648\u0641.`,
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 1, name: "Guest Intent & Dates", nameAr: "\u0646\u064A\u0629 \u0627\u0644\u0636\u064A\u0641 \u0648\u0635\u062D\u0629 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E", status: "passed", summary: `Valid stay window: ${dateCheck.nights} nights for ${totalGuests} guests.`, summaryAr: `\u0641\u062A\u0631\u0629 \u0625\u0642\u0627\u0645\u0629 \u0635\u062D\u064A\u062D\u0629: ${dateCheck.nights} \u0644\u064A\u0627\u0644\u064D \u0644\u0639\u062F\u062F ${totalGuests} \u0636\u064A\u0648\u0641.`, blocking: false });
   }
   const hasMomentEvidence = (property2.provenMoments || []).some(
-    (m) => m.key === canonicalMoment.id || m.key === canonicalMoment.legacyKey || m.id === canonicalMoment.id
+    (moment) => moment.key === canonicalMoment.id || moment.key === canonicalMoment.legacyKey || moment.id === canonicalMoment.id
   );
   if (hasMomentEvidence) {
     const evidenceId = `ev-bps-${property2.id}-${canonicalMoment.id}`;
     evidenceIdsReferenced.push(evidenceId);
-    chainSteps.push({
-      stepIndex: 2,
-      name: "Moment Qualification",
-      nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629",
-      status: "passed",
-      summary: `Verified for "${canonicalMoment.title}". Physical BPS criteria satisfied.`,
-      summaryAr: `\u0645\u0624\u0647\u0644 \u0648\u0645\u0648\u062B\u0642 \u0644\u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}". \u0645\u0639\u0627\u064A\u064A\u0631 BPS \u0645\u0643\u062A\u0645\u0644\u0629.`,
-      evidenceRef: evidenceId,
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 2, name: "Moment Qualification", nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629", status: "passed", summary: `Verified for "${canonicalMoment.title}".`, summaryAr: `\u0645\u0648\u062B\u0642 \u0644\u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}".`, evidenceRef: evidenceId, blocking: false });
   } else {
-    chainSteps.push({
-      stepIndex: 2,
-      name: "Moment Qualification",
-      nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629",
-      status: "warning",
-      summary: `Property has not officially proven "${canonicalMoment.title}". Flagged for operator review or alternative moment match.`,
-      summaryAr: `\u0644\u0645 \u064A\u062B\u0628\u062A \u0627\u0644\u0645\u0633\u0643\u0646 \u0631\u0633\u0645\u064A\u0627\u064B \u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}". \u064A\u0644\u0632\u0645 \u0645\u0631\u0627\u062C\u0639\u0629 \u0627\u0644\u0645\u0634\u063A\u0644.`,
-      blocking: false
-    });
-    conflicts.push(`Requested moment "${canonicalMoment.title}" is not yet proven on this property.`);
-    conflictsAr.push(`\u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 "${canonicalMoment.titleAr}" \u063A\u064A\u0631 \u0645\u0648\u062B\u0642\u0629 \u0628\u0639\u062F \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0643\u0646.`);
+    chainSteps.push({ stepIndex: 2, name: "Moment Qualification", nameAr: "\u062A\u0623\u0647\u064A\u0644 \u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629", status: "warning", summary: `"${canonicalMoment.title}" is not proven for this property.`, summaryAr: `\u0627\u0644\u0644\u062D\u0638\u0629 "${canonicalMoment.titleAr}" \u063A\u064A\u0631 \u0645\u0648\u062B\u0642\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0643\u0646.`, blocking: false });
+    conflicts.push(`Requested moment "${canonicalMoment.title}" is not proven.`);
+    conflictsAr.push("\u0627\u0644\u0644\u062D\u0638\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u063A\u064A\u0631 \u0645\u0648\u062B\u0642\u0629.");
   }
-  const isLiveAndSealed = property2.supplyStage === "live" && property2.sealIssued;
+  const isLiveAndSealed = property2.supplyStage === "live" && property2.sealIssued === true;
   if (!isLiveAndSealed) {
-    chainSteps.push({
-      stepIndex: 3,
-      name: "Property Truth & Seal",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F",
-      status: "failed",
-      summary: `Property is in "${property2.supplyStage}" stage (Seal: ${property2.sealIssued ? "Issued" : "Missing"}). Stays cannot be confirmed.`,
-      summaryAr: `\u0627\u0644\u0645\u0633\u0643\u0646 \u0641\u064A \u0645\u0631\u062D\u0644\u0629 "${property2.supplyStage}" \u0648\u0627\u0644\u062E\u062A\u0645 \u063A\u064A\u0631 \u0645\u062A\u0627\u062D. \u0644\u0627 \u064A\u0645\u0643\u0646 \u062D\u062C\u0632 \u0625\u0642\u0627\u0645\u0629 \u063A\u064A\u0631 \u0645\u0639\u062A\u0645\u062F\u0629.`,
-      blocking: true
-    });
-    reasons.push("Unsealed residence cannot be confirmed for stay.");
-    reasonsAr.push("\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0623\u0643\u064A\u062F \u0625\u0642\u0627\u0645\u0629 \u0641\u064A \u0645\u0633\u0643\u0646 \u063A\u064A\u0631 \u062D\u0627\u0635\u0644 \u0639\u0644\u0649 \u062E\u062A\u0645 \u0627\u0644\u062C\u0648\u062F\u0629.");
+    chainSteps.push({ stepIndex: 3, name: "Property Truth & Seal", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F", status: "failed", summary: `Property is not Live and sealed (stage: ${property2.supplyStage || "unknown"}).`, summaryAr: "\u0627\u0644\u0645\u0633\u0643\u0646 \u063A\u064A\u0631 \u0645\u0646\u0634\u0648\u0631 \u0628\u062E\u062A\u0645 Live \u0635\u0627\u0644\u062D.", blocking: true });
+    reasons.push("Unsealed residence cannot be confirmed.");
+    reasonsAr.push("\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0623\u0643\u064A\u062F \u0625\u0642\u0627\u0645\u0629 \u0641\u064A \u0645\u0633\u0643\u0646 \u063A\u064A\u0631 \u0645\u0639\u062A\u0645\u062F.");
   } else {
-    chainSteps.push({
-      stepIndex: 3,
-      name: "Property Truth & Seal",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F",
-      status: "passed",
-      summary: "Property holds Little Hut Active Seal of Standard with zero drift.",
-      summaryAr: "\u0627\u0644\u0645\u0633\u0643\u0646 \u064A\u062D\u0645\u0644 \u062E\u062A\u0645 \u0644\u064A\u062A\u0644 \u0647\u062A \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u062F\u0648\u0646 \u0623\u064A \u0627\u0646\u062D\u0631\u0627\u0641.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 3, name: "Property Truth & Seal", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u062E\u062A\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F", status: "passed", summary: "Server-issued Live seal present.", summaryAr: "\u062E\u062A\u0645 Live \u0627\u0644\u0635\u0627\u062F\u0631 \u0645\u0646 \u0627\u0644\u062E\u0627\u062F\u0645 \u0645\u0648\u062C\u0648\u062F.", blocking: false });
   }
   if (assessment2) {
-    const trustPass = (assessment2.trustGates || []).every((g) => g.status === "passed");
-    const shieldPass = (assessment2.shieldGates || []).every((g) => g.status === "passed");
-    if (!trustPass || !shieldPass) {
-      chainSteps.push({
-        stepIndex: 4,
-        name: "BPS Trust & Shield Status",
-        nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
-        status: "failed",
-        summary: "One or more canonical BPS Trust or Shield gates are incomplete or unresolved.",
-        summaryAr: "\u0625\u062D\u062F\u0649 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0623\u0648 \u0627\u0644\u0623\u0645\u0627\u0646 \u0641\u064A \u062A\u0642\u064A\u064A\u0645 BPS \u063A\u064A\u0631 \u0645\u062C\u062A\u0627\u0632\u0629.",
-        blocking: true
-      });
-      reasons.push("Independent BPS evaluation has unresolved gates.");
-      reasonsAr.push("\u062A\u0642\u064A\u064A\u0645 BPS \u0627\u0644\u0645\u0633\u062A\u0642\u0644 \u064A\u062D\u062A\u0648\u064A \u0639\u0644\u0649 \u0628\u0648\u0627\u0628\u0627\u062A \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644\u0629.");
+    const trust = assessment2.trustGates || [];
+    const shield = assessment2.shieldGates || assessment2.shieldChecks || [];
+    const complete = trust.length === 6 && shield.length === 6 && [...trust, ...shield].every((gate) => gate.status === "passed");
+    if (!complete) {
+      chainSteps.push({ stepIndex: 4, name: "BPS Trust & Shield Status", nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A BPS", status: "failed", summary: "Canonical 6 Trust + 6 Shield evidence is not fully passed.", summaryAr: "\u0628\u0648\u0627\u0628\u0627\u062A BPS \u0627\u0644\u0633\u062A \u0644\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0633\u062A \u0644\u0644\u0623\u0645\u0627\u0646 \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644\u0629.", blocking: true });
+      reasons.push("Independent BPS gate set is incomplete or unresolved.");
+      reasonsAr.push("\u062A\u0642\u064A\u064A\u0645 BPS \u0627\u0644\u0645\u0633\u062A\u0642\u0644 \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644.");
     } else {
-      chainSteps.push({
-        stepIndex: 4,
-        name: "BPS Trust & Shield Status",
-        nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
-        status: "passed",
-        summary: "12 of 12 canonical BPS gates (6 Trust + 6 Shield) passed and current.",
-        summaryAr: "\u0661\u0662 \u0645\u0646 \u0661\u0662 \u0628\u0648\u0627\u0628\u0629 BPS (\u0666 \u062B\u0642\u0629 + \u0666 \u0623\u0645\u0627\u0646) \u0645\u062C\u062A\u0627\u0632\u0629 \u0648\u0633\u0627\u0631\u064A\u0629.",
-        blocking: false
-      });
+      chainSteps.push({ stepIndex: 4, name: "BPS Trust & Shield Status", nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A BPS", status: "passed", summary: "12/12 canonical BPS gates passed.", summaryAr: "\u062A\u0645 \u0627\u062C\u062A\u064A\u0627\u0632 \u0661\u0662/\u0661\u0662 \u0645\u0646 \u0628\u0648\u0627\u0628\u0627\u062A BPS.", blocking: false });
     }
   } else {
-    chainSteps.push({
-      stepIndex: 4,
-      name: "BPS Trust & Shield Status",
-      nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A \u0627\u0644\u062B\u0642\u0629 \u0648\u0627\u0644\u0623\u0645\u0627\u0646 BPS",
-      status: isLiveAndSealed ? "passed" : "warning",
-      summary: isLiveAndSealed ? "Assessment on record holds current seal." : "No assessment record loaded.",
-      summaryAr: isLiveAndSealed ? "\u0627\u0644\u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u0645\u0633\u062C\u0644 \u064A\u062D\u0645\u0644 \u062E\u062A\u0645\u0627\u064B \u0633\u0627\u0631\u064A\u0627\u064B." : "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u062A\u0642\u064A\u064A\u0645 \u0645\u062D\u0645\u0644.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 4, name: "BPS Trust & Shield Status", nameAr: "\u062D\u0627\u0644\u0629 \u0628\u0648\u0627\u0628\u0627\u062A BPS", status: isLiveAndSealed ? "passed" : "warning", summary: isLiveAndSealed ? "Current server seal attests the completed BPS gate." : "Assessment evidence is not loaded.", summaryAr: isLiveAndSealed ? "\u062E\u062A\u0645 \u0627\u0644\u062E\u0627\u062F\u0645 \u0627\u0644\u062D\u0627\u0644\u064A \u064A\u062B\u0628\u062A \u0627\u062C\u062A\u064A\u0627\u0632 BPS." : "\u0623\u062F\u0644\u0629 \u0627\u0644\u062A\u0642\u064A\u064A\u0645 \u063A\u064A\u0631 \u0645\u062D\u0645\u0644\u0629.", blocking: false });
   }
-  const overlappingHold = existingEnquiries.find(
-    (e) => e.propertyId === property2.id && ["hold", "payment_pending", "payment_received", "confirmed"].includes(e.stage || "") && isHoldActive(e.hold)
-  );
-  if (overlappingHold) {
-    chainSteps.push({
-      stepIndex: 5,
-      name: "Calendar & Availability Truth",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631",
-      status: "failed",
-      summary: `Active calendar hold exists until ${overlappingHold.hold?.expiresAt}.`,
-      summaryAr: "\u064A\u0648\u062C\u062F \u062D\u062C\u0632 \u0645\u0624\u0642\u062A \u0633\u0627\u0631\u064D \u0639\u0644\u0649 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0644\u0647\u0630\u0647 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E.",
-      blocking: true
-    });
-    reasons.push("Selected stay dates are blocked by an active calendar hold.");
-    reasonsAr.push("\u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u062E\u062A\u0627\u0631\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0628\u062D\u062C\u0632 \u0645\u0624\u0642\u062A \u0633\u0627\u0631\u064D.");
+  const overlappingBooking = dateCheck.allowed ? existingEnquiries.find((enquiry2) => {
+    if (enquiry2.propertyId !== property2.id || !isBlockingBooking(enquiry2)) return false;
+    const dates = readDates(enquiry2);
+    return overlaps(intent.checkIn, intent.checkOut, dates.checkIn, dates.checkOut);
+  }) : void 0;
+  const calendarAuthority = property2.calendarAuthority || "unknown";
+  if (overlappingBooking) {
+    chainSteps.push({ stepIndex: 5, name: "Calendar & Availability Truth", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631", status: "failed", summary: `Requested dates overlap active enquiry ${overlappingBooking.id}.`, summaryAr: "\u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u062A\u062A\u0639\u0627\u0631\u0636 \u0645\u0639 \u062D\u062C\u0632 \u0623\u0648 \u062A\u0639\u0644\u064A\u0642 \u0646\u0634\u0637.", blocking: true });
+    reasons.push("Requested dates overlap an active hold or confirmed booking.");
+    reasonsAr.push("\u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u063A\u064A\u0631 \u0645\u062A\u0627\u062D\u0629.");
+  } else if (calendarAuthority === "unknown") {
+    chainSteps.push({ stepIndex: 5, name: "Calendar & Availability Truth", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631", status: "warning", summary: "Calendar authority is unknown; availability cannot be asserted.", summaryAr: "\u0633\u0644\u0637\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u063A\u064A\u0631 \u0645\u0639\u0631\u0648\u0641\u0629 \u0648\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0623\u0643\u064A\u062F \u0627\u0644\u062A\u0648\u0641\u0631.", blocking: false });
+    conflicts.push("Calendar authority must be verified before confirmation.");
+    conflictsAr.push("\u064A\u062C\u0628 \u0627\u0644\u062A\u062D\u0642\u0642 \u0645\u0646 \u0633\u0644\u0637\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0642\u0628\u0644 \u0627\u0644\u062A\u0623\u0643\u064A\u062F.");
+    overrideAuthorityRequired = "operator";
   } else {
-    chainSteps.push({
-      stepIndex: 5,
-      name: "Calendar & Availability Truth",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631",
-      status: "passed",
-      summary: `Direct calendar authority held by Little Hut. Dates open.`,
-      summaryAr: "\u0633\u0644\u0637\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0627\u0644\u0645\u0628\u0627\u0634\u0631\u0629 \u0644\u062F\u0649 \u0644\u064A\u062A\u0644 \u0647\u062A. \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0645\u062A\u0627\u062D\u0629.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 5, name: "Calendar & Availability Truth", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u062A\u0648\u0641\u0631", status: "passed", summary: `No overlapping active booking found; calendar authority: ${calendarAuthority}.`, summaryAr: "\u0644\u0627 \u064A\u0648\u062C\u062F \u062A\u0639\u0627\u0631\u0636 \u0646\u0634\u0637 \u0641\u064A \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629.", blocking: false });
   }
-  const floor = property2.nightlyFloorEgp || 5e3;
-  const quoteCheck = evaluateRateFloor(property2, floor);
-  if (!quoteCheck.allowed) {
-    chainSteps.push({
-      stepIndex: 6,
-      name: "Rate Truth & Owner Floor",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u0645\u0627\u064A\u0629 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649",
-      status: "failed",
-      summary: quoteCheck.reason,
-      summaryAr: "\u0633\u0639\u0631 \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u0627\u0644\u0645\u0642\u062A\u0631\u062D \u064A\u0642\u0644 \u0639\u0646 \u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u0644\u0644\u0645\u0627\u0644\u0643.",
-      blocking: true
-    });
-    reasons.push("Owner rate floor is violated.");
-    reasonsAr.push("\u0645\u062E\u0627\u0644\u0641\u0629 \u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0627\u0644\u0643.");
+  const floor = property2.nightlyFloorEgp ?? property2.rateFloor ?? ownerDecision?.nightlyFloorEgp ?? ownerDecision?.rateFloorValue ?? 0;
+  if (!Number.isFinite(floor) || floor <= 0) {
+    chainSteps.push({ stepIndex: 6, name: "Rate Truth & Owner Floor", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643", status: "failed", summary: "No governed owner rate floor is available.", summaryAr: "\u0644\u0627 \u064A\u0648\u062C\u062F \u062D\u062F \u0623\u062F\u0646\u0649 \u0645\u0639\u062A\u0645\u062F \u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0627\u0644\u0643.", blocking: true });
+    reasons.push("Owner rate floor is missing.");
+    reasonsAr.push("\u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649 \u063A\u064A\u0631 \u0645\u062A\u0648\u0641\u0631.");
   } else {
-    chainSteps.push({
-      stepIndex: 6,
-      name: "Rate Truth & Owner Floor",
-      nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u0645\u0627\u064A\u0629 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649",
-      status: "passed",
-      summary: `Rate floor ${floor.toLocaleString()} EGP/night respected.`,
-      summaryAr: `\u0627\u0644\u0633\u0639\u0631 \u064A\u062D\u062A\u0631\u0645 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u062F\u0646\u0649 (${floor.toLocaleString()} \u062C.\u0645/\u0644\u064A\u0644\u0629).`,
-      blocking: false
-    });
+    const quote2 = matchingQuote(property2.id, intent.checkIn, intent.checkOut, existingEnquiries)?.quote;
+    const quoteCheck = quote2 ? evaluateRateFloor(property2, quote2.nightlyRateEgp) : { allowed: true, reason: "No quote issued yet." };
+    if (!quoteCheck.allowed) {
+      chainSteps.push({ stepIndex: 6, name: "Rate Truth & Owner Floor", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643", status: "failed", summary: quoteCheck.reason, summaryAr: "\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0635\u0627\u062F\u0631 \u0623\u0642\u0644 \u0645\u0646 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643.", blocking: true });
+      reasons.push("Issued quote violates owner floor.");
+      reasonsAr.push("\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0635\u0627\u062F\u0631 \u064A\u062E\u0627\u0644\u0641 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643.");
+    } else {
+      chainSteps.push({ stepIndex: 6, name: "Rate Truth & Owner Floor", nameAr: "\u062D\u0642\u064A\u0642\u0629 \u0627\u0644\u0633\u0639\u0631 \u0648\u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643", status: "passed", summary: quote2 ? `Operator quote respects ${floor.toLocaleString()} EGP owner floor.` : `Owner floor verified at ${floor.toLocaleString()} EGP; quote not issued yet.`, summaryAr: `\u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643 \u0627\u0644\u0645\u0639\u062A\u0645\u062F ${floor.toLocaleString()} \u062C.\u0645.`, blocking: false });
+    }
   }
-  const payoutReady = property2.payoutReady;
-  if (!payoutReady) {
-    chainSteps.push({
-      stepIndex: 7,
-      name: "Operational Payout & Readiness",
-      nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0633\u062A\u062D\u0642\u0627\u062A",
-      status: "warning",
-      summary: "Owner payout destination pending. Can take request, but payout setup required before money intake.",
-      summaryAr: "\u062D\u0633\u0627\u0628 \u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0627\u0644\u0643 \u0642\u064A\u062F \u0627\u0644\u0627\u0633\u062A\u0643\u0645\u0627\u0644. \u064A\u0644\u0632\u0645 \u0627\u0644\u0627\u0639\u062A\u0645\u0627\u062F \u0642\u0628\u0644 \u0627\u0633\u062A\u0644\u0627\u0645 \u0627\u0644\u0623\u0645\u0648\u0627\u0644.",
-      blocking: false
-    });
-    conflicts.push("Owner payout account is not yet validated for bank wire transfer.");
-    conflictsAr.push("\u062D\u0633\u0627\u0628 \u0645\u0633\u062A\u062D\u0642\u0627\u062A \u0627\u0644\u0645\u0627\u0644\u0643 \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644 \u0628\u0639\u062F \u0644\u0644\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0628\u0646\u0643\u064A.");
+  if (!property2.payoutReady) {
+    chainSteps.push({ stepIndex: 7, name: "Operational Payout & Readiness", nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u0627\u0644\u062A\u062D\u0648\u064A\u0644", status: "warning", summary: "Owner payout destination is not ready; money intake must not proceed.", summaryAr: "\u0645\u0633\u0627\u0631 \u0645\u0633\u062A\u062D\u0642\u0627\u062A \u0627\u0644\u0645\u0627\u0644\u0643 \u063A\u064A\u0631 \u062C\u0627\u0647\u0632 \u0648\u0644\u0627 \u064A\u062C\u0648\u0632 \u0627\u0633\u062A\u0644\u0627\u0645 \u0627\u0644\u0623\u0645\u0648\u0627\u0644.", blocking: false });
+    conflicts.push("Payout readiness is incomplete.");
+    conflictsAr.push("\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u062D\u0648\u064A\u0644 \u063A\u064A\u0631 \u0645\u0643\u062A\u0645\u0644\u0629.");
   } else {
-    chainSteps.push({
-      stepIndex: 7,
-      name: "Operational Payout & Readiness",
-      nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0633\u062A\u062D\u0642\u0627\u062A",
-      status: "passed",
-      summary: "Payout rails verified and operational baseline in place.",
-      summaryAr: "\u0645\u0633\u0627\u0631 \u0627\u0644\u062A\u062D\u0648\u064A\u0644 \u0627\u0644\u0645\u0627\u0644\u064A \u0645\u0648\u062B\u0642 \u0648\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0645\u0643\u062A\u0645\u0644\u0629.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 7, name: "Operational Payout & Readiness", nameAr: "\u0627\u0644\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A\u0629 \u0648\u0627\u0644\u062A\u062D\u0648\u064A\u0644", status: "passed", summary: "Payout readiness verified.", summaryAr: "\u062C\u0627\u0647\u0632\u064A\u0629 \u0627\u0644\u062A\u062D\u0648\u064A\u0644 \u0645\u0648\u062B\u0642\u0629.", blocking: false });
   }
-  const communityRequired = property2.communityApprovalRequired;
+  const communityRequired = Boolean(property2.communityApprovalRequired);
   if (communityRequired) {
-    chainSteps.push({
-      stepIndex: 8,
-      name: "Community & Compound Rules",
-      nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0643\u0645\u0628\u0648\u0646\u062F \u0648\u0627\u0644\u062C\u0647\u0627\u062A \u0627\u0644\u0645\u0634\u0631\u0641\u0629",
-      status: "warning",
-      summary: "AZHA/Community gate pass requires named national ID clearance prior to arrival. Instant booking disabled.",
-      summaryAr: "\u062F\u062E\u0648\u0644 \u0643\u0645\u0628\u0648\u0646\u062F \u0623\u0632\u0647\u0627 \u064A\u062A\u0637\u0644\u0628 \u062A\u0635\u0631\u064A\u062D \u0628\u0648\u0627\u0628\u0629 \u0645\u0633\u0628\u0642 \u0628\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0642\u0648\u0645\u064A. \u0627\u0644\u062D\u062C\u0632 \u0627\u0644\u0641\u0648\u0631\u064A \u063A\u064A\u0631 \u0645\u0641\u0639\u0644.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 8, name: "Community & Destination Rules", nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0645\u062C\u062A\u0645\u0639 \u0648\u0627\u0644\u0648\u062C\u0647\u0629", status: "warning", summary: "External community approval is required before confirmation.", summaryAr: "\u0645\u0648\u0627\u0641\u0642\u0629 \u0627\u0644\u062C\u0647\u0629 \u0627\u0644\u062E\u0627\u0631\u062C\u064A\u0629 \u0645\u0637\u0644\u0648\u0628\u0629 \u0642\u0628\u0644 \u0627\u0644\u062A\u0623\u0643\u064A\u062F.", blocking: false });
     overrideAuthorityRequired = "community_authority";
   } else {
-    chainSteps.push({
-      stepIndex: 8,
-      name: "Community & Compound Rules",
-      nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0643\u0645\u0628\u0648\u0646\u062F \u0648\u0627\u0644\u062C\u0647\u0627\u062A \u0627\u0644\u0645\u0634\u0631\u0641\u0629",
-      status: "passed",
-      summary: "Independent access; no external gate pass clearance required.",
-      summaryAr: "\u062F\u062E\u0648\u0644 \u0645\u0633\u062A\u0642\u0644 \u062F\u0648\u0646 \u0645\u062A\u0637\u0644\u0628\u0627\u062A \u062A\u0635\u0631\u064A\u062D \u0628\u0648\u0627\u0628\u0629 \u062E\u0627\u0631\u062C\u064A\u0629.",
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 8, name: "Community & Destination Rules", nameAr: "\u0642\u0648\u0627\u0639\u062F \u0627\u0644\u0645\u062C\u062A\u0645\u0639 \u0648\u0627\u0644\u0648\u062C\u0647\u0629", status: "passed", summary: "No external community approval gate applies.", summaryAr: "\u0644\u0627 \u062A\u0648\u062C\u062F \u0628\u0648\u0627\u0628\u0629 \u0645\u0648\u0627\u0641\u0642\u0629 \u062E\u0627\u0631\u062C\u064A\u0629 \u0645\u0637\u0644\u0648\u0628\u0629.", blocking: false });
   }
-  const maxCap = property2.maxGuests || property2.maxCapacity || 6;
-  if (totalGuests > maxCap) {
-    chainSteps.push({
-      stepIndex: 9,
-      name: "Capacity & Material Risk",
-      nameAr: "\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
-      status: "failed",
-      summary: `Party size of ${totalGuests} exceeds residence capacity of ${maxCap}.`,
-      summaryAr: `\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 (${totalGuests}) \u064A\u062A\u062C\u0627\u0648\u0632 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0642\u0635\u0648\u0649 \u0644\u0644\u0645\u0633\u0643\u0646 (${maxCap}).`,
-      blocking: true
-    });
-    reasons.push(`Party size (${totalGuests}) exceeds maximum capacity (${maxCap}).`);
-    reasonsAr.push(`\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u064A\u062A\u062C\u0627\u0648\u0632 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0645\u0648\u062D\u0629 (${maxCap}).`);
+  const maxCapacity = property2.maxGuests ?? property2.maxCapacity ?? 0;
+  if (!Number.isInteger(maxCapacity) || maxCapacity <= 0 || totalGuests > maxCapacity) {
+    chainSteps.push({ stepIndex: 9, name: "Capacity & Material Risk", nameAr: "\u0627\u0644\u0633\u0639\u0629 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644", status: "failed", summary: maxCapacity > 0 ? `Party size ${totalGuests} exceeds verified capacity ${maxCapacity}.` : "Verified maximum capacity is missing.", summaryAr: maxCapacity > 0 ? "\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u064A\u062A\u062C\u0627\u0648\u0632 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629." : "\u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0642\u0635\u0648\u0649 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629 \u063A\u064A\u0631 \u0645\u062A\u0648\u0641\u0631\u0629.", blocking: true });
+    reasons.push(maxCapacity > 0 ? "Party exceeds verified capacity." : "Verified capacity is missing.");
+    reasonsAr.push("\u0641\u0634\u0644 \u062A\u062D\u0642\u0642 \u0627\u0644\u0633\u0639\u0629.");
   } else {
-    chainSteps.push({
-      stepIndex: 9,
-      name: "Capacity & Material Risk",
-      nameAr: "\u0633\u0639\u0629 \u0627\u0644\u0645\u0633\u0643\u0646 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
-      status: "passed",
-      summary: `Party size (${totalGuests}) within verified maximum capacity (${maxCap}).`,
-      summaryAr: `\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u0636\u0645\u0646 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0642\u0635\u0648\u0649 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629 \u0644\u0644\u0645\u0646\u0632\u0644 (${maxCap}).`,
-      blocking: false
-    });
+    chainSteps.push({ stepIndex: 9, name: "Capacity & Material Risk", nameAr: "\u0627\u0644\u0633\u0639\u0629 \u0648\u0645\u062E\u0627\u0637\u0631 \u0627\u0644\u062A\u0634\u063A\u064A\u0644", status: "passed", summary: `Party size ${totalGuests} is within verified capacity ${maxCapacity}.`, summaryAr: "\u0639\u062F\u062F \u0627\u0644\u0636\u064A\u0648\u0641 \u0636\u0645\u0646 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629.", blocking: false });
   }
-  const nights = dateCheck.nights || 3;
-  const nightlyRate = Math.max(floor, 5500);
-  const accommodationEgp = nights * nightlyRate;
-  const littleHutFeeEgp = Math.round(accommodationEgp * 0.12);
-  const cleaningFeeEgp = 1200;
-  const refundableDepositEgp = 3500;
-  const totalEgp = accommodationEgp + littleHutFeeEgp + cleaningFeeEgp + refundableDepositEgp;
-  chainSteps.push({
-    stepIndex: 10,
-    name: "Commercial Transparency & Quote",
-    nameAr: "\u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629 \u0648\u062D\u0633\u0627\u0628 \u0627\u0644\u062A\u0643\u0644\u0641\u0629",
-    status: "passed",
-    summary: `Accommodation: ${accommodationEgp.toLocaleString()} EGP \xB7 Platform Fee: ${littleHutFeeEgp.toLocaleString()} EGP \xB7 Total: ${totalEgp.toLocaleString()} EGP`,
-    summaryAr: `\u0627\u0644\u0625\u0642\u0627\u0645\u0629: ${accommodationEgp.toLocaleString()} \u062C.\u0645 \xB7 \u0627\u0644\u0631\u0633\u0648\u0645: ${littleHutFeeEgp.toLocaleString()} \u062C.\u0645 \xB7 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A: ${totalEgp.toLocaleString()} \u062C.\u0645`,
-    blocking: false
-  });
-  const hasBlockingFailure = chainSteps.some((s) => s.status === "failed" && s.blocking);
-  const hasWarnings = chainSteps.some((s) => s.status === "warning");
-  let decision2 = "recommend";
-  if (hasBlockingFailure) {
-    decision2 = "block";
-  } else if (communityRequired || hasWarnings || !hasMomentEvidence) {
-    decision2 = "require_human_review";
+  const quotedEnquiry = matchingQuote(property2.id, intent.checkIn, intent.checkOut, existingEnquiries);
+  const quote = quotedEnquiry?.quote;
+  let commercialSummary;
+  if (!quote) {
+    chainSteps.push({ stepIndex: 10, name: "Commercial Transparency & Quote", nameAr: "\u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629 \u0648\u0627\u0644\u0633\u0639\u0631", status: "warning", summary: "No operator-issued quote exists for these exact dates. Mastermind will not fabricate one.", summaryAr: "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u0639\u0631 \u0635\u0627\u062F\u0631 \u0645\u0646 \u0627\u0644\u0645\u0634\u063A\u0644 \u0644\u0647\u0630\u0647 \u0627\u0644\u062A\u0648\u0627\u0631\u064A\u062E \u0648\u0644\u0646 \u064A\u0646\u0634\u0626 \u0627\u0644\u0646\u0638\u0627\u0645 \u0633\u0639\u0631\u0627\u064B \u0627\u0641\u062A\u0631\u0627\u0636\u064A\u0627\u064B.", blocking: false });
+    conflicts.push("A governed operator quote is required before payment or confirmation.");
+    conflictsAr.push("\u064A\u0644\u0632\u0645 \u0633\u0639\u0631 \u0645\u0639\u062A\u0645\u062F \u0645\u0646 \u0627\u0644\u0645\u0634\u063A\u0644 \u0642\u0628\u0644 \u0627\u0644\u062F\u0641\u0639 \u0623\u0648 \u0627\u0644\u062A\u0623\u0643\u064A\u062F.");
     overrideAuthorityRequired = overrideAuthorityRequired || "operator";
+  } else {
+    const floorRespected = floor > 0 && quote.nightlyRateEgp >= floor;
+    chainSteps.push({ stepIndex: 10, name: "Commercial Transparency & Quote", nameAr: "\u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629 \u0648\u0627\u0644\u0633\u0639\u0631", status: floorRespected ? "passed" : "failed", summary: floorRespected ? `Using operator-issued quote: ${quote.totalEgp.toLocaleString()} EGP total.` : "Operator-issued quote violates the owner floor.", summaryAr: floorRespected ? `\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u0645\u0646 \u0627\u0644\u0645\u0634\u063A\u0644: ${quote.totalEgp.toLocaleString()} \u062C.\u0645 \u0625\u062C\u0645\u0627\u0644\u064A.` : "\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u064A\u062E\u0627\u0644\u0641 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643.", blocking: !floorRespected });
+    if (!floorRespected) {
+      reasons.push("Operator quote violates owner floor.");
+      reasonsAr.push("\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0645\u0639\u062A\u0645\u062F \u064A\u062E\u0627\u0644\u0641 \u062D\u062F \u0627\u0644\u0645\u0627\u0644\u0643.");
+    }
+    commercialSummary = {
+      nightlyRateEgp: quote.nightlyRateEgp,
+      nights: quote.nights,
+      accommodationEgp: quote.accommodationEgp,
+      feesEgp: quote.feesEgp,
+      totalEgp: quote.totalEgp,
+      issuedAt: quote.issuedAt,
+      source: "operator_quote",
+      ownerFloorRespected: floorRespected
+    };
   }
+  const hasBlockingFailure = chainSteps.some((step) => step.status === "failed" && step.blocking);
+  const hasWarnings = chainSteps.some((step) => step.status === "warning");
+  let decision2 = "recommend";
+  if (hasBlockingFailure) decision2 = "block";
+  else if (communityRequired || hasWarnings || !hasMomentEvidence) decision2 = "require_human_review";
   return {
     decision: decision2,
     decisionVersion,
@@ -2999,11 +3156,11 @@ function evaluateStayIntake(intent, property2, assessment2, ownerDecision, exist
       requestedMoment: canonicalMoment.title,
       checkIn: intent.checkIn,
       checkOut: intent.checkOut,
-      nights,
+      nights: dateCheck.nights || 0,
       partySize: totalGuests,
       rateFloorEgp: floor,
-      calendarAuthority: property2.calendarAuthority || "little_hut",
-      communityApprovalRequired: Boolean(communityRequired)
+      calendarAuthority,
+      communityApprovalRequired: communityRequired
     },
     evidenceIdsReferenced,
     policyVersionsApplied,
@@ -3012,16 +3169,7 @@ function evaluateStayIntake(intent, property2, assessment2, ownerDecision, exist
     conflictingConstraints: conflicts,
     conflictingConstraintsAr: conflictsAr,
     overrideAuthorityRequired,
-    commercialSummary: {
-      nightlyRateEgp: nightlyRate,
-      nights,
-      accommodationEgp,
-      littleHutFeeEgp,
-      cleaningFeeEgp,
-      refundableDepositEgp,
-      totalEgp,
-      ownerFloorRespected: true
-    }
+    commercialSummary
   };
 }
 

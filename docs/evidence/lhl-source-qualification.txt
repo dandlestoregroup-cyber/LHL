@@ -1,0 +1,153 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> react-example@0.0.0 qualify
+> npm test && npm run lint && npm run build
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> react-example@0.0.0 test
+> node src/lib/lh-core.selftest.mjs && node src/lib/security.selftest.mjs && node --import tsx src/data/demo.selftest.ts && node --import tsx src/data/guestbook.selftest.ts && node --import tsx src/data/operations.selftest.ts && node --import tsx src/lib/addon-policy.selftest.ts && node --import tsx src/lib/automation-gateway.selftest.ts && node --import tsx src/server/partner-invites.selftest.ts && node --import tsx src/server/live-supply.selftest.ts && node --import tsx src/server/live-outbox.selftest.ts && node --import tsx src/server/live-assurance.selftest.ts && node --import tsx src/lib/mastermind.selftest.ts && node --import tsx src/lib/guest-journey.selftest.ts && node --import tsx src/server/guest-contact.selftest.ts
+
+ok  eight canonical Moments are locked
+ok  six exact TRUST gates are locked
+ok  six exact SHIELD gates are locked
+ok  supply stages are locked
+ok  booking spine runs received to completed
+ok  listing cannot prove a Moment
+ok  owner claim cannot prove a Moment
+ok  independent assessment can prove a Moment
+ok  sealed public Live property is bookable
+ok  activation-ready property is not bookable
+ok  public cards never expose a rate
+ok  below-floor quote is rejected
+ok  quote at floor is accepted
+ok  valid stay dates return exact nights
+ok  empty check-in is rejected
+ok  empty check-out is rejected
+ok  same-day check-in and check-out is rejected
+ok  reversed stay dates are rejected
+ok  invalid calendar dates are rejected
+ok  money gate accepts floor, payout, and active hold
+ok  expired hold blocks payment
+ok  quote does not block calendar
+ok  active expiring hold blocks calendar
+ok  community approval disables instant
+ok  external calendar disables instant
+ok  independent all-clear assessment with complete gate sets and two Moments passes
+ok  non-independent assessment fails
+ok  one proven Moment fails
+ok  empty TRUST gate set fails
+ok  empty SHIELD gate set fails
+ok  missing TRUST gate fails
+ok  duplicate SHIELD gate fails
+ok  failed SHIELD gate fails
+ok  complete assessment, owner mandate, assignments, and activation allow Live
+ok  defer decision blocks Live
+ok  missing operator assignment blocks the system seal
+ok  missing public hero image blocks the system seal
+ok  missing guest capacity blocks the system seal
+ok  required community policy without named authority blocks the system seal
+ok  mismatched assessment authority blocks the system seal
+ok  mismatched owner authority blocks the system seal
+ok  pending community approval blocks confirmation after payment
+ok  approved community gate permits confirmation
+ok  clean Demo dataset boundary passes
+ok  Live record leaking into Demo is rejected
+
+45 core rules passed
+ok  scout cannot write assessment
+ok  operator cannot fabricate owner decision
+ok  owner cannot assess own property
+ok  assessor cannot quote
+ok  operator cannot issue community approval
+ok  community authority owns approval decision
+ok  operator cannot quote below owner floor
+ok  operator may quote at owner floor
+ok  operator cannot create expired hold
+ok  owner cannot execute confirmation
+ok  operator can confirm after payment, hold, and approval
+ok  Firestore limits operator property writes to operational fields
+ok  Firestore no longer uses the broad operator property-update bypass
+ok  Firestore enquiry updates are gated by an explicit transition function
+ok  Firestore starts booking progression at received to qualified
+ok  Firestore has no received-to-confirmed shortcut
+ok  Firestore requires the payment stage transition
+ok  Firestore requires payout readiness before payment_received
+ok  Firestore confirmation path requires recorded community evidence where applicable
+ok  Firestore public enquiry creation requires a sealed Live property
+
+20 authority rules passed
+ok  every Demo record is synthetic and Demo-scoped
+ok  Live boundary accepts the truth-only empty dataset
+ok  Live starts with no business records
+ok  mature Demo covers every supply stage
+ok  mature Demo covers every booking-spine stage
+ok  mature Demo covers every Partner authority
+ok  mature Demo uses all canonical Moments
+ok  every Demo property has a valid Scout relation
+ok  every Demo assessment has a valid independent Assessor relation
+ok  every public Demo home satisfies the complete Live gate
+ok  Demo includes a pending community-approval case
+ok  Demo includes an approved community case with evidence
+ok  Demo includes recorded payments
+ok  Demo includes active holds
+
+14 operating dataset checks passed
+--- Running Digital Visual Guest Book Self-Tests ---
+ok  Believable cross-guide visual assets verified
+ok  Compound resolution correctly identifies AZHA Ain Sokhna
+ok  Tailored property guestbook builds complete structured data
+ok  Seaward Library and alternative residences tailor correctly
+All Digital Visual Guest Book self-tests passed cleanly.
+--- Testing Little Hut Operations Layer (Azure Haven Proving Ground) ---
+✓ Automation rules and bilingual template variables verified
+✓ Scheduled messages integrity verified
+✓ Turnover job, moment-specific checklist, and photo proofs verified
+✓ AI Co-Host Mastermind recommendations and approval triggers verified
+✓ Smart-lock device status and synchronized PINs verified
+✓ Dynamic pricing strictly respects and guards Owner Rate Floor (6,000 EGP)
+✓ Mobile operations inbox structure verified
+--- All Little Hut Operations Layer Self-Tests Passed! ---
+--- Testing Little Hut Native Core + Configurable Add-ons Policy ---
+✓ Native core and add-on catalog boundaries verified
+✓ Vendor selection configures only; it never fabricates connection or activation
+✓ Legacy demo-style “synced” providers fail closed without verification evidence
+✓ Only verified + enabled external integrations become operational
+✓ Disconnect cleanly returns the property to native-only operation
+--- Little Hut Native Core + Configurable Add-ons Policy Passed ---
+automation gateway self-test: ok
+partner invitation self-test: ok
+live supply progression self-test: ok
+live outbox self-test: ok
+live stay assurance self-test: ok
+mastermind truth reconciliation self-test: ok
+guest journey: route, provenance, contact and persistence assertions passed
+guest contact: private write, redacted receipt/outbox and four-role scope checks passed
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> react-example@0.0.0 build
+> vite build && esbuild server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist-server/server.js
+
+vite v6.4.3 building for production...
+transforming...
+✓ 2150 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     1.53 kB │ gzip:   0.74 kB
+dist/assets/index-C-gRlZcD.css    104.11 kB │ gzip:  16.88 kB
+dist/assets/index-BnlhqeW1.js   1,196.36 kB │ gzip: 326.44 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.25s
+
+  dist-server/server.js  236.3kb
+
+⚡ Done in 7ms

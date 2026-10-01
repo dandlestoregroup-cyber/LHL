@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { DataMode, Enquiry, EnquiryStage, Language, MomentKey, OperatingDataset, OwnerDecision, Partner, Property } from '../types';
 import { OperatingRepository } from '../lib/operating-repository';
+import { provenGuestMoments } from '../lib/guest-journey';
 import { canConfirmStay, evaluateRateFloor, evaluateStayDates, isHoldActive } from '../lib/lh-core';
 import { automationPayload, publishAutomationEvent } from '../lib/automation';
 import {
@@ -21,6 +22,7 @@ import {
 interface NewEnquiryInput {
   propertyId: string;
   guestName: string;
+  guestPhone?: string;
   guestPhoneMasked: string;
   checkIn: string;
   checkOut: string;
@@ -146,7 +148,7 @@ export function OperatingProvider({ children }: { children: React.ReactNode }) {
     if (!Number.isInteger(input.adults) || input.adults < 1 || !Number.isInteger(input.children) || input.children < 0 || input.adults + input.children > property.maxGuests) {
       throw new Error('Guest count must be valid and within the property capacity.');
     }
-    if (!property.provenMoments.some((moment) => moment.key === input.requestedMoment)) {
+    if (!provenGuestMoments(property).some((moment) => moment.key === input.requestedMoment)) {
       throw new Error('The requested Moment must be independently proven for this property.');
     }
 

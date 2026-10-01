@@ -21,6 +21,8 @@ npm run build
 
 The locked business doctrine is in [`docs/operating-doctrine.md`](docs/operating-doctrine.md). Base44 v1 is reference-only and is not called, modified, or required by this repo.
 
+The current competitive build order and evidence gates are in [LHL — above rental automation](docs/PRD-LHL-Above-Rentello.md). It preserves the complete [controlled restoration contract](docs/LHL_Controlled_Restoration_Contract_2026-09-23.md); neither document establishes production acceptance or launch approval. The [consolidation decision](docs/GOOGLE_LOVABLE_CONSOLIDATION.md) governs source/publication precedence over older deployment notes.
+
 ## Live production boundary
 
 Live requires the server-only values documented in [`.env.example`](.env.example): Firebase Auth API key, Firestore project/service-account credentials, an HMAC session secret, bootstrap email, and the automation secrets when Activepieces is enabled.
